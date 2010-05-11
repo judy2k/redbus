@@ -56,21 +56,19 @@ public class StopBookmarks extends ListActivity
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		Toast.makeText(this, "HELLOCTX", Toast.LENGTH_SHORT).show();
 
-		// view next bus times for this stop (view stop times activity)
-		// view this stop on map
-		// edit this bookmark
-		// remove this bookmark
-
-		// FIXME: 
+		// FIXME: view next bus times for this stop (view stop times activity)
+		// FIXME: view this stop on map
+		// FIXME: edit this bookmark
+		// FIXME: remove this bookmark
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		Toast.makeText(this, "HELLOMENU", Toast.LENGTH_SHORT).show();
 
-		// show stops near me on map
-		// add stop bookmark by stopcode		
-		// view bus times for stopcode (view stop times activity)
+		// FIXME: show stops near me on map
+		// FIXME: add stop bookmark by stopcode		
+		// FIXME: view bus times for stopcode (view stop times activity)
 		// ???
 		// Profit!
 
