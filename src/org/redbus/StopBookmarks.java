@@ -11,21 +11,23 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
-public class StopBookmarks extends ListActivity {
-	
+public class StopBookmarks extends ListActivity 
+{	
 	private static final String[] columnNames = new String[] { rEdBusDBHelper.BOOKMARKS_ID, rEdBusDBHelper.BOOKMARKS_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
 	private Cursor listContentsCursor = null;
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState) 
+	{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.stopbookmarks);
         registerForContextMenu(getListView());
 	}
-	
+
 	@Override
-	protected void onStart() {
+	protected void onStart() 
+	{
 		super.onStart();
 		
 		if (listContentsCursor != null) {
@@ -33,7 +35,7 @@ public class StopBookmarks extends ListActivity {
 			listContentsCursor.close();
 		}
 		
-        rEdBusDBHelper db = new rEdBusDBHelper(this);
+        rEdBusDBHelper db = new rEdBusDBHelper(this, false);
         try {
 	        listContentsCursor = db.GetBookmarks();
 	        startManagingCursor(listContentsCursor);
@@ -47,30 +49,31 @@ public class StopBookmarks extends ListActivity {
 	protected void onListItemClick(ListView l, View v, int position, long id) {		
 		Toast.makeText(this, "HELLO", Toast.LENGTH_SHORT).show();
 		
-		// FIXME: go to view stop times activity
+		// FIXME: go to (view stop times activity)
 	}
 
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		Toast.makeText(this, "HELLOCTX", Toast.LENGTH_SHORT).show();
-		
+
 		// view next bus times for this stop (view stop times activity)
 		// view this stop on map
-		// remove current bookmark
-		
+		// edit this bookmark
+		// remove this bookmark
+
 		// FIXME: 
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		Toast.makeText(this, "HELLOMENU", Toast.LENGTH_SHORT).show();
-		
+
 		// show stops near me on map
 		// add stop bookmark by stopcode		
 		// view bus times for stopcode (view stop times activity)
 		// ???
 		// Profit!
-		
+
 		return true;
 	}
 }

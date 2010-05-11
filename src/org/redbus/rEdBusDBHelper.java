@@ -11,9 +11,12 @@ public class rEdBusDBHelper
 	public static final String BOOKMARKS_STOPNAME = "StopName";
 	private SQLiteDatabase db;
 	
-	public rEdBusDBHelper(Context context)
+	public rEdBusDBHelper(Context context, boolean writeble)
 	{
-		db = new rEdBusDBOpenHelper(context).getWritableDatabase();
+		if (writeble)
+			db = new rEdBusDBOpenHelper(context).getWritableDatabase();
+		else
+			db = new rEdBusDBOpenHelper(context).getReadableDatabase();			
 	}
 	
 	public void close()
