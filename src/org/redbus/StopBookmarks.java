@@ -33,6 +33,7 @@ public class StopBookmarks extends ListActivity
 		if (listContentsCursor != null) {
 			stopManagingCursor(listContentsCursor);
 			listContentsCursor.close();
+			listContentsCursor = null;
 		}
 		
         rEdBusDBHelper db = new rEdBusDBHelper(this, false);
