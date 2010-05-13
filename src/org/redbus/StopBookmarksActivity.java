@@ -16,9 +16,9 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
-public class StopBookmarks extends ListActivity 
+public class StopBookmarksActivity extends ListActivity 
 {	
-	private static final String[] columnNames = new String[] { rEdBusDBHelper.BOOKMARKS_ID, rEdBusDBHelper.BOOKMARKS_STOPNAME };
+	private static final String[] columnNames = new String[] { LocalDBHelper.BOOKMARKS_ID, LocalDBHelper.BOOKMARKS_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
 	private Cursor listContentsCursor = null;
 	private long BookmarkId = -1;
@@ -47,7 +47,7 @@ public class StopBookmarks extends ListActivity
 			listContentsCursor = null;
 		}
 
-        rEdBusDBHelper db = new rEdBusDBHelper(this, false);
+        LocalDBHelper db = new LocalDBHelper(this, false);
         try {
 	        listContentsCursor = db.GetBookmarks();
 	        startManagingCursor(listContentsCursor);
@@ -59,7 +59,7 @@ public class StopBookmarks extends ListActivity
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {		
-		Intent i = new Intent(this, BusTimes.class);
+		Intent i = new Intent(this, BusTimesActivity.class);
 		i.putExtra("StopCode", id);
 		startActivity(i);
 	}
@@ -76,7 +76,7 @@ public class StopBookmarks extends ListActivity
 		
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_item_menu_bustimes:
-			Intent i = new Intent(this, BusTimes.class);
+			Intent i = new Intent(this, BusTimesActivity.class);
 			i.putExtra("StopCode", BookmarkId);
 			startActivity(i);
 			return true;
@@ -95,13 +95,13 @@ public class StopBookmarks extends ListActivity
 				setNegativeButton("Cancel", null).
 				setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        rEdBusDBHelper db = new rEdBusDBHelper(StopBookmarks.this, true);
+                        LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this, true);
                         try {
-                        	db.DeleteBookmark(StopBookmarks.this.BookmarkId);
+                        	db.DeleteBookmark(StopBookmarksActivity.this.BookmarkId);
                         } finally {
                         	db.close();
                         }
-                        StopBookmarks.this.UpdateBookmarksList();
+                        StopBookmarksActivity.this.UpdateBookmarksList();
                     }
 				}).
                 show();
@@ -125,7 +125,7 @@ public class StopBookmarks extends ListActivity
 			// FIXME
 			return true;
 		case R.id.stopbookmarks_menu_bustimes:
-			Intent i = new Intent(this, BusTimes.class);
+			Intent i = new Intent(this, BusTimesActivity.class);
 			i.putExtra("StopCode", 36237382L); // HACK
 			startActivity(i);
 			return true;

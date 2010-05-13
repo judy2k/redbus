@@ -3,7 +3,7 @@ package org.redbus;
 import android.app.Activity;
 import android.os.Bundle;
 
-public class BusTimes extends Activity {
+public class BusTimesActivity extends Activity {
 	
 	private long StopCode = -1;
 	

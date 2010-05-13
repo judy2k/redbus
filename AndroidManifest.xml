@@ -6,11 +6,11 @@
     <application android:icon="@drawable/icon" android:label="@string/app_name">
         
 
-    <activity android:name="StopBookmarks" android:label="Bookmarks"><intent-filter><action android:name="android.intent.action.MAIN"></action>
+    <activity android:name="StopBookmarksActivity" android:label="Bookmarks"><intent-filter><action android:name="android.intent.action.MAIN"></action>
 <category android:name="android.intent.category.LAUNCHER"></category>
 </intent-filter>
 </activity>
-<activity android:name="BusTimes" android:label="Bus Times"></activity>
+<activity android:name="BusTimesActivity" android:label="Bus Times"></activity>
 </application>
 
 
