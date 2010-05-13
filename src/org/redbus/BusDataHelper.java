@@ -11,7 +11,7 @@ import android.util.Log;
 
 public class BusDataHelper {
 	
-	public static void GetBusTimesAsync(long stopCode)
+	public static void GetBusTimesAsync(long stopCode, BusDataResponseListener callback)
 	{
 		StringBuilder url = new StringBuilder("http://www.mybustracker.co.uk/getBusStopDepartures.php?" +
 											  "refreshCount=0&" +
@@ -24,7 +24,7 @@ public class BusDataHelper {
 		url.append("busStopCode=");
 		url.append(stopCode);
 		try {
-			new AsyncHttpRequestTask().execute(new BusDataRequest(new URL(url.toString()), BusDataRequest.REQ_BUSTIMES));
+			new AsyncHttpRequestTask().execute(new BusDataRequest(new URL(url.toString()), BusDataRequest.REQ_BUSTIMES, callback));
 		} catch (MalformedURLException ex) {
 			Log.e("BusDataHelper", "Malformed URL reported: " + url.toString());
 		}
@@ -35,7 +35,9 @@ public class BusDataHelper {
 		int i  = 1;
 		i = i + 20;
 		
-		// FIXME
+		// FIXME: process the bus times
+		
+		request.callback.onBusTimesReceived();
 	}
 
 	private static class AsyncHttpRequestTask extends AsyncTask<BusDataRequest, Integer, BusDataRequest> {
@@ -93,16 +95,18 @@ public class BusDataHelper {
 		
 		public static final int REQ_BUSTIMES = 0;
 		
-		public BusDataRequest(URL url, int requestType)
+		public BusDataRequest(URL url, int requestType, BusDataResponseListener callback)
 		{
 			this.url = url;
 			this.requestType = requestType;
+			this.callback = callback;
 		}
 		
 		public URL url;
+		public int requestType;
+		public BusDataResponseListener callback;
 		public int responseCode = -1;
 		public String content = null;
 		public Exception exception = null;
-		public int requestType;
 	}
 }

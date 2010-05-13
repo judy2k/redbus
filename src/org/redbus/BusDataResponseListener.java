@@ -1,5 +1,5 @@
 package org.redbus;
 
-public interface BusResponseListener {
+public interface BusDataResponseListener {
 	public void onBusTimesReceived();
 }

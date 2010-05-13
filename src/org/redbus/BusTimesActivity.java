@@ -3,7 +3,7 @@ package org.redbus;
 import android.app.Activity;
 import android.os.Bundle;
 
-public class BusTimesActivity extends Activity {
+public class BusTimesActivity extends Activity implements BusDataResponseListener {
 	
 	private long StopCode = -1;
 	
@@ -25,6 +25,10 @@ public class BusTimesActivity extends Activity {
 	public void UpdateBusTimes()
 	{
 		if (StopCode != -1)
-			BusDataHelper.GetBusTimesAsync(StopCode);
+			BusDataHelper.GetBusTimesAsync(StopCode, this);
+	}
+
+	public void onBusTimesReceived() {
+		// FIXME: do something with them!
 	}
 }
