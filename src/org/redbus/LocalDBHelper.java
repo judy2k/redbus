@@ -33,7 +33,7 @@ public class LocalDBHelper
 	}
 
 	public void DeleteBookmark(long bookmarkId) {
-		db.execSQL("DELETE FROM Bookmarks WHERE _id = " + bookmarkId);
+		db.execSQL("DELETE FROM Bookmarks WHERE _id = ?", new Object[] { bookmarkId });
 	}
 	
 	
@@ -51,7 +51,6 @@ public class LocalDBHelper
 		
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			// create the tables
 			int length = CREATE_TABLE_SQL.length;
 			for (int i = 0; i < length; i++) {
 				db.execSQL(CREATE_TABLE_SQL[i]);

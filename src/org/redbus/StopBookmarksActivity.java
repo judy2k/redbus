@@ -82,11 +82,11 @@ public class StopBookmarksActivity extends ListActivity
 			return true;
 			
 		case R.id.stopbookmarks_item_menu_showonmap:
-			// FIXME
+			// FIXME: implement
 			return true;
 			
 		case R.id.stopbookmarks_item_menu_edit:
-			// FIXME
+			// FIXME: implement
 			return true;
 
 		case R.id.stopbookmarks_item_menu_delete:
@@ -122,11 +122,11 @@ public class StopBookmarksActivity extends ListActivity
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_menu_nearby_stops:
-			// FIXME
+			// FIXME: implement
 			return true;
 		case R.id.stopbookmarks_menu_bustimes:
 			Intent i = new Intent(this, BusTimesActivity.class);
-			i.putExtra("StopCode", 36237382L); // HACK
+			i.putExtra("StopCode", 36237382L); // FIXME: HACK
 			startActivity(i);
 			return true;
 		}
