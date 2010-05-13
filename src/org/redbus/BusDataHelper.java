@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import org.apache.http.protocol.HTTP;
 import android.os.AsyncTask;
+import android.util.Log;
 
 public class BusDataHelper {
 	
@@ -25,7 +26,7 @@ public class BusDataHelper {
 		try {
 			new AsyncHttpRequestTask().execute(new BusDataRequest(new URL(url.toString()), BusDataRequest.REQ_BUSTIMES));
 		} catch (MalformedURLException ex) {
-			// FIXME: log it as programming error
+			Log.e("BusDataHelper", "Malformed URL reported: " + url.toString());
 		}
 	}
 	
