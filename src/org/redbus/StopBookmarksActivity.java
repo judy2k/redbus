@@ -15,6 +15,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
 public class StopBookmarksActivity extends ListActivity 
 {	
@@ -22,6 +23,7 @@ public class StopBookmarksActivity extends ListActivity
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
 	private Cursor listContentsCursor = null;
 	private long BookmarkId = -1;
+	private String BookmarkName = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
@@ -72,19 +74,22 @@ public class StopBookmarksActivity extends ListActivity
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-		BookmarkId = ((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).id;
+		AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+		BookmarkId = menuInfo.id;
+		BookmarkName = ((TextView) menuInfo.targetView.findViewById(R.id.stopbookmarks_name)).getText().toString();
 		
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_item_menu_bustimes:
 			Intent i = new Intent(this, BusTimesActivity.class);
 			i.putExtra("StopCode", BookmarkId);
+			i.putExtra("StopName", BookmarkName);
 			startActivity(i);
 			return true;
-			
+
 		case R.id.stopbookmarks_item_menu_showonmap:
 			// FIXME: implement
 			return true;
-			
+
 		case R.id.stopbookmarks_item_menu_edit:
 			// FIXME: implement
 			return true;
@@ -124,6 +129,7 @@ public class StopBookmarksActivity extends ListActivity
 		case R.id.stopbookmarks_menu_nearby_stops:
 			// FIXME: implement
 			return true;
+
 		case R.id.stopbookmarks_menu_bustimes:
 			Intent i = new Intent(this, BusTimesActivity.class);
 			i.putExtra("StopCode", 36237382L); // FIXME: HACK
