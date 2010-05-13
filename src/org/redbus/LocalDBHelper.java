@@ -36,6 +36,13 @@ public class LocalDBHelper
 		db.execSQL("DELETE FROM Bookmarks WHERE _id = ?", new Object[] { bookmarkId });
 	}
 	
+	public void AddBookmark(long bookmarkId, String stopName) {
+		try {
+			db.execSQL("INSERT INTO Bookmarks VALUES (?, ?)", new Object[] { bookmarkId, stopName });
+		} catch (Exception ex) {
+		}
+	}
+	
 	
 	private static class LocalDBOpenHelper extends SQLiteOpenHelper {
 	    public static final String DATABASE_NAME = "rEdBusDB.db";

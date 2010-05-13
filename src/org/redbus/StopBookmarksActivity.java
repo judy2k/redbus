@@ -63,6 +63,7 @@ public class StopBookmarksActivity extends ListActivity
 	protected void onListItemClick(ListView l, View v, int position, long id) {		
 		Intent i = new Intent(this, BusTimesActivity.class);
 		i.putExtra("StopCode", id);
+		i.putExtra("StopName", ((TextView) v.findViewById(R.id.stopbookmarks_name)).getText().toString());
 		startActivity(i);
 	}
 
@@ -97,8 +98,8 @@ public class StopBookmarksActivity extends ListActivity
 		case R.id.stopbookmarks_item_menu_delete:
 			new AlertDialog.Builder(this).
 				setMessage("Are you sure you want to delete this bookmark?").
-				setNegativeButton("Cancel", null).
-				setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				setNegativeButton(android.R.string.cancel, null).
+				setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this, true);
                         try {
@@ -132,7 +133,6 @@ public class StopBookmarksActivity extends ListActivity
 
 		case R.id.stopbookmarks_menu_bustimes:
 			Intent i = new Intent(this, BusTimesActivity.class);
-			i.putExtra("StopCode", 36237382L); // FIXME: HACK
 			startActivity(i);
 			return true;
 		}
