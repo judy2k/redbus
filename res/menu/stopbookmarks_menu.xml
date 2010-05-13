@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+
+<item android:title="Nearby Stops" android:id="@+id/stopbookmarks_menu_nearby_stops"></item>
+<item android:title="Bus Times" android:id="@+id/stopbookmarks_menu_bustimes"></item>
+</menu>

@@ -30,4 +30,8 @@ public class rEdBusDBHelper
 	{
 		return db.query(BOOKMARKS, null, null, null, null, null, BOOKMARKS_STOPNAME);
 	}
+
+	public void DeleteBookmark(long bookmarkId) {
+		db.execSQL("DELETE FROM Bookmarks WHERE _id = " + bookmarkId);
+	}
 }
