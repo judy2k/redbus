@@ -47,6 +47,7 @@ public class StopBookmarksActivity extends ListActivity
 	public void onCreate(Bundle savedInstanceState) 
 	{
         super.onCreate(savedInstanceState);
+        setTitle("Bookmarks");
         setContentView(R.layout.stopbookmarks);
         registerForContextMenu(getListView());
 	}

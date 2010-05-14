@@ -10,4 +10,5 @@
 </menu>
 </item>
 <item android:title="View on Map" android:id="@+id/bustimes_menu_viewonmap" android:enabled="false"></item>
+<item android:id="@+id/bustimes_menu_timesinadvance" android:title="Times in Advance" android:enabled="false"></item>
 </menu>

@@ -28,6 +28,9 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnCancelListener;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -40,98 +43,107 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BusTimesActivity extends ListActivity implements BusDataResponseListener {
-	
+public class BusTimesActivity extends ListActivity implements
+		BusDataResponseListener {
+
 	private long StopCode = -1;
 	private String StopName = "";
 	private ProgressDialog busyDialog = null;
-	private SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
-	
-	public static void showActivity(Context context, long stopCode, String stopName)
-	{
+	private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy HH:mm");
+
+	public static void showActivity(Context context, long stopCode,
+			String stopName) {
 		Intent i = new Intent(context, BusTimesActivity.class);
 		i.putExtra("StopCode", stopCode);
 		i.putExtra("StopName", stopName);
 		context.startActivity(i);
 	}
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-        setContentView(R.layout.bustimes);
-        registerForContextMenu(getListView());
+		setContentView(R.layout.bustimes);
+		registerForContextMenu(getListView());
 
-        StopCode = getIntent().getLongExtra("StopCode", -1);
-        StopName = "";
-        CharSequence tmp = getIntent().getCharSequenceExtra("StopName");
-        if (tmp != null)
-        	StopName =  tmp.toString();
-	}
+		StopCode = getIntent().getLongExtra("StopCode", -1);
+		if (StopCode != -1)
+			findViewById(android.R.id.empty).setVisibility(View.GONE);
 
-	@Override
-	protected void onStart() 
-	{
-		super.onStart();		
+		StopName = "";
+		CharSequence tmp = getIntent().getCharSequenceExtra("StopName");
+		if (tmp != null)
+			StopName = tmp.toString();
+
 		Update();
 	}
-	
-	public void Update()
-	{
+
+	public void Update() {
 		if (StopCode != -1) {
 			setTitle(StopName + " (" + dateFormat.format(new Date()) + ")");
+			DisplayBusy("Getting BusStop times", null);
+
 			BusDataHelper.GetBusTimesAsync(StopCode, this);
-			busyDialog = ProgressDialog.show(this, "Busy", "Getting BusStop times");
-			findViewById(android.R.id.empty).setVisibility(View.GONE);
 		} else {
 			setTitle("Unknown BusStop");
 			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
 		}
 	}
 
-	public void getBusTimesError(int code, String message) {
-		if (busyDialog != null) {
-			busyDialog.dismiss();
-			busyDialog = null;
-		}
-		
-		setListAdapter(new BusTimesAdapter(this, R.layout.bustimes_item, new ArrayList<BusTime>()));
-		findViewById(R.id.bustimes_nodepartures).setVisibility(View.GONE);
-		findViewById(R.id.bustimes_error).setVisibility(View.VISIBLE);
-		findViewById(android.R.id.empty).setVisibility(View.GONE);
+	private void DisplayBusy(String reason, OnCancelListener listener) {
+		DismissBusy();
 
-		new AlertDialog.Builder(this).
-			setTitle("Error").
-			setMessage("Unable to download stop times: " + message).
-			setPositiveButton(android.R.string.ok, null).
-	        show();
+		if (listener != null)
+			busyDialog = ProgressDialog.show(this, "", reason, true, true, listener);
+		else
+			busyDialog = ProgressDialog.show(this, "", reason, true);
 	}
 
-	public void getBusTimesSuccess(List<BusTime> busTimes) {
+	private void DismissBusy() {
 		if (busyDialog != null) {
 			busyDialog.dismiss();
 			busyDialog = null;
 		}
-		
-		setListAdapter(new BusTimesAdapter(this, R.layout.bustimes_item, busTimes));
-		
+	}
+
+	private void HideStatusBoxes() {
 		findViewById(R.id.bustimes_nodepartures).setVisibility(View.GONE);
 		findViewById(R.id.bustimes_error).setVisibility(View.GONE);
 		findViewById(android.R.id.empty).setVisibility(View.GONE);
+	}
+
+	public void getBusTimesError(int code, String message) {
+		DismissBusy();
+		HideStatusBoxes();
+
+		setListAdapter(new BusTimesAdapter(this, R.layout.bustimes_item, new ArrayList<BusTime>()));
+		findViewById(R.id.bustimes_error).setVisibility(View.VISIBLE);
+
+		new AlertDialog.Builder(this).setTitle("Error").
+			setMessage("Unable to download stop times: " + message).
+			setPositiveButton(android.R.string.ok, null).
+			show();
+	}
+
+	public void getBusTimesSuccess(List<BusTime> busTimes) {
+		DismissBusy();
+		HideStatusBoxes();
+
+		setListAdapter(new BusTimesAdapter(this, R.layout.bustimes_item, busTimes));
 		if (busTimes.isEmpty())
 			findViewById(R.id.bustimes_nodepartures).setVisibility(View.VISIBLE);
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.bustimes_menu, menu);
-	    return true;
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.bustimes_menu, menu);
+		return true;
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 
-		switch(item.getItemId()) {
+		switch (item.getItemId()) {
 		case R.id.bustimes_menu_refresh:
 			Update();
 			return true;
@@ -140,38 +152,40 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			final EditText input = new EditText(this);
 
 			new AlertDialog.Builder(this)
-				.setTitle("Enter BusStop code")
-				.setView(input)
-				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {  
-						public void onClick(DialogInterface dialog, int whichButton) {
-						  String value = input.getText().toString();
-						  try {
-							long newStopCode = Long.parseLong(value);
-							busyDialog = ProgressDialog.show(BusTimesActivity.this, "Busy", "Validating BusStop code");
-							BusDataHelper.GetStopNameAsync(newStopCode, BusTimesActivity.this);
-
-						  } catch (Exception ex) {
-								new AlertDialog.Builder(BusTimesActivity.this).
-									setTitle("Invalid BusStop code").
-									setMessage("The code was invalid; please try again using only numbers").
-									setPositiveButton(android.R.string.ok, null).
-							        show();
-						  }
-						}
-					})
-				.setNegativeButton(android.R.string.cancel, null)
-				.show();
+					.setTitle("Enter BusStop code")
+					.setView(input)
+					.setPositiveButton(android.R.string.ok,
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int whichButton) {
+									long stopCode = -1;
+									try {
+										stopCode = Long.parseLong(input.getText().toString());
+									} catch (Exception ex) {
+										new AlertDialog.Builder(BusTimesActivity.this)
+												.setTitle("Invalid BusStop code")
+												.setMessage("The code was invalid; please try again using only numbers")
+												.setPositiveButton(android.R.string.ok, null)
+												.show();
+										return;
+									}
+									
+									DisplayBusy("Validating BusStop code", null);
+									BusDataHelper.GetStopNameAsync(stopCode, BusTimesActivity.this);
+								}
+							})
+					.setNegativeButton(android.R.string.cancel, null)
+					.show();
 			return true;
 
 		case R.id.bustimes_menu_addbookmark:
 			if (StopCode != -1) {
-		        LocalDBHelper db = new LocalDBHelper(this, false);
-		        try {
-			        db.AddBookmark(StopCode, StopName);
-		        } finally {
-		        	db.close();
-		        }
-		        Toast.makeText(this, "Added bookmark", Toast.LENGTH_SHORT).show();
+				LocalDBHelper db = new LocalDBHelper(this, false);
+				try {
+					db.AddBookmark(StopCode, StopName);
+				} finally {
+					db.close();
+				}
+				Toast.makeText(this, "Added bookmark", Toast.LENGTH_SHORT).show();
 			}
 			return true;
 
@@ -183,77 +197,67 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			// FIXME: implement
 			return true;
 		}
-		
+
 		return false;
 	}
 
 	public void getStopNameError(int code, String message) {
-		if (busyDialog != null) {
-			busyDialog.dismiss();
-			busyDialog = null;
-		}
+		DismissBusy();
 
-		new AlertDialog.Builder(this).
-			setTitle("Error").
-			setMessage("Unable to validate BusStop code: " + message).
-			setPositiveButton(android.R.string.ok, null).
-	        show();
+		new AlertDialog.Builder(this).setTitle("Error")
+			.setMessage("Unable to validate BusStop code: " + message)
+			.setPositiveButton(android.R.string.ok, null)
+			.show();
 	}
 
 	public void getStopNameSuccess(long stopCode, String stopName) {
-		if (busyDialog != null) {
-			busyDialog.dismiss();
-			busyDialog = null;
-		}
-		
+		DismissBusy();
+
 		StopCode = stopCode;
 		StopName = stopName;
 		Update();
 	}
-	
-	private class BusTimesAdapter extends ArrayAdapter<BusTime> {
-        private List<BusTime> items;
-        private int textViewResourceId;
 
-        public BusTimesAdapter(Context context, int textViewResourceId, List<BusTime> items) {
+	private class BusTimesAdapter extends ArrayAdapter<BusTime> {
+		private List<BusTime> items;
+		private int textViewResourceId;
+
+		public BusTimesAdapter(Context context, int textViewResourceId, List<BusTime> items) {
 			super(context, textViewResourceId, items);
-			
+
 			this.textViewResourceId = textViewResourceId;
 			this.items = items;
-        }
-        
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View v = convertView;
-            if (v == null) {
-                LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                v = vi.inflate(textViewResourceId, null);
-            }
-            
-            BusTime busTime = items.get(position);
-            if (busTime != null) {
-                TextView serviceView = (TextView) v.findViewById(R.id.bustimes_service);
-                TextView destinationView = (TextView) v.findViewById(R.id.bustimes_destination);
-                TextView timeView = (TextView) v.findViewById(R.id.bustimes_time);
-                TextView detailsView = (TextView) v.findViewById(R.id.bustimes_details);
-                
-        		serviceView.setText(busTime.service);
-            	destinationView.setText(busTime.destination);
-            	
-            	if (busTime.arrivalIsDue)
-            		timeView.setText("Due");
-            	else if (busTime.arrivalAbsoluteTime != null)
-            		timeView.setText(busTime.arrivalAbsoluteTime);
-            	else 
-            		timeView.setText(Integer.toString(busTime.arrivalMinutesLeft));
-            	if (busTime.arrivalEstimated)
-            		timeView.setText("(" + timeView.getText() + ")");
-                
-                if (busTime.lowFloorBus)
-                    detailsView.setText("LOWFLOOR");
-            }
-            
-            return v;        	
-        }
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			View v = convertView;
+			if (v == null) {
+				LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				v = vi.inflate(textViewResourceId, null);
+			}
+
+			BusTime busTime = items.get(position);
+			if (busTime != null) {
+				TextView serviceView = (TextView) v.findViewById(R.id.bustimes_service);
+				TextView destinationView = (TextView) v.findViewById(R.id.bustimes_destination);
+				TextView timeView = (TextView) v.findViewById(R.id.bustimes_time);
+
+				serviceView.setText(busTime.service);
+				destinationView.setText(busTime.destination);
+
+				if (busTime.arrivalIsDue)
+					timeView.setText("Due");
+				else if (busTime.arrivalAbsoluteTime != null)
+					timeView.setText(busTime.arrivalAbsoluteTime);
+				else
+					timeView.setText(Integer.toString(busTime.arrivalMinutesLeft));
+				
+				if (busTime.arrivalEstimated)
+					timeView.setTextColor(getResources().getColor(R.color.bustime_estimated));
+			}
+
+			return v;
+		}
 	}
 }

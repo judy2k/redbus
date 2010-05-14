@@ -7,16 +7,13 @@
   	<TableRow>
 		<TextView 	android:id="@+id/bustimes_service" 
 					android:textSize="30sp" 
-					android:width="40px" />
-		<TableLayout android:stretchColumns="0">
-			<TableRow>
-				<TextView android:id="@+id/bustimes_destination" android:gravity="center" />
-			</TableRow>
-			<TableRow>
-				<TextView android:id="@+id/bustimes_details" android:gravity="center" />
-			</TableRow>
-		</TableLayout>
+					android:width="60px" />
+					
+		<TextView 	android:id="@+id/bustimes_destination" 
+					android:layout_gravity="center_vertical" />
+					
 		<TextView 	android:id="@+id/bustimes_time" 
-					android:textSize="30sp"/>
+					android:textSize="30sp"
+					android:paddingRight="5px" />
 	</TableRow>
 </TableLayout>
