@@ -229,7 +229,7 @@ public class BusDataHelper {
 			
 		} catch (Exception ex) {
 			Log.e("BusDataHelper.GetStopNameResponse", request.content, ex);
-			request.callback.getBusTimesError(BUSSTATUS_BADDATA, "Invalid data received from the bus website (" + ex.getMessage() + ")");
+			request.callback.getStopNameError(BUSSTATUS_BADDATA, "Invalid data received from the bus website (" + ex.getMessage() + ")");
 			return;
 		}
 		
