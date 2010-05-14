@@ -1,3 +1,21 @@
+/*
+ * Copyright 2010 Andrew De Quincey -  adq@lidskialf.net
+ * This file is part of rEdBus.
+ *
+ *  rEdBus is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  rEdBus is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.redbus;
 
 import android.app.AlertDialog;
@@ -61,10 +79,8 @@ public class StopBookmarksActivity extends ListActivity
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {		
-		Intent i = new Intent(this, BusTimesActivity.class);
-		i.putExtra("StopCode", id);
-		i.putExtra("StopName", ((TextView) v.findViewById(R.id.stopbookmarks_name)).getText().toString());
-		startActivity(i);
+		String stopName = ((TextView) v.findViewById(R.id.stopbookmarks_name)).getText().toString();
+		BusTimesActivity.showActivity(this, id, stopName);
 	}
 
 	@Override
@@ -128,12 +144,11 @@ public class StopBookmarksActivity extends ListActivity
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_menu_nearby_stops:
-			// FIXME: implement
+			startActivity(new Intent(this, FindNearestStopActivity.class));
 			return true;
 
 		case R.id.stopbookmarks_menu_bustimes:
-			Intent i = new Intent(this, BusTimesActivity.class);
-			startActivity(i);
+			startActivity(new Intent(this, BusTimesActivity.class));
 			return true;
 		}
 		

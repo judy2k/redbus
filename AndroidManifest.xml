@@ -11,6 +11,7 @@
 			</intent-filter>
 		</activity>
 		<activity android:name="BusTimesActivity" android:label="Bus Times" />
+		<activity android:name="FindNearestStopActivity" android:label="Find nearest stops" />
 	</application>
 
 
