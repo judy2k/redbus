@@ -218,7 +218,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
             	else if (busTime.arrivalAbsoluteTime != null)
             		timeView.setText(busTime.arrivalAbsoluteTime);
             	else 
-            		timeView.setText(busTime.arrivalMinutesLeft);
+            		timeView.setText(Integer.toString(busTime.arrivalMinutesLeft));
             	if (busTime.arrivalEstimated)
             		timeView.setText("(" + timeView.getText() + ")");
                 
