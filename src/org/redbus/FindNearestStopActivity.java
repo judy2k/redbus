@@ -67,12 +67,13 @@ public class FindNearestStopActivity extends Activity {
 		Location stopLocation = new Location("busstop");
 		stopLocation.setLatitude(nearestStop.getX());
 		stopLocation.setLongitude(nearestStop.getY());
-		int distanceFromHere = (int)location.distanceTo(stopLocation);
-		
+		int distanceFromHere = (int)location.distanceTo(stopLocation);	
+		// Assume 3mph walk rate = 1.34metres/sec = 80 metres/min
+		int minutesFromHere = (int)(distanceFromHere/80)+1; 
 
 		txtStopCode.setText(Long.toString(nearestStop.getStopCode()));
 		txtStopName.setText(nearestStop.getStopName());
-		txtStopDistance.setText(Integer.toString(distanceFromHere) + "m away");
+		txtStopDistance.setText(Integer.toString(distanceFromHere) + "m away (approx "+minutesFromHere+ "mins walk)");
 	}
 	
 
