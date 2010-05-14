@@ -24,7 +24,6 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -95,24 +94,31 @@ public class BusDataHelper {
 		return requestId;
 	}
 	
-	private static void GetBusTimesResponse(BusDataRequest request)
+	private static boolean CheckForResponseErrors(BusDataRequest request)
 	{
-		// error handing
-		if (request.exception != null) {
-			Log.e("BusDataHelper.GetBusTimesResponse(HTTPERROR)", request.content, request.exception);
-			request.callback.getBusTimesError(request.requestId, BUSSTATUS_HTTPERROR, "A network problem occurred (" + request.exception.getMessage() + ")");
-			return;
+		if (request.throwable != null) {
+			Log.e("BusDataHelper.GetBusTimesResponse(HTTPERROR)", request.content, request.throwable);
+			request.callback.getBusTimesError(request.requestId, BUSSTATUS_HTTPERROR, "A network problem occurred (" + request.throwable.getMessage() + ")");
+			return false;
 		}
 		if (request.responseCode != HttpURLConnection.HTTP_OK) {
 			if (request.responseMessage != null)
 				Log.e("BusDataHelper.GetBusTimesResponse(HTTPRESPONSE)", request.responseMessage);
 			request.callback.getBusTimesError(request.requestId, request.responseCode, "A network problem occurred (" + request.responseMessage + ")");
-			return;
+			return false;
 		}
 		if (request.content.toLowerCase().contains("doesn't exist")) {
 			request.callback.getBusTimesError(request.requestId, BUSSTATUS_BADSTOPCODE, "The BusStop code was invalid");
-			return;
+			return false;
 		}
+		
+		return true;
+	}
+	
+	private static void GetBusTimesResponse(BusDataRequest request)
+	{
+		if (!CheckForResponseErrors(request))
+			return;
 		
 		ArrayList<BusTime> busTimes = new ArrayList<BusTime>();
 		try {
@@ -212,22 +218,8 @@ public class BusDataHelper {
 
 	private static void GetStopNameResponse(BusDataRequest request)
 	{
-		// error handing
-		if (request.exception != null) {
-			Log.e("BusDataHelper.GetStopNameResponse(HTTPERROR)", request.content, request.exception);
-			request.callback.getStopNameError(request.requestId, BUSSTATUS_HTTPERROR, "A network problem occurred (" + request.exception.getMessage() + ")");
+		if (!CheckForResponseErrors(request))
 			return;
-		}
-		if (request.responseCode != HttpURLConnection.HTTP_OK) {
-			if (request.responseMessage != null)
-				Log.e("BusDataHelper.GetStopNameResponse(HTTPRESPONSE)", request.responseMessage);
-			request.callback.getStopNameError(request.requestId, request.responseCode, "A network problem occurred (" + request.responseMessage + ")");
-			return;
-		}
-		if (request.content.toLowerCase().contains("doesn't exist")) {
-			request.callback.getStopNameError(request.requestId, BUSSTATUS_BADSTOPCODE, "The BusStop code was invalid");
-			return;
-		}
 
 		long stopCode = -1;
 		String stopName = null;
@@ -297,8 +289,8 @@ public class BusDataHelper {
 					result.append(buf, 0, len);
 				}
 				bdr.content = result.toString();
-			} catch (Exception ex) {
-				bdr.exception = ex;
+			} catch (Throwable t) {
+				bdr.throwable = t;
 			} finally {
 				if (reader != null)
 					try {
@@ -342,6 +334,6 @@ public class BusDataHelper {
 		public int responseCode = -1;
 		public String responseMessage = null;
 		public String content = null;
-		public Exception exception = null;
+		public Throwable throwable = null;
 	}
 }

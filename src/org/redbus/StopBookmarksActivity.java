@@ -35,6 +35,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class StopBookmarksActivity extends ListActivity 
 {	
@@ -165,7 +166,15 @@ public class StopBookmarksActivity extends ListActivity
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_menu_nearby_stops:
-			startActivity(new Intent(this, FindNearestStopActivity.class));
+			new AlertDialog.Builder(this).
+				setMessage("This is an experimental unoptimised feature under heavy development; are you sure you wish to continue?").
+				setNegativeButton(android.R.string.cancel, null).
+				setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+	                public void onClick(DialogInterface dialog, int whichButton) {
+	        			startActivity(new Intent(StopBookmarksActivity.this, FindNearestStopActivity.class));
+	                }
+				}).
+	            show();
 			return true;
 
 		case R.id.stopbookmarks_menu_bustimes:

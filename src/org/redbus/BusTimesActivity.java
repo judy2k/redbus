@@ -100,7 +100,10 @@ public class BusTimesActivity extends ListActivity implements
 
 	private void DismissBusy() {
 		if (busyDialog != null) {
-			busyDialog.dismiss();
+			try {
+				busyDialog.dismiss();
+			} catch (Throwable t) {
+			}
 			busyDialog = null;
 		}
 	}
@@ -200,6 +203,18 @@ public class BusTimesActivity extends ListActivity implements
 			return true;
 
 		case R.id.bustimes_menu_viewonmap:
+			// FIXME: implement
+			return true;
+			
+		case R.id.bustimes_menu_autorefresh:
+			// FIXME: implement
+			return true;
+
+		case R.id.bustimes_menu_sorting:
+			// FIXME: implement
+			return true;
+
+		case R.id.bustimes_menu_numdepartures:
 			// FIXME: implement
 			return true;
 		}
