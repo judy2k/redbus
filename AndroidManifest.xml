@@ -4,12 +4,13 @@
 	<application android:icon="@drawable/icon" android:label="@string/app_name">
 
 
-		<activity android:name="StopBookmarksActivity" android:label="Edinburgh bus tracker">
+		<activity android:name="StopBookmarksActivity" android:label="Edinburgh Bus Tracker">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"></action>
 				<category android:name="android.intent.category.LAUNCHER"></category>
 			</intent-filter>
 		</activity>
+		
 		<activity android:name="BusTimesActivity" android:label="Bus Times" />
 		<activity android:name="FindNearestStopActivity" android:label="Closest stop" />
 	</application>
