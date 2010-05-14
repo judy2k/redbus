@@ -72,7 +72,7 @@ public class BusDataHelper {
 											  "clientType=b&" +
 											  "busStopDay=0&" +
 											  "busStopService=0&" +
-											  "numberOfPassage=2&" +
+											  "numberOfPassage=0&" +
 											  "busStopTime&" +
 											  "busStopDestination=0&");
 		url.append("busStopCode=");

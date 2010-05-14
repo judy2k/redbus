@@ -61,6 +61,14 @@ public class LocalDBHelper
 		}
 	}
 	
+	public void RenameBookmark(long bookmarkId, String stopName) {
+		try {
+			db.execSQL("UPDATE Bookmarks SET StopName=? WHERE _id = ?", new Object[] { stopName, bookmarkId });
+		} catch (Exception ex) {
+		}
+	}
+
+	
 	
 	private static class LocalDBOpenHelper extends SQLiteOpenHelper {
 	    public static final String DATABASE_NAME = "rEdBusDB.db";

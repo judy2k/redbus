@@ -31,6 +31,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -109,7 +110,26 @@ public class StopBookmarksActivity extends ListActivity
 			return true;
 
 		case R.id.stopbookmarks_item_menu_edit:
-			// FIXME: implement
+			final EditText input = new EditText(this);
+			input.setText(BookmarkName);
+
+			new AlertDialog.Builder(this)
+					.setTitle("Edit bookmark name")
+					.setView(input)
+					.setPositiveButton(android.R.string.ok,
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int whichButton) {
+			                        LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this, true);
+			                        try {
+			                        	db.RenameBookmark(StopBookmarksActivity.this.BookmarkId, input.getText().toString());
+			                        } finally {
+			                        	db.close();
+			                        }
+			                        StopBookmarksActivity.this.UpdateBookmarksList();
+								}
+							})
+					.setNegativeButton(android.R.string.cancel, null)
+					.show();
 			return true;
 
 		case R.id.stopbookmarks_item_menu_delete:
