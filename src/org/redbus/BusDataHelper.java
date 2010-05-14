@@ -24,6 +24,7 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,12 +42,14 @@ public class BusDataHelper {
 	public static final int BUSSTATUS_HTTPERROR = -1;
 	public static final int BUSSTATUS_BADSTOPCODE = -2;
 	public static final int BUSSTATUS_BADDATA = -3;
-	
+
 	private static Pattern stopDetailsRegex = Pattern.compile("([0-9]+)\\s+([^/]+).*");
 	private static Pattern destinationRegex = Pattern.compile("(\\S+)\\s+(.*)");
 	private static Pattern destinationAndTimeRegex = Pattern.compile("(\\S+)\\s+(.*)\\s+(\\S+)");
 	
-	public static void GetBusTimesAsync(long stopCode, BusDataResponseListener callback)
+	private static Integer RequestId = new Integer(0);
+	
+	public static int GetBusTimesAsync(long stopCode, BusDataResponseListener callback)
 	{
 		StringBuilder url = new StringBuilder("http://www.mybustracker.co.uk/getBusStopDepartures.php?" +
 											  "refreshCount=0&" +
@@ -58,14 +61,18 @@ public class BusDataHelper {
 											  "busStopDestination=0&");
 		url.append("busStopCode=");
 		url.append(stopCode);
+
+		int requestId = RequestId++;
 		try {
-			new AsyncHttpRequestTask().execute(new BusDataRequest(new URL(url.toString()), BusDataRequest.REQ_BUSTIMES, callback));
+			new AsyncHttpRequestTask().execute(new BusDataRequest(requestId, new URL(url.toString()), BusDataRequest.REQ_BUSTIMES, callback));
 		} catch (MalformedURLException ex) {
 			Log.e("BusDataHelper", "Malformed URL reported: " + url.toString());
 		}
+		
+		return requestId;
 	}
 	
-	public static void GetStopNameAsync(long stopCode, BusDataResponseListener callback)
+	public static int GetStopNameAsync(long stopCode, BusDataResponseListener callback)
 	{
 		StringBuilder url = new StringBuilder("http://www.mybustracker.co.uk/getBusStopDepartures.php?" +
 											  "refreshCount=0&" +
@@ -73,15 +80,19 @@ public class BusDataHelper {
 											  "busStopDay=0&" +
 											  "busStopService=0&" +
 											  "numberOfPassage=0&" +
-											  "busStopTime&" +
+											  "busStopTime=09:00&" +
 											  "busStopDestination=0&");
 		url.append("busStopCode=");
 		url.append(stopCode);
+
+		int requestId = RequestId++;
 		try {
-			new AsyncHttpRequestTask().execute(new BusDataRequest(new URL(url.toString()), BusDataRequest.REQ_STOPNAME, callback));
+			new AsyncHttpRequestTask().execute(new BusDataRequest(requestId, new URL(url.toString()), BusDataRequest.REQ_STOPNAME, callback));
 		} catch (MalformedURLException ex) {
 			Log.e("BusDataHelper", "Malformed URL reported: " + url.toString());
 		}
+		
+		return requestId;
 	}
 	
 	private static void GetBusTimesResponse(BusDataRequest request)
@@ -89,17 +100,17 @@ public class BusDataHelper {
 		// error handing
 		if (request.exception != null) {
 			Log.e("BusDataHelper.GetBusTimesResponse(HTTPERROR)", request.content, request.exception);
-			request.callback.getBusTimesError(BUSSTATUS_HTTPERROR, "A network problem occurred (" + request.exception.getMessage() + ")");
+			request.callback.getBusTimesError(request.requestId, BUSSTATUS_HTTPERROR, "A network problem occurred (" + request.exception.getMessage() + ")");
 			return;
 		}
 		if (request.responseCode != HttpURLConnection.HTTP_OK) {
 			if (request.responseMessage != null)
 				Log.e("BusDataHelper.GetBusTimesResponse(HTTPRESPONSE)", request.responseMessage);
-			request.callback.getBusTimesError(request.responseCode, "A network problem occurred (" + request.responseMessage + ")");
+			request.callback.getBusTimesError(request.requestId, request.responseCode, "A network problem occurred (" + request.responseMessage + ")");
 			return;
 		}
 		if (request.content.toLowerCase().contains("doesn't exist")) {
-			request.callback.getBusTimesError(BUSSTATUS_BADSTOPCODE, "The BusStop code was invalid");
+			request.callback.getBusTimesError(request.requestId, BUSSTATUS_BADSTOPCODE, "The BusStop code was invalid");
 			return;
 		}
 		
@@ -119,11 +130,11 @@ public class BusDataHelper {
 			
 		} catch (Exception ex) {
 			Log.e("BusDataHelper.GetBusTimesResponse", request.content, ex);
-			request.callback.getBusTimesError(BUSSTATUS_BADDATA, "Invalid data received from the bus website (" + ex.getMessage() + ")");
+			request.callback.getBusTimesError(request.requestId, BUSSTATUS_BADDATA, "Invalid data received from the bus website (" + ex.getMessage() + ")");
 			return;
 		}
 		
-		request.callback.getBusTimesSuccess(busTimes);
+		request.callback.getBusTimesSuccess(request.requestId, busTimes);
 	}
 	
 	private static BusTime ParseStopTime(XmlPullParser parser) 
@@ -204,17 +215,17 @@ public class BusDataHelper {
 		// error handing
 		if (request.exception != null) {
 			Log.e("BusDataHelper.GetStopNameResponse(HTTPERROR)", request.content, request.exception);
-			request.callback.getStopNameError(BUSSTATUS_HTTPERROR, "A network problem occurred (" + request.exception.getMessage() + ")");
+			request.callback.getStopNameError(request.requestId, BUSSTATUS_HTTPERROR, "A network problem occurred (" + request.exception.getMessage() + ")");
 			return;
 		}
 		if (request.responseCode != HttpURLConnection.HTTP_OK) {
 			if (request.responseMessage != null)
 				Log.e("BusDataHelper.GetStopNameResponse(HTTPRESPONSE)", request.responseMessage);
-			request.callback.getStopNameError(request.responseCode, "A network problem occurred (" + request.responseMessage + ")");
+			request.callback.getStopNameError(request.requestId, request.responseCode, "A network problem occurred (" + request.responseMessage + ")");
 			return;
 		}
 		if (request.content.toLowerCase().contains("doesn't exist")) {
-			request.callback.getStopNameError(BUSSTATUS_BADSTOPCODE, "The BusStop code was invalid");
+			request.callback.getStopNameError(request.requestId, BUSSTATUS_BADSTOPCODE, "The BusStop code was invalid");
 			return;
 		}
 
@@ -247,11 +258,11 @@ public class BusDataHelper {
 			
 		} catch (Exception ex) {
 			Log.e("BusDataHelper.GetStopNameResponse", request.content, ex);
-			request.callback.getStopNameError(BUSSTATUS_BADDATA, "Invalid data received from the bus website (" + ex.getMessage() + ")");
+			request.callback.getStopNameError(request.requestId, BUSSTATUS_BADDATA, "Invalid data received from the bus website (" + ex.getMessage() + ")");
 			return;
 		}
 		
-		request.callback.getStopNameSuccess(stopCode, stopName);
+		request.callback.getStopNameSuccess(request.requestId, stopCode, stopName);
 	}
 
 	
@@ -316,13 +327,15 @@ public class BusDataHelper {
 		public static final int REQ_BUSTIMES = 0;
 		public static final int REQ_STOPNAME = 1;
 		
-		public BusDataRequest(URL url, int requestType, BusDataResponseListener callback)
+		public BusDataRequest(int requestId, URL url, int requestType, BusDataResponseListener callback)
 		{
+			this.requestId = requestId;
 			this.url = url;
 			this.requestType = requestType;
 			this.callback = callback;
 		}
 		
+		public int requestId;
 		public URL url;
 		public int requestType;
 		public BusDataResponseListener callback;

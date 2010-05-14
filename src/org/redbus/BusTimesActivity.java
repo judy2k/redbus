@@ -47,7 +47,8 @@ public class BusTimesActivity extends ListActivity implements
 	private long StopCode = -1;
 	private String StopName = "";
 	private ProgressDialog busyDialog = null;
-	private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy HH:mm");
+	private SimpleDateFormat dateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
+	private int expectedRequestId = -1;
 
 	public static void showActivity(Context context, long stopCode,
 			String stopName) {
@@ -78,22 +79,23 @@ public class BusTimesActivity extends ListActivity implements
 	public void Update() {
 		if (StopCode != -1) {
 			setTitle(StopName + " (" + dateFormat.format(new Date()) + ")");
-			DisplayBusy("Getting BusStop times", null);
+			DisplayBusy("Getting BusStop times");
 
-			BusDataHelper.GetBusTimesAsync(StopCode, this);
+			expectedRequestId = BusDataHelper.GetBusTimesAsync(StopCode, this);
 		} else {
 			setTitle("Unknown BusStop");
 			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
 		}
 	}
 
-	private void DisplayBusy(String reason, OnCancelListener listener) {
+	private void DisplayBusy(String reason) {
 		DismissBusy();
 
-		if (listener != null)
-			busyDialog = ProgressDialog.show(this, "", reason, true, true, listener);
-		else
-			busyDialog = ProgressDialog.show(this, "", reason, true);
+		busyDialog = ProgressDialog.show(this, "", reason, true, true, new OnCancelListener() {
+			public void onCancel(DialogInterface dialog) {
+				BusTimesActivity.this.expectedRequestId = -1;
+			}
+		});
 	}
 
 	private void DismissBusy() {
@@ -109,7 +111,10 @@ public class BusTimesActivity extends ListActivity implements
 		findViewById(android.R.id.empty).setVisibility(View.GONE);
 	}
 
-	public void getBusTimesError(int code, String message) {
+	public void getBusTimesError(int requestId, int code, String message) {
+		if (requestId != expectedRequestId)
+			return;
+		
 		DismissBusy();
 		HideStatusBoxes();
 
@@ -122,7 +127,10 @@ public class BusTimesActivity extends ListActivity implements
 			show();
 	}
 
-	public void getBusTimesSuccess(List<BusTime> busTimes) {
+	public void getBusTimesSuccess(int requestId, List<BusTime> busTimes) {
+		if (requestId != expectedRequestId)
+			return;
+		
 		DismissBusy();
 		HideStatusBoxes();
 
@@ -167,8 +175,8 @@ public class BusTimesActivity extends ListActivity implements
 										return;
 									}
 									
-									DisplayBusy("Validating BusStop code", null);
-									BusDataHelper.GetStopNameAsync(stopCode, BusTimesActivity.this);
+									DisplayBusy("Validating BusStop code");
+									BusTimesActivity.this.expectedRequestId = BusDataHelper.GetStopNameAsync(stopCode, BusTimesActivity.this);
 								}
 							})
 					.setNegativeButton(android.R.string.cancel, null)
@@ -199,7 +207,10 @@ public class BusTimesActivity extends ListActivity implements
 		return false;
 	}
 
-	public void getStopNameError(int code, String message) {
+	public void getStopNameError(int requestId, int code, String message) {
+		if (requestId != expectedRequestId)
+			return;
+
 		DismissBusy();
 
 		new AlertDialog.Builder(this).setTitle("Error")
@@ -208,7 +219,10 @@ public class BusTimesActivity extends ListActivity implements
 			.show();
 	}
 
-	public void getStopNameSuccess(long stopCode, String stopName) {
+	public void getStopNameSuccess(int requestId, long stopCode, String stopName) {
+		if (requestId != expectedRequestId)
+			return;
+		
 		DismissBusy();
 
 		StopCode = stopCode;
