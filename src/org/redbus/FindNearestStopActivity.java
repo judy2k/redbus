@@ -41,8 +41,9 @@ public class FindNearestStopActivity extends Activity {
 	
 	private TextView txtStopName;
 	private TextView txtStopCode;
+	private TextView txtStopDistance;
 	
-	private PointTree.BusStopTreeNode currentStop;
+	private PointTree.BusStopTreeNode nearestStop;
 	
 	@Override
 	public void onPause() {
@@ -50,12 +51,28 @@ public class FindNearestStopActivity extends Activity {
 	       super.onStop();
 	}
 	
-	private void updateDetails(PointTree.BusStopTreeNode node)
+	private void locationChanged(Location location)
 	{
-		currentStop = node;
+		double lat = location.getLatitude();
+		double lng = location.getLongitude();
+		/*
+		Toast.makeText(getBaseContext(), 
+                "Location changed : Lat: " + lat + 
+                " Lng: " + lng, 
+                Toast.LENGTH_SHORT).show();	
+        */
 		
-		txtStopCode.setText(Long.toString(currentStop.getStopCode()));
-		txtStopName.setText(currentStop.getStopName());
+		nearestStop = busStopLocations.findNearest(lat,lng);
+		
+		Location stopLocation = new Location("busstop");
+		stopLocation.setLatitude(nearestStop.getX());
+		stopLocation.setLongitude(nearestStop.getY());
+		int distanceFromHere = (int)location.distanceTo(stopLocation);
+		
+
+		txtStopCode.setText(Long.toString(nearestStop.getStopCode()));
+		txtStopName.setText(nearestStop.getStopName());
+		txtStopDistance.setText(Integer.toString(distanceFromHere) + "m away");
 	}
 	
 
@@ -76,7 +93,7 @@ public class FindNearestStopActivity extends Activity {
 
         txtStopCode = (TextView)findViewById(R.id.txtStopCode);
         txtStopName = (TextView)findViewById(R.id.txtStopName);
-        
+        txtStopDistance = (TextView)findViewById(R.id.txtStopDistance);
         // Load the stops data
         InputStream stopsFile = getResources().openRawResource(R.raw.stops);
         try {
@@ -92,18 +109,7 @@ public class FindNearestStopActivity extends Activity {
         locationListener = new LocationListener() {
         	public void onLocationChanged(Location location)
         	{
-        		double lat = location.getLatitude();
-        		double lng = location.getLongitude();
-        		/*
-        		Toast.makeText(getBaseContext(), 
-                        "Location changed : Lat: " + lat + 
-                        " Lng: " + lng, 
-                        Toast.LENGTH_SHORT).show();	
-                */
-        		
-        		PointTree.BusStopTreeNode node = busStopLocations.findNearest(lat,lng);
-        		updateDetails(node);
-        		
+        		locationChanged(location);
         	}
 
         	public void onProviderDisabled(String provider) {}
@@ -122,7 +128,7 @@ public class FindNearestStopActivity extends Activity {
            public void onClick(View arg0) {
         	   // FIXME - Make this a proper map with pins etc
         	   String url = "geo:"+
-        	   	Double.toString(currentStop.getX())+","+Double.toString(currentStop.getY());
+        	   	Double.toString(nearestStop.getX())+","+Double.toString(nearestStop.getY());
         	   startActivity(new Intent("android.intent.action.VIEW", Uri.parse(url)));
            }
         });
@@ -132,8 +138,8 @@ public class FindNearestStopActivity extends Activity {
         btnTimes.setOnClickListener(new View.OnClickListener() {
            public void onClick(View arg0) {
 	          BusTimesActivity.showActivity(FindNearestStopActivity.this,
-	        		  currentStop.getStopCode(),
-	        		  currentStop.getStopName());
+	        		  nearestStop.getStopCode(),
+	        		  nearestStop.getStopName());
            } 
         });
     }

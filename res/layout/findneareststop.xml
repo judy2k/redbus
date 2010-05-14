@@ -4,12 +4,19 @@
   android:orientation="vertical"
   android:layout_width="wrap_content"
   android:layout_height="wrap_content">
+
    
-<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/txtStopName" android:text="Waiting for GPS" android:textSize="40sp"></TextView>
-<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/txtStopCode" android:text="" android:textSize="40sp"></TextView>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/txtStopName" android:text="Waiting for GPS" android:textSize="30sp"></TextView>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/txtStopCode" android:text="" android:textSize="16sp"></TextView>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/txtStopDistance" android:text=""></TextView>
 
+  <LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
 
-<Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/BtnGoto" android:text="Show map"></Button>
-<Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/BtnTimes" android:text="Show times"></Button>
-  
+    <Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/BtnGoto" android:text="Show map"></Button>
+    <Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/BtnTimes" android:text="Show times"></Button>
+  </LinearLayout>
 </LinearLayout>
