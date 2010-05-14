@@ -1,15 +1,24 @@
 package org.redbus;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class BusTimesActivity extends ListActivity implements BusDataResponseListener {
@@ -17,12 +26,14 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	private long StopCode = -1;
 	private String StopName = "";
 	private ProgressDialog busyDialog = null;
+	private SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.bustimes);
         registerForContextMenu(getListView());
+		findViewById(android.R.id.empty).setVisibility(View.GONE);
 
         StopCode = getIntent().getLongExtra("StopCode", -1);
         StopName = "";
@@ -41,7 +52,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	public void Update()
 	{
 		if (StopCode != -1) {
-			setTitle(StopName + " (" + StopCode + ")");
+			setTitle(StopName + " (" + dateFormat.format(new Date()) + ")");
 			BusDataHelper.GetBusTimesAsync(StopCode, this);
 			busyDialog = ProgressDialog.show(this, "Busy", "Getting BusStop times");
 		} else {
@@ -54,6 +65,11 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			busyDialog.dismiss();
 			busyDialog = null;
 		}
+		
+		setListAdapter(new BusTimesAdapter(this, R.layout.bustimes_item, new ArrayList<BusTime>()));
+		findViewById(R.id.bustimes_nodepartures).setVisibility(View.GONE);
+		findViewById(R.id.bustimes_error).setVisibility(View.VISIBLE);
+		findViewById(android.R.id.empty).setVisibility(View.GONE);
 
 		new AlertDialog.Builder(this).
 			setTitle("Error").
@@ -68,9 +84,13 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			busyDialog = null;
 		}
 		
-		int x = 1;
-		// TODO Auto-generated method stub
+		setListAdapter(new BusTimesAdapter(this, R.layout.bustimes_item, busTimes));
 		
+		findViewById(R.id.bustimes_nodepartures).setVisibility(View.GONE);
+		findViewById(R.id.bustimes_error).setVisibility(View.GONE);
+		findViewById(android.R.id.empty).setVisibility(View.GONE);
+		if (busTimes.isEmpty())
+			findViewById(R.id.bustimes_nodepartures).setVisibility(View.VISIBLE);
 	}
 
 	@Override
@@ -161,5 +181,51 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		StopCode = stopCode;
 		StopName = stopName;
 		Update();
+	}
+	
+	private class BusTimesAdapter extends ArrayAdapter<BusTime> {
+        private List<BusTime> items;
+        private int textViewResourceId;
+
+        public BusTimesAdapter(Context context, int textViewResourceId, List<BusTime> items) {
+			super(context, textViewResourceId, items);
+			
+			this.textViewResourceId = textViewResourceId;
+			this.items = items;
+        }
+        
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            if (v == null) {
+                LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                v = vi.inflate(textViewResourceId, null);
+            }
+            
+            BusTime busTime = items.get(position);
+            if (busTime != null) {
+                TextView serviceView = (TextView) v.findViewById(R.id.bustimes_service);
+                TextView destinationView = (TextView) v.findViewById(R.id.bustimes_destination);
+                TextView timeView = (TextView) v.findViewById(R.id.bustimes_time);
+                TextView detailsView = (TextView) v.findViewById(R.id.bustimes_details);
+                
+        		serviceView.setText(busTime.service);
+            	destinationView.setText(busTime.destination);
+            	
+            	if (busTime.arrivalIsDue)
+            		timeView.setText("Due");
+            	else if (busTime.arrivalAbsoluteTime != null)
+            		timeView.setText(busTime.arrivalAbsoluteTime);
+            	else 
+            		timeView.setText(busTime.arrivalMinutesLeft);
+            	if (busTime.arrivalEstimated)
+            		timeView.setText("(" + timeView.getText() + ")");
+                
+                if (busTime.lowFloorBus)
+                    detailsView.setText("LOWFLOOR");
+            }
+            
+            return v;        	
+        }
 	}
 }

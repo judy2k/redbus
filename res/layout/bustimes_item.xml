@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<TableLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent"
-  android:layout_height="wrap_content">
-	<TextView android:id="@+id/bustimes_service" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="30sp"/>
-	<LinearLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:orientation="vertical">
-		<TextView android:id="@+id/bustimes_destination" android:layout_width="fill_parent" android:layout_height="wrap_content" />
-	</LinearLayout>
-	<TextView android:id="@+id/bustimes_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="30sp"/>
-</LinearLayout>
+  android:layout_height="wrap_content"
+  android:stretchColumns="1">
+  	<TableRow>
+		<TextView 	android:id="@+id/bustimes_service" 
+					android:textSize="30sp" 
+					android:width="40px" />
+		<TableLayout android:stretchColumns="0">
+			<TableRow>
+				<TextView android:id="@+id/bustimes_destination" android:gravity="center" />
+			</TableRow>
+			<TableRow>
+				<TextView android:id="@+id/bustimes_details" android:gravity="center" />
+			</TableRow>
+		</TableLayout>
+		<TextView 	android:id="@+id/bustimes_time" 
+					android:textSize="30sp"/>
+	</TableRow>
+</TableLayout>

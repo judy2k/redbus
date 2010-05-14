@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="org.redbus"
-      android:versionCode="1"
-      android:versionName="1.0">
-    <application android:icon="@drawable/icon" android:label="@string/app_name">
-        
-
-    <activity android:name="StopBookmarksActivity" android:label="Bookmarks"><intent-filter><action android:name="android.intent.action.MAIN"></action>
-<category android:name="android.intent.category.LAUNCHER"></category>
-</intent-filter>
-</activity>
-<activity android:name="BusTimesActivity" android:label="Bus Times"></activity>
-</application>
+	package="org.redbus" android:versionCode="1" android:versionName="1.0">
+	<application android:icon="@drawable/icon" android:label="@string/app_name">
 
 
-<uses-sdk android:minSdkVersion="3"></uses-sdk>
+		<activity android:name="StopBookmarksActivity" android:label="rEdBus">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"></action>
+				<category android:name="android.intent.category.LAUNCHER"></category>
+			</intent-filter>
+		</activity>
+		<activity android:name="BusTimesActivity" android:label="Bus Times" />
+	</application>
 
-<uses-permission android:name="android.permission.INTERNET"></uses-permission>
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"></uses-permission>
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
+
+	<uses-sdk android:minSdkVersion="3"></uses-sdk>
+
+	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"></uses-permission>
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
 
 </manifest> 
