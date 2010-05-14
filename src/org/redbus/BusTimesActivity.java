@@ -33,7 +33,6 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.bustimes);
         registerForContextMenu(getListView());
-		findViewById(android.R.id.empty).setVisibility(View.GONE);
 
         StopCode = getIntent().getLongExtra("StopCode", -1);
         StopName = "";
@@ -55,8 +54,10 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			setTitle(StopName + " (" + dateFormat.format(new Date()) + ")");
 			BusDataHelper.GetBusTimesAsync(StopCode, this);
 			busyDialog = ProgressDialog.show(this, "Busy", "Getting BusStop times");
+			findViewById(android.R.id.empty).setVisibility(View.GONE);
 		} else {
 			setTitle("Unknown BusStop");
+			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
 		}
 	}
 
