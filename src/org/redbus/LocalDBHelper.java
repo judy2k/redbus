@@ -28,6 +28,7 @@ public class LocalDBHelper
 	public static final String BOOKMARKS = "Bookmarks";
 	public static final String BOOKMARKS_ID = "_id";
 	public static final String BOOKMARKS_STOPNAME = "StopName";
+
 	private SQLiteDatabase db;
 	
 	public LocalDBHelper(Context context, boolean writeble)

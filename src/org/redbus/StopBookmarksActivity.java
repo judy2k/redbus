@@ -46,8 +46,8 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 	private static final String[] columnNames = new String[] { LocalDBHelper.BOOKMARKS_ID, LocalDBHelper.BOOKMARKS_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
 	private Cursor listContentsCursor = null;
-	private long BookmarkId = -1;
-	private String BookmarkName = null;
+	private long bookmarkId = -1;
+	private String bookmarkName = null;
 	private ProgressDialog busyDialog = null;
 	private int expectedRequestId = -1;
 
@@ -101,14 +101,14 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-		BookmarkId = menuInfo.id;
-		BookmarkName = ((TextView) menuInfo.targetView.findViewById(R.id.stopbookmarks_name)).getText().toString();
+		bookmarkId = menuInfo.id;
+		bookmarkName = ((TextView) menuInfo.targetView.findViewById(R.id.stopbookmarks_name)).getText().toString();
 		
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_item_menu_bustimes:
 			Intent i = new Intent(this, BusTimesActivity.class);
-			i.putExtra("StopCode", BookmarkId);
-			i.putExtra("StopName", BookmarkName);
+			i.putExtra("StopCode", bookmarkId);
+			i.putExtra("StopName", bookmarkName);
 			startActivity(i);
 			return true;
 
@@ -118,7 +118,7 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 
 		case R.id.stopbookmarks_item_menu_edit:
 			final EditText input = new EditText(this);
-			input.setText(BookmarkName);
+			input.setText(bookmarkName);
 
 			new AlertDialog.Builder(this)
 					.setTitle("Edit bookmark name")
@@ -128,7 +128,7 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 								public void onClick(DialogInterface dialog, int whichButton) {
 			                        LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this, true);
 			                        try {
-			                        	db.renameBookmark(StopBookmarksActivity.this.BookmarkId, input.getText().toString());
+			                        	db.renameBookmark(StopBookmarksActivity.this.bookmarkId, input.getText().toString());
 			                        } finally {
 			                        	db.close();
 			                        }
@@ -147,7 +147,7 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
                     public void onClick(DialogInterface dialog, int whichButton) {
                         LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this, true);
                         try {
-                        	db.deleteBookmark(StopBookmarksActivity.this.BookmarkId);
+                        	db.deleteBookmark(StopBookmarksActivity.this.bookmarkId);
                         } finally {
                         	db.close();
                         }
@@ -253,7 +253,6 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 			db.close();
 		}
 		update();
-		Toast.makeText(this, "Added bookmark", Toast.LENGTH_SHORT).show();
 	}
 
 	private void displayBusy(String reason) {
