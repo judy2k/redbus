@@ -39,11 +39,10 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class StopBookmarksActivity extends ListActivity implements BusDataResponseListener
 {	
-	private static final String[] columnNames = new String[] { LocalDBHelper.BOOKMARKS_ID, LocalDBHelper.BOOKMARKS_STOPNAME };
+	private static final String[] columnNames = new String[] { LocalDBHelper.ID, LocalDBHelper.BOOKMARKS_COL_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
 	private Cursor listContentsCursor = null;
 	private long bookmarkId = -1;

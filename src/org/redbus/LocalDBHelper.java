@@ -26,8 +26,14 @@ import android.database.Cursor;
 public class LocalDBHelper 
 {
 	public static final String BOOKMARKS = "Bookmarks";
-	public static final String BOOKMARKS_ID = "_id";
-	public static final String BOOKMARKS_STOPNAME = "StopName";
+	public static final String SETTINGS = "Settings";
+	
+	public static final String ID = "_id";
+	public static final String BOOKMARKS_COL_STOPNAME = "StopName";
+
+	public static final String SETTINGS_COL_STOPCODE = "StopCode";
+	public static final String SETTINGS_COL_SETTINGNAME = "SettingName";
+	public static final String SETTINGS_COL_SETTINGVALUE = "SettingValue";
 
 	private SQLiteDatabase db;
 	
@@ -45,10 +51,12 @@ public class LocalDBHelper
 			db.close();
 		db = null;
 	}
-	
+
+
+
 	public Cursor getBookmarks()
 	{
-		return db.query(BOOKMARKS, null, null, null, null, null, BOOKMARKS_STOPNAME);
+		return db.query(BOOKMARKS, null, null, null, null, null, BOOKMARKS_COL_STOPNAME);
 	}
 
 	public void deleteBookmark(long bookmarkId) {
@@ -68,21 +76,81 @@ public class LocalDBHelper
 		} catch (Exception ex) {
 		}
 	}
+	
+	public String getGlobalSetting(String name, String defaultValue)
+	{
+		return getBusStopSetting(-1, name, defaultValue);
+	}
+	
+	public void setGlobalSetting(String name, String value)
+	{
+		setBusStopSetting(-1, name, value);
+	}
+	
+	public void deleteGlobalSetting(String name)
+	{
+		deleteBusStopSetting(-1, name);
+	}
 
-	
-	
+	public String getBusStopSetting(long stopCode, String name, String defaultValue)
+	{
+		String result = defaultValue;
+		
+		Cursor c = null;
+		try {
+			c = db.query(SETTINGS, 
+						new String[] { SETTINGS_COL_SETTINGVALUE }, 
+						"StopCode = ? AND SettingName = ?",
+						new String[] { Long.toString(stopCode), name }, 
+						null, 
+						null, 
+						null);
+			if (c.moveToNext())
+				result = c.getString(0);
+		} finally {
+			if (c != null)
+				c.close();
+		}
+		
+		return result;
+	}
+
+	public void setBusStopSetting(long stopCode, String name, String value)
+	{
+		deleteBusStopSetting(stopCode, name);
+		db.execSQL("INSERT INTO Settings VALUES (?, ?, ?)", new Object[] {stopCode, name, value});
+	}
+
+	public void deleteBusStopSetting(long stopCode, String name)
+	{
+		db.execSQL("DELETE FROM Settings WHERE StopCode = ? AND SettingName = ?", new Object[] { stopCode, name });
+	}
+
+	public void deleteBusStopSettings(long stopCode)
+	{
+		db.execSQL("DELETE FROM Settings WHERE StopCode = ?", new Object[] { stopCode});
+	}
+
+
+
 	private static class LocalDBOpenHelper extends SQLiteOpenHelper {
 	    public static final String DATABASE_NAME = "rEdBusDB.db";
-	    public static final int DATABASE_VERSION = 1;
+	    public static final int DATABASE_VERSION = 2;
 	    
+	    public static final String CREATE_BOOKMARKS_TABLE_SQL = 
+	    	"CREATE TABLE Bookmarks (_id integer primary key, StopName TEXT)";
+	    public static final String CREATE_SETTINGS_TABLE_SQL = 
+	    	"CREATE TABLE Settings (_id integer primary key autoincrement, StopCode integer primary key, SettingName TEXT, SettingValue TEXT)";
+
 	    public static final String[] CREATE_TABLE_SQL = {
-	    	"CREATE TABLE Bookmarks (_id integer primary key, StopName TEXT)",
+	    	CREATE_BOOKMARKS_TABLE_SQL,
+	    	CREATE_SETTINGS_TABLE_SQL
 	    };
 
 	    public LocalDBOpenHelper(Context context) {
 			super(context, DATABASE_NAME, null, DATABASE_VERSION);
 		}
-		
+
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			int length = CREATE_TABLE_SQL.length;
@@ -93,6 +161,8 @@ public class LocalDBHelper
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+			if ((oldVersion == 1) && (newVersion == 2))
+				db.execSQL(CREATE_SETTINGS_TABLE_SQL);
 		}
 	}
 }
