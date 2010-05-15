@@ -5,11 +5,11 @@
 <item android:title="Enter Stop Code" android:id="@+id/bustimes_menu_enterstopcode"></item>
 
 
-<item android:title="Add Bookmark" android:id="@+id/bustimes_menu_addbookmark"></item><item android:title="Settings" android:id="@+id/bustimes_menu_settings" android:enabled="false"><menu><item android:title="Auto Refresh" android:id="@+id/bustimes_menu_autorefresh"></item>
-<item android:title="Sorting" android:id="@+id/bustimes_menu_sorting"></item>
-<item android:id="@+id/bustimes_menu_numdepartures" android:title="Number of Departures"></item>
+<item android:title="Add Bookmark" android:id="@+id/bustimes_menu_addbookmark"></item><item android:title="Settings" android:id="@+id/bustimes_menu_settings" android:enabled="false"><menu><item android:title="Auto Refresh" android:id="@+id/bustimes_menu_settings_autorefresh"></item>
+<item android:title="Sorting" android:id="@+id/bustimes_menu_settings_sorting"></item>
+<item android:title="Number of Departures" android:id="@+id/bustimes_menu_settings_numdepartures"></item>
 </menu>
 </item>
 <item android:title="View on Map" android:id="@+id/bustimes_menu_viewonmap" android:enabled="false"></item>
-<item android:id="@+id/bustimes_menu_timesinadvance" android:title="Times in Advance" android:enabled="false"></item>
+<item android:id="@+id/bustimes_menu_futuredepartures" android:title="Future Departures"></item>
 </menu>

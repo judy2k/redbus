@@ -18,10 +18,14 @@
 
 package org.redbus;
 
+import java.util.List;
+
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnCancelListener;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -35,14 +39,17 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class StopBookmarksActivity extends ListActivity 
+public class StopBookmarksActivity extends ListActivity implements BusDataResponseListener
 {	
 	private static final String[] columnNames = new String[] { LocalDBHelper.BOOKMARKS_ID, LocalDBHelper.BOOKMARKS_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
 	private Cursor listContentsCursor = null;
 	private long BookmarkId = -1;
 	private String BookmarkName = null;
+	private ProgressDialog busyDialog = null;
+	private int expectedRequestId = -1;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
@@ -179,8 +186,92 @@ public class StopBookmarksActivity extends ListActivity
 		case R.id.stopbookmarks_menu_bustimes:
 			startActivity(new Intent(this, BusTimesActivity.class));
 			return true;
+			
+		case R.id.stopbookmarks_menu_addbookmark:
+			final EditText input = new EditText(this);
+
+			new AlertDialog.Builder(this)
+				.setTitle("Enter BusStop code for bookmark")
+				.setView(input)
+				.setPositiveButton(android.R.string.ok,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int whichButton) {
+								long stopCode = -1;
+								try {
+									stopCode = Long.parseLong(input.getText().toString());
+								} catch (Exception ex) {
+									new AlertDialog.Builder(StopBookmarksActivity.this)
+											.setTitle("Invalid BusStop code")
+											.setMessage("The code was invalid; please try again using only numbers")
+											.setPositiveButton(android.R.string.ok, null)
+											.show();
+									return;
+								}
+								
+								DisplayBusy("Validating BusStop code");
+								StopBookmarksActivity.this.expectedRequestId = BusDataHelper.GetStopNameAsync(stopCode, StopBookmarksActivity.this);
+							}
+						})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+			break;
 		}
 		
 		return false;
+	}
+
+	public void getBusTimesError(int requestId, int code, String message) {
+		// unused
+	}
+
+	public void getBusTimesSuccess(int requestId, List<BusTime> busTimes) {
+		// unused
+	}
+
+	public void getStopNameError(int requestId, int code, String message) {
+		if (requestId != expectedRequestId)
+			return;
+
+		DismissBusy();
+
+		new AlertDialog.Builder(this).setTitle("Error")
+			.setMessage("Unable to validate BusStop code: " + message)
+			.setPositiveButton(android.R.string.ok, null)
+			.show();
+	}
+
+	public void getStopNameSuccess(int requestId, long stopCode, String stopName) {
+		if (requestId != expectedRequestId)
+			return;
+
+		DismissBusy();
+
+		LocalDBHelper db = new LocalDBHelper(this, false);
+		try {
+			db.AddBookmark(stopCode, stopName);
+		} finally {
+			db.close();
+		}
+		Toast.makeText(this, "Added bookmark", Toast.LENGTH_SHORT).show();
+	}
+
+	private void DisplayBusy(String reason) {
+		DismissBusy();
+
+		busyDialog = ProgressDialog.show(this, "", reason, true, true, new OnCancelListener() {
+			public void onCancel(DialogInterface dialog) {
+				StopBookmarksActivity.this.expectedRequestId = -1;
+			}
+		});
+	}
+
+	private void DismissBusy() {
+		if (busyDialog != null) {
+			try {
+				busyDialog.dismiss();
+			} catch (Throwable t) {
+			}
+			busyDialog = null;
+		}
 	}
 }

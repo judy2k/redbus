@@ -20,7 +20,9 @@ package org.redbus;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import android.app.AlertDialog;
 import android.app.ListActivity;
@@ -38,7 +40,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 public class BusTimesActivity extends ListActivity implements
@@ -47,7 +51,8 @@ public class BusTimesActivity extends ListActivity implements
 	private long StopCode = -1;
 	private String StopName = "";
 	private ProgressDialog busyDialog = null;
-	private SimpleDateFormat dateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
+	private SimpleDateFormat titleDateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
+	private SimpleDateFormat advanceDateFormat = new SimpleDateFormat("EEE dd MMM yyyy");
 	private int expectedRequestId = -1;
 
 	public static void showActivity(Context context, long stopCode,
@@ -77,11 +82,19 @@ public class BusTimesActivity extends ListActivity implements
 	}
 
 	public void Update() {
+		Update(0, null);
+	}
+
+	public void Update(int daysInAdvance, Date timeInAdvance) {
 		if (StopCode != -1) {
-			setTitle(StopName + " (" + dateFormat.format(new Date()) + ")");
+			Date displayDate = timeInAdvance;
+			if (displayDate == null)
+				displayDate = new Date();
+	
+			setTitle(StopName + " (" + titleDateFormat.format(displayDate) + ")");
 			DisplayBusy("Getting BusStop times");
 
-			expectedRequestId = BusDataHelper.GetBusTimesAsync(StopCode, this);
+			expectedRequestId = BusDataHelper.GetBusTimesAsync(StopCode, daysInAdvance, timeInAdvance, this);
 		} else {
 			setTitle("Unknown BusStop");
 			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
@@ -198,23 +211,54 @@ public class BusTimesActivity extends ListActivity implements
 			}
 			return true;
 
-		case R.id.bustimes_menu_settings:
-			// FIXME: implement
-			return true;
-
 		case R.id.bustimes_menu_viewonmap:
 			// FIXME: implement
 			return true;
+
+		case R.id.bustimes_menu_futuredepartures:
+			LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			View v = vi.inflate(R.layout.futuredepartures, null);
+
+			final GregorianCalendar calendar = new GregorianCalendar();
+			final TimePicker timePicker = (TimePicker) v.findViewById(R.id.futuredepartures_time);
+			timePicker.setCurrentHour(calendar.get(Calendar.HOUR_OF_DAY));
+			timePicker.setCurrentMinute(calendar.get(Calendar.MINUTE));
+			timePicker.setIs24HourView(true);
+
+			final Spinner datePicker = (Spinner) v.findViewById(R.id.futuredepartures_date);
+			ArrayList<String> dates = new ArrayList<String>();
+			for(int i=0; i < 4; i++) {
+				dates.add(advanceDateFormat.format(calendar.getTime()));
+				calendar.add(Calendar.DAY_OF_MONTH, 1);
+			}
+			calendar.add(Calendar.DAY_OF_MONTH, -4);
+			datePicker.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, dates));
+
+			new AlertDialog.Builder(this)
+				.setTitle("Choose the desired date/time")
+				.setView(v)
+				.setPositiveButton(android.R.string.ok,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int whichButton) {
+								calendar.add(Calendar.DAY_OF_MONTH, datePicker.getSelectedItemPosition());
+								calendar.set(Calendar.HOUR_OF_DAY, timePicker.getCurrentHour());
+								calendar.set(Calendar.MINUTE, timePicker.getCurrentMinute());
+								Update(datePicker.getSelectedItemPosition(), calendar.getTime());
+							}
+						})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+			return true;
 			
-		case R.id.bustimes_menu_autorefresh:
+		case R.id.bustimes_menu_settings_autorefresh:
 			// FIXME: implement
 			return true;
 
-		case R.id.bustimes_menu_sorting:
+		case R.id.bustimes_menu_settings_sorting:
 			// FIXME: implement
 			return true;
 
-		case R.id.bustimes_menu_numdepartures:
+		case R.id.bustimes_menu_settings_numdepartures:
 			// FIXME: implement
 			return true;
 		}

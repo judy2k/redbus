@@ -24,7 +24,9 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,18 +47,26 @@ public class BusDataHelper {
 	private static Pattern stopDetailsRegex = Pattern.compile("([0-9]+)\\s+([^/]+).*");
 	private static Pattern destinationRegex = Pattern.compile("(\\S+)\\s+(.*)");
 	private static Pattern destinationAndTimeRegex = Pattern.compile("(\\S+)\\s+(.*)\\s+(\\S+)");
-	
+	private static SimpleDateFormat advanceTimeFormat = new SimpleDateFormat("HH:mm");
+
 	private static Integer RequestId = new Integer(0);
-	
-	public static int GetBusTimesAsync(long stopCode, BusDataResponseListener callback)
+
+	public static int GetBusTimesAsync(long stopCode, int daysInAdvance, Date timeInAdvance, BusDataResponseListener callback)
 	{
+		String time = "";
+		if (timeInAdvance != null) {
+			time = advanceTimeFormat.format(timeInAdvance);
+		} else {
+			daysInAdvance = 0;
+		}
+
 		StringBuilder url = new StringBuilder("http://www.mybustracker.co.uk/getBusStopDepartures.php?" +
 											  "refreshCount=0&" +
 											  "clientType=b&" +
-											  "busStopDay=0&" +
+											  "busStopDay=" + daysInAdvance + "&" +
 											  "busStopService=0&" +
 											  "numberOfPassage=2&" +
-											  "busStopTime&" +
+											  "busStopTime=" + time + "&" +
 											  "busStopDestination=0&");
 		url.append("busStopCode=");
 		url.append(stopCode);
