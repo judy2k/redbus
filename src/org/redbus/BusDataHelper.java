@@ -53,55 +53,57 @@ public class BusDataHelper {
 
 	public static int getBusTimesAsync(long stopCode, int daysInAdvance, Date timeInAdvance, BusDataResponseListener callback)
 	{
-		String time = "";
-		if (timeInAdvance != null) {
-			time = advanceTimeFormat.format(timeInAdvance);
-		} else {
-			daysInAdvance = 0;
-		}
-
-		StringBuilder url = new StringBuilder("http://www.mybustracker.co.uk/getBusStopDepartures.php?" +
-											  "refreshCount=0&" +
-											  "clientType=b&" +
-											  "busStopDay=" + daysInAdvance + "&" +
-											  "busStopService=0&" +
-											  "numberOfPassage=2&" +
-											  "busStopTime=" + time + "&" +
-											  "busStopDestination=0&");
-		url.append("busStopCode=");
-		url.append(stopCode);
-
 		int requestId = RequestId++;
-		try {
-			new AsyncHttpRequestTask().execute(new BusDataRequest(requestId, new URL(url.toString()), BusDataRequest.REQ_BUSTIMES, callback));
-		} catch (MalformedURLException ex) {
-			Log.e("BusDataHelper", "Malformed URL reported: " + url.toString());
-		}
+		
+		new AsyncHttpRequestTask().execute(new BusDataRequest(requestId, 
+				buildURL(stopCode, daysInAdvance, null, 2), 
+				BusDataRequest.REQ_BUSTIMES, 
+				callback));
 		
 		return requestId;
 	}
 	
 	public static int getStopNameAsync(long stopCode, BusDataResponseListener callback)
 	{
-		StringBuilder url = new StringBuilder("http://www.mybustracker.co.uk/getBusStopDepartures.php?" +
-											  "refreshCount=0&" +
-											  "clientType=b&" +
-											  "busStopDay=0&" +
-											  "busStopService=0&" +
-											  "numberOfPassage=0&" +
-											  "busStopTime=09:00&" +
-											  "busStopDestination=0&");
-		url.append("busStopCode=");
-		url.append(stopCode);
-
 		int requestId = RequestId++;
-		try {
-			new AsyncHttpRequestTask().execute(new BusDataRequest(requestId, new URL(url.toString()), BusDataRequest.REQ_STOPNAME, callback));
-		} catch (MalformedURLException ex) {
-			Log.e("BusDataHelper", "Malformed URL reported: " + url.toString());
-		}
+		
+		new AsyncHttpRequestTask().execute(new BusDataRequest(requestId, 
+				buildURL(stopCode, 1, "09:00", 0), 
+				BusDataRequest.REQ_STOPNAME, 
+				callback));
 		
 		return requestId;
+	}
+	
+	private static URL buildURL(long stopCode, int daysInAdvance, Object timeInAdvance, int departureCount)
+	{
+		String time = "";
+		if (timeInAdvance != null) {
+			if (timeInAdvance instanceof Date)
+				time = advanceTimeFormat.format(timeInAdvance);
+			else
+				time = timeInAdvance.toString();
+		} else {
+			daysInAdvance = 0;
+		}
+
+		StringBuilder result = new StringBuilder("http://www.mybustracker.co.uk/getBusStopDepartures.php");
+		result.append("?refreshCount=0");
+		result.append("&clientType=b");
+		result.append("&busStopDay=").append(daysInAdvance);
+		result.append("&busStopService=0");
+		result.append("&numberOfPassage=").append(departureCount);
+		result.append("&busStopTime=").append(time);
+		result.append("&busStopDestination=0");
+		result.append("&busStopCode=").append(stopCode);
+		
+		try {
+			return new URL(result.toString());
+		} catch (MalformedURLException e) {
+			Log.e("BusDataHelper", "Malformed URL reported: " + result.toString());
+		}
+		
+		return null;
 	}
 	
 	private static boolean checkForResponseErrors(BusDataRequest request)

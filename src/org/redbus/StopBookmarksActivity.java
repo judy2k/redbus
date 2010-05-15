@@ -75,7 +75,7 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 			listContentsCursor = null;
 		}
 
-        LocalDBHelper db = new LocalDBHelper(this, false);
+        LocalDBHelper db = new LocalDBHelper(this);
         try {
 	        listContentsCursor = db.getBookmarks();
 	        startManagingCursor(listContentsCursor);
@@ -125,7 +125,7 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 					.setPositiveButton(android.R.string.ok,
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog, int whichButton) {
-			                        LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this, true);
+			                        LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this);
 			                        try {
 			                        	db.renameBookmark(StopBookmarksActivity.this.bookmarkId, input.getText().toString());
 			                        } finally {
@@ -144,7 +144,7 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 				setNegativeButton(android.R.string.cancel, null).
 				setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this, true);
+                        LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this);
                         try {
                         	db.deleteBookmark(StopBookmarksActivity.this.bookmarkId);
                         } finally {
@@ -245,7 +245,7 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 
 		dismissBusy();
 
-		LocalDBHelper db = new LocalDBHelper(this, false);
+		LocalDBHelper db = new LocalDBHelper(this);
 		try {
 			db.addBookmark(stopCode, stopName);
 		} finally {

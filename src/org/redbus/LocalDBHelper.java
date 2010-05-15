@@ -25,8 +25,8 @@ import android.database.Cursor;
 
 public class LocalDBHelper 
 {
-	public static final String BOOKMARKS = "Bookmarks";
-	public static final String SETTINGS = "Settings";
+	public static final String BOOKMARKS_TABLE = "Bookmarks";
+	public static final String SETTINGS_TABLE = "Settings";
 	
 	public static final String ID = "_id";
 	public static final String BOOKMARKS_COL_STOPNAME = "StopName";
@@ -37,12 +37,9 @@ public class LocalDBHelper
 
 	private SQLiteDatabase db;
 	
-	public LocalDBHelper(Context context, boolean writeble)
+	public LocalDBHelper(Context context)
 	{
-		if (writeble)
-			db = new LocalDBOpenHelper(context).getWritableDatabase();
-		else
-			db = new LocalDBOpenHelper(context).getReadableDatabase();			
+		db = new LocalDBOpenHelper(context).getWritableDatabase();
 	}
 	
 	public void close()
@@ -56,7 +53,7 @@ public class LocalDBHelper
 
 	public Cursor getBookmarks()
 	{
-		return db.query(BOOKMARKS, null, null, null, null, null, BOOKMARKS_COL_STOPNAME);
+		return db.query(BOOKMARKS_TABLE, null, null, null, null, null, BOOKMARKS_COL_STOPNAME);
 	}
 
 	public void deleteBookmark(long bookmarkId) {
@@ -98,7 +95,7 @@ public class LocalDBHelper
 		
 		Cursor c = null;
 		try {
-			c = db.query(SETTINGS, 
+			c = db.query(SETTINGS_TABLE, 
 						new String[] { SETTINGS_COL_SETTINGVALUE }, 
 						"StopCode = ? AND SettingName = ?",
 						new String[] { Long.toString(stopCode), name }, 

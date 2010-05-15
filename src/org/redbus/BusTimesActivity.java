@@ -202,7 +202,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 		case R.id.bustimes_menu_addbookmark:
 			if (StopCode != -1) {
-				LocalDBHelper db = new LocalDBHelper(this, false);
+				LocalDBHelper db = new LocalDBHelper(this);
 				try {
 					db.addBookmark(StopCode, StopName);
 				} finally {
