@@ -30,6 +30,8 @@ import java.io.InputStream;
 import java.lang.Math;
 import java.util.ArrayList;
 
+import android.util.Log;
+
 public class PointTree {
 
 	// Represents a node in the tree
@@ -179,7 +181,7 @@ public class PointTree {
 		}
 		else {
 			herepos = herey;
-			topleft = xbr;
+			topleft = ytl;
 			bottomright = ybr;
 		}
 		
@@ -209,6 +211,9 @@ public class PointTree {
 	{
 		ArrayList<BusStopTreeNode> stops = new ArrayList<BusStopTreeNode>();
 		
+		//Log.println(Log.DEBUG, "redbus", "tl: "+ Double.toString(xtl) + "," + Double.toString(ytl));
+		//Log.println(Log.DEBUG, "redbus", "br: "+ Double.toString(xbr) + "," + Double.toString(ybr));
+		
 		return searchRect(xtl,ytl,xbr,ybr,this.getRoot(),stops,0);
 	}
 	
@@ -230,6 +235,6 @@ public class PointTree {
 		return findRect(xcentre-radiusDegrees,
 				          ycentre-radiusDegrees,
 				          xcentre+radiusDegrees,
-				          xcentre+radiusDegrees);
+				          ycentre+radiusDegrees);
 	}
 }
