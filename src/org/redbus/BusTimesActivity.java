@@ -227,9 +227,9 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			timePicker.setIs24HourView(true);
 
 			final Spinner datePicker = (Spinner) v.findViewById(R.id.futuredepartures_date);
-			ArrayList<String> dates = new ArrayList<String>();
+			String[] dates = new String[4];
 			for(int i=0; i < 4; i++) {
-				dates.add(advanceDateFormat.format(calendar.getTime()));
+				dates[i] = advanceDateFormat.format(calendar.getTime());
 				calendar.add(Calendar.DAY_OF_MONTH, 1);
 			}
 			calendar.add(Calendar.DAY_OF_MONTH, -4);
