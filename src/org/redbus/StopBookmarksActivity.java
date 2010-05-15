@@ -65,10 +65,10 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 	{
 		super.onStart();
 		
-		UpdateBookmarksList();
+		update();
 	}
 	
-	public void UpdateBookmarksList()
+	private void update()
 	{
 		if (listContentsCursor != null) {
 			stopManagingCursor(listContentsCursor);
@@ -78,7 +78,7 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 
         LocalDBHelper db = new LocalDBHelper(this, false);
         try {
-	        listContentsCursor = db.GetBookmarks();
+	        listContentsCursor = db.getBookmarks();
 	        startManagingCursor(listContentsCursor);
 	        setListAdapter(new SimpleCursorAdapter(this, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds));
         } finally {
@@ -128,11 +128,11 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 								public void onClick(DialogInterface dialog, int whichButton) {
 			                        LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this, true);
 			                        try {
-			                        	db.RenameBookmark(StopBookmarksActivity.this.BookmarkId, input.getText().toString());
+			                        	db.renameBookmark(StopBookmarksActivity.this.BookmarkId, input.getText().toString());
 			                        } finally {
 			                        	db.close();
 			                        }
-			                        StopBookmarksActivity.this.UpdateBookmarksList();
+			                        StopBookmarksActivity.this.update();
 								}
 							})
 					.setNegativeButton(android.R.string.cancel, null)
@@ -147,11 +147,11 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
                     public void onClick(DialogInterface dialog, int whichButton) {
                         LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this, true);
                         try {
-                        	db.DeleteBookmark(StopBookmarksActivity.this.BookmarkId);
+                        	db.deleteBookmark(StopBookmarksActivity.this.BookmarkId);
                         } finally {
                         	db.close();
                         }
-                        StopBookmarksActivity.this.UpdateBookmarksList();
+                        StopBookmarksActivity.this.update();
                     }
 				}).
                 show();
@@ -208,8 +208,8 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 									return;
 								}
 								
-								DisplayBusy("Validating BusStop code");
-								StopBookmarksActivity.this.expectedRequestId = BusDataHelper.GetStopNameAsync(stopCode, StopBookmarksActivity.this);
+								displayBusy("Validating BusStop code");
+								StopBookmarksActivity.this.expectedRequestId = BusDataHelper.getStopNameAsync(stopCode, StopBookmarksActivity.this);
 							}
 						})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -232,7 +232,7 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 		if (requestId != expectedRequestId)
 			return;
 
-		DismissBusy();
+		dismissBusy();
 
 		new AlertDialog.Builder(this).setTitle("Error")
 			.setMessage("Unable to validate BusStop code: " + message)
@@ -244,19 +244,20 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 		if (requestId != expectedRequestId)
 			return;
 
-		DismissBusy();
+		dismissBusy();
 
 		LocalDBHelper db = new LocalDBHelper(this, false);
 		try {
-			db.AddBookmark(stopCode, stopName);
+			db.addBookmark(stopCode, stopName);
 		} finally {
 			db.close();
 		}
+		update();
 		Toast.makeText(this, "Added bookmark", Toast.LENGTH_SHORT).show();
 	}
 
-	private void DisplayBusy(String reason) {
-		DismissBusy();
+	private void displayBusy(String reason) {
+		dismissBusy();
 
 		busyDialog = ProgressDialog.show(this, "", reason, true, true, new OnCancelListener() {
 			public void onCancel(DialogInterface dialog) {
@@ -265,7 +266,7 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 		});
 	}
 
-	private void DismissBusy() {
+	private void dismissBusy() {
 		if (busyDialog != null) {
 			try {
 				busyDialog.dismiss();

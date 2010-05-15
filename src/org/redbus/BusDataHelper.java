@@ -51,7 +51,7 @@ public class BusDataHelper {
 
 	private static Integer RequestId = new Integer(0);
 
-	public static int GetBusTimesAsync(long stopCode, int daysInAdvance, Date timeInAdvance, BusDataResponseListener callback)
+	public static int getBusTimesAsync(long stopCode, int daysInAdvance, Date timeInAdvance, BusDataResponseListener callback)
 	{
 		String time = "";
 		if (timeInAdvance != null) {
@@ -81,7 +81,7 @@ public class BusDataHelper {
 		return requestId;
 	}
 	
-	public static int GetStopNameAsync(long stopCode, BusDataResponseListener callback)
+	public static int getStopNameAsync(long stopCode, BusDataResponseListener callback)
 	{
 		StringBuilder url = new StringBuilder("http://www.mybustracker.co.uk/getBusStopDepartures.php?" +
 											  "refreshCount=0&" +
@@ -104,7 +104,7 @@ public class BusDataHelper {
 		return requestId;
 	}
 	
-	private static boolean CheckForResponseErrors(BusDataRequest request)
+	private static boolean checkForResponseErrors(BusDataRequest request)
 	{
 		if (request.throwable != null) {
 			Log.e("BusDataHelper.GetBusTimesResponse(HTTPERROR)", request.content, request.throwable);
@@ -125,9 +125,9 @@ public class BusDataHelper {
 		return true;
 	}
 	
-	private static void GetBusTimesResponse(BusDataRequest request)
+	private static void getBusTimesResponse(BusDataRequest request)
 	{
-		if (!CheckForResponseErrors(request))
+		if (!checkForResponseErrors(request))
 			return;
 		
 		ArrayList<BusTime> busTimes = new ArrayList<BusTime>();
@@ -140,7 +140,7 @@ public class BusDataHelper {
 				case XmlPullParser.START_TAG:
 					String tagName = parser.getName();
 					if (tagName == "pre")
-						busTimes.add(ParseStopTime(parser));
+						busTimes.add(parseStopTime(parser));
 				}
 			}
 			
@@ -153,7 +153,7 @@ public class BusDataHelper {
 		request.callback.getBusTimesSuccess(request.requestId, busTimes);
 	}
 	
-	private static BusTime ParseStopTime(XmlPullParser parser) 
+	private static BusTime parseStopTime(XmlPullParser parser) 
 		throws XmlPullParserException, IOException
 	{
 		String rawDestination = parser.nextText();
@@ -226,9 +226,9 @@ public class BusDataHelper {
 		return new BusTime(service, destination, lowFloorBus, arrivalEstimated, arrivalIsDue, arrivalMinutesLeft, arrivalAbsoluteTime);
 	}
 
-	private static void GetStopNameResponse(BusDataRequest request)
+	private static void getStopNameResponse(BusDataRequest request)
 	{
-		if (!CheckForResponseErrors(request))
+		if (!checkForResponseErrors(request))
 			return;
 
 		long stopCode = -1;
@@ -315,10 +315,10 @@ public class BusDataHelper {
 		protected void onPostExecute(BusDataRequest request) {
 			switch(request.requestType) {
 			case BusDataRequest.REQ_BUSTIMES:
-				BusDataHelper.GetBusTimesResponse(request);			
+				BusDataHelper.getBusTimesResponse(request);			
 				break;
 			case BusDataRequest.REQ_STOPNAME:
-				BusDataHelper.GetStopNameResponse(request);			
+				BusDataHelper.getStopNameResponse(request);			
 				break;
 			}
 		}

@@ -45,15 +45,16 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-public class BusTimesActivity extends ListActivity implements
-		BusDataResponseListener {
+public class BusTimesActivity extends ListActivity implements BusDataResponseListener {
 
 	private long StopCode = -1;
 	private String StopName = "";
+
 	private ProgressDialog busyDialog = null;
+	private int expectedRequestId = -1;
+
 	private SimpleDateFormat titleDateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
 	private SimpleDateFormat advanceDateFormat = new SimpleDateFormat("EEE dd MMM yyyy");
-	private int expectedRequestId = -1;
 
 	public static void showActivity(Context context, long stopCode,
 			String stopName) {
@@ -78,31 +79,31 @@ public class BusTimesActivity extends ListActivity implements
 		if (tmp != null)
 			StopName = tmp.toString();
 
-		Update();
+		update();
 	}
 
-	public void Update() {
-		Update(0, null);
+	private void update() {
+		update(0, null);
 	}
 
-	public void Update(int daysInAdvance, Date timeInAdvance) {
+	private void update(int daysInAdvance, Date timeInAdvance) {
 		if (StopCode != -1) {
 			Date displayDate = timeInAdvance;
 			if (displayDate == null)
 				displayDate = new Date();
 	
 			setTitle(StopName + " (" + titleDateFormat.format(displayDate) + ")");
-			DisplayBusy("Getting BusStop times");
+			displayBusy("Getting BusStop times");
 
-			expectedRequestId = BusDataHelper.GetBusTimesAsync(StopCode, daysInAdvance, timeInAdvance, this);
+			expectedRequestId = BusDataHelper.getBusTimesAsync(StopCode, daysInAdvance, timeInAdvance, this);
 		} else {
 			setTitle("Unknown BusStop");
 			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
 		}
 	}
 
-	private void DisplayBusy(String reason) {
-		DismissBusy();
+	private void displayBusy(String reason) {
+		dismissBusy();
 
 		busyDialog = ProgressDialog.show(this, "", reason, true, true, new OnCancelListener() {
 			public void onCancel(DialogInterface dialog) {
@@ -111,7 +112,7 @@ public class BusTimesActivity extends ListActivity implements
 		});
 	}
 
-	private void DismissBusy() {
+	private void dismissBusy() {
 		if (busyDialog != null) {
 			try {
 				busyDialog.dismiss();
@@ -121,7 +122,7 @@ public class BusTimesActivity extends ListActivity implements
 		}
 	}
 
-	private void HideStatusBoxes() {
+	private void hideStatusBoxes() {
 		findViewById(R.id.bustimes_nodepartures).setVisibility(View.GONE);
 		findViewById(R.id.bustimes_error).setVisibility(View.GONE);
 		findViewById(android.R.id.empty).setVisibility(View.GONE);
@@ -131,8 +132,8 @@ public class BusTimesActivity extends ListActivity implements
 		if (requestId != expectedRequestId)
 			return;
 		
-		DismissBusy();
-		HideStatusBoxes();
+		dismissBusy();
+		hideStatusBoxes();
 
 		setListAdapter(new BusTimesAdapter(this, R.layout.bustimes_item, new ArrayList<BusTime>()));
 		findViewById(R.id.bustimes_error).setVisibility(View.VISIBLE);
@@ -147,8 +148,8 @@ public class BusTimesActivity extends ListActivity implements
 		if (requestId != expectedRequestId)
 			return;
 		
-		DismissBusy();
-		HideStatusBoxes();
+		dismissBusy();
+		hideStatusBoxes();
 
 		setListAdapter(new BusTimesAdapter(this, R.layout.bustimes_item, busTimes));
 		if (busTimes.isEmpty())
@@ -167,7 +168,7 @@ public class BusTimesActivity extends ListActivity implements
 
 		switch (item.getItemId()) {
 		case R.id.bustimes_menu_refresh:
-			Update();
+			update();
 			return true;
 
 		case R.id.bustimes_menu_enterstopcode:
@@ -191,8 +192,8 @@ public class BusTimesActivity extends ListActivity implements
 										return;
 									}
 									
-									DisplayBusy("Validating BusStop code");
-									BusTimesActivity.this.expectedRequestId = BusDataHelper.GetStopNameAsync(stopCode, BusTimesActivity.this);
+									displayBusy("Validating BusStop code");
+									BusTimesActivity.this.expectedRequestId = BusDataHelper.getStopNameAsync(stopCode, BusTimesActivity.this);
 								}
 							})
 					.setNegativeButton(android.R.string.cancel, null)
@@ -203,7 +204,7 @@ public class BusTimesActivity extends ListActivity implements
 			if (StopCode != -1) {
 				LocalDBHelper db = new LocalDBHelper(this, false);
 				try {
-					db.AddBookmark(StopCode, StopName);
+					db.addBookmark(StopCode, StopName);
 				} finally {
 					db.close();
 				}
@@ -243,7 +244,7 @@ public class BusTimesActivity extends ListActivity implements
 								calendar.add(Calendar.DAY_OF_MONTH, datePicker.getSelectedItemPosition());
 								calendar.set(Calendar.HOUR_OF_DAY, timePicker.getCurrentHour());
 								calendar.set(Calendar.MINUTE, timePicker.getCurrentMinute());
-								Update(datePicker.getSelectedItemPosition(), calendar.getTime());
+								update(datePicker.getSelectedItemPosition(), calendar.getTime());
 							}
 						})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -270,7 +271,7 @@ public class BusTimesActivity extends ListActivity implements
 		if (requestId != expectedRequestId)
 			return;
 
-		DismissBusy();
+		dismissBusy();
 
 		new AlertDialog.Builder(this).setTitle("Error")
 			.setMessage("Unable to validate BusStop code: " + message)
@@ -282,11 +283,11 @@ public class BusTimesActivity extends ListActivity implements
 		if (requestId != expectedRequestId)
 			return;
 		
-		DismissBusy();
+		dismissBusy();
 
 		StopCode = stopCode;
 		StopName = stopName;
-		Update();
+		update();
 	}
 
 	private class BusTimesAdapter extends ArrayAdapter<BusTime> {

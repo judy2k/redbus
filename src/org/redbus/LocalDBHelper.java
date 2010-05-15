@@ -45,23 +45,23 @@ public class LocalDBHelper
 		db = null;
 	}
 	
-	public Cursor GetBookmarks()
+	public Cursor getBookmarks()
 	{
 		return db.query(BOOKMARKS, null, null, null, null, null, BOOKMARKS_STOPNAME);
 	}
 
-	public void DeleteBookmark(long bookmarkId) {
+	public void deleteBookmark(long bookmarkId) {
 		db.execSQL("DELETE FROM Bookmarks WHERE _id = ?", new Object[] { bookmarkId });
 	}
 	
-	public void AddBookmark(long bookmarkId, String stopName) {
+	public void addBookmark(long bookmarkId, String stopName) {
 		try {
 			db.execSQL("INSERT INTO Bookmarks VALUES (?, ?)", new Object[] { bookmarkId, stopName });
 		} catch (Exception ex) {
 		}
 	}
 	
-	public void RenameBookmark(long bookmarkId, String stopName) {
+	public void renameBookmark(long bookmarkId, String stopName) {
 		try {
 			db.execSQL("UPDATE Bookmarks SET StopName=? WHERE _id = ?", new Object[] { stopName, bookmarkId });
 		} catch (Exception ex) {
