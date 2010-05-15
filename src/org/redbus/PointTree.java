@@ -28,6 +28,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.Math;
+import java.util.ArrayList;
 
 public class PointTree {
 
@@ -82,9 +83,8 @@ public class PointTree {
 		}
 	}
 	
-	// Could use Android location class to do this, but in here to prove to my
-	// school maths teacher that I did learn something...
-	// sqrt isn't technically needed, but in here to do distance conversions later.
+	// Could use Android location class to do this, but kept in here from prototype.
+	// sqrt isn't technically needed, but in here to possibly do distance conversions later.
 	
 	private double distance(BusStopTreeNode node, double x, double y)
 	{
@@ -146,13 +146,90 @@ public class PointTree {
 		return best;
 	}
 	
+	private BusStopTreeNode getRoot()
+	{
+		return this.nodes[this.rootRecordNum];
+	}
+	
 	// Public interface to this class - finds the node nearest to the supplied
 	// co-ords
 	
 	public BusStopTreeNode findNearest(double x, double y)
+	{	
+		return this.searchNearest(this.getRoot(),null,x,y,0);
+	}
+	
+	private ArrayList<BusStopTreeNode> searchRect(double xtl, double ytl,
+			                                         double xbr, double ybr,
+			                                         BusStopTreeNode here,
+			                                         ArrayList<BusStopTreeNode> stops,
+			                                         int depth)
 	{
-		BusStopTreeNode root = this.nodes[this.rootRecordNum];
+		if (here==null) return stops;
 		
-		return this.searchNearest(root,null,x,y,0);
+		double topleft, bottomright, herepos, herex, herey;
+		
+		herex=here.getX();
+		herey=here.getY();
+		
+		if (depth % 2 == 0) {
+		    herepos = herex;
+		    topleft = xtl;
+		    bottomright = xbr;
+		}
+		else {
+			herepos = herey;
+			topleft = xbr;
+			bottomright = ybr;
+		}
+		
+		if (topleft > bottomright) {
+			
+		} // FIXME throw error
+		
+		if (bottomright > herepos) {
+			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.rightNode),stops, depth+1);
+		}
+		
+		if (topleft < herepos) {
+			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.leftNode),stops, depth+1);
+		}
+		
+		// If this node falls within range, add it
+		if (xtl <= herex && xbr >= herex && ytl <= herey && ybr >= herey) {
+			stops.add(here);
+		}
+		
+		return stops;
+	}
+	
+	// Return nodes within a certain rectangle - top-left/bottom-right
+	public ArrayList<BusStopTreeNode> findRect(double xtl, double ytl,
+	                                             double xbr, double ybr)
+	{
+		ArrayList<BusStopTreeNode> stops = new ArrayList<BusStopTreeNode>();
+		
+		return searchRect(xtl,ytl,xbr,ybr,this.getRoot(),stops,0);
+	}
+	
+	// Return nodes within a certain radius
+	public ArrayList<BusStopTreeNode> findRadius(double xcentre, double ycentre, double radiusMetres)
+	{
+		// Convert radius in metres to approximate decimal degrees.
+		// http://en.wikipedia.org/wiki/Decimal_degrees
+		//
+		// 111,319.9 metres = roughly 1 degree
+		
+		double radiusDegrees = radiusMetres / 111319.9;
+		
+	    // A rectangle is *nearly* a circle, right...
+		// Rectangle searching of the tree is easier than radius searching. We should
+		// filter out finds outside the circle, but we're only interested in an approximate
+		// search right now.
+		
+		return findRect(xcentre-radiusDegrees,
+				          ycentre-radiusDegrees,
+				          xcentre+radiusDegrees,
+				          xcentre+radiusDegrees);
 	}
 }
