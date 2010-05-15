@@ -5,9 +5,10 @@
 <item android:id="@+id/bustimes_menu_enterstopcode" android:title="Change Bus Stop"></item>
 
 
-<item android:title="Add Bookmark" android:id="@+id/bustimes_menu_addbookmark"></item><item android:title="Settings" android:id="@+id/bustimes_menu_settings" android:enabled="false"><menu><item android:title="Auto Refresh" android:id="@+id/bustimes_menu_settings_autorefresh"></item>
+<item android:title="Add Bookmark" android:id="@+id/bustimes_menu_addbookmark"></item><item android:id="@+id/bustimes_menu_settings" android:title="Settings"><menu>
 <item android:title="Sorting" android:id="@+id/bustimes_menu_settings_sorting"></item>
-<item android:title="Number of Departures" android:id="@+id/bustimes_menu_settings_numdepartures"></item>
+<item android:id="@+id/bustimes_menu_settings_filtering" android:title="Filtering"></item>
+
 </menu>
 </item>
 <item android:title="View on Map" android:id="@+id/bustimes_menu_viewonmap" android:enabled="false"></item>

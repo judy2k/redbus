@@ -56,9 +56,9 @@ public class BusDataHelper {
 		int requestId = RequestId++;
 		
 		new AsyncHttpRequestTask().execute(new BusDataRequest(requestId, 
-				buildURL(stopCode, daysInAdvance, timeInAdvance, 2), 
+				buildURL(stopCode, daysInAdvance, timeInAdvance, 4), 
 				BusDataRequest.REQ_BUSTIMES, 
-				callback));
+				callback));		
 		
 		return requestId;
 	}

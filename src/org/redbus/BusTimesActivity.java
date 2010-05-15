@@ -55,7 +55,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 	private SimpleDateFormat titleDateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
 	private SimpleDateFormat advanceDateFormat = new SimpleDateFormat("EEE dd MMM yyyy");
-
+	
 	public static void showActivity(Context context, long stopCode,
 			String stopName) {
 		Intent i = new Intent(context, BusTimesActivity.class);
@@ -67,9 +67,10 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		setContentView(R.layout.bustimes);
 		registerForContextMenu(getListView());
-
+		
 		StopCode = getIntent().getLongExtra("StopCode", -1);
 		if (StopCode != -1)
 			findViewById(android.R.id.empty).setVisibility(View.GONE);
@@ -78,14 +79,14 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		CharSequence tmp = getIntent().getCharSequenceExtra("StopName");
 		if (tmp != null)
 			StopName = tmp.toString();
-
+		
 		update();
 	}
 
 	private void update() {
 		update(0, null);
 	}
-
+	
 	private void update(int daysInAdvance, Date timeInAdvance) {
 		if (StopCode != -1) {
 			Date displayDate = timeInAdvance;
@@ -250,16 +251,12 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
 			return true;
-			
-		case R.id.bustimes_menu_settings_autorefresh:
-			// FIXME: implement
-			return true;
 
 		case R.id.bustimes_menu_settings_sorting:
 			// FIXME: implement
 			return true;
-
-		case R.id.bustimes_menu_settings_numdepartures:
+			
+		case R.id.bustimes_menu_settings_filtering:
 			// FIXME: implement
 			return true;
 		}
@@ -282,7 +279,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	public void getStopNameSuccess(int requestId, long stopCode, String stopName) {
 		if (requestId != expectedRequestId)
 			return;
-		
+
 		dismissBusy();
 
 		StopCode = stopCode;
