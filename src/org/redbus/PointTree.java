@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.lang.Math;
 import java.util.ArrayList;
 
-import android.util.Log;
 
 public class PointTree {
 
