@@ -14,6 +14,7 @@
 					
 		<TextView 	android:id="@+id/bustimes_time" 
 					android:textSize="30sp"
-					android:paddingRight="5px" />
+					android:paddingRight="5px" 
+					android:gravity="right" />
 	</TableRow>
 </TableLayout>

@@ -49,7 +49,7 @@ public class BusTime
 			arrivalSortingIndex = arrivalMinutesLeft;
 		} else {
 			// works if we're not comparing two abstimes... that is done in the comparator itself
-			arrivalSortingIndex = 1000;
+			arrivalSortingIndex = 1000000;
 		}
 	}
 }
