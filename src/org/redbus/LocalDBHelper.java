@@ -137,7 +137,7 @@ public class LocalDBHelper
 	    public static final String CREATE_BOOKMARKS_TABLE_SQL = 
 	    	"CREATE TABLE Bookmarks (_id integer primary key, StopName TEXT)";
 	    public static final String CREATE_SETTINGS_TABLE_SQL = 
-	    	"CREATE TABLE Settings (_id integer primary key autoincrement, StopCode integer primary key, SettingName TEXT, SettingValue TEXT)";
+	    	"CREATE TABLE Settings (_id integer primary key autoincrement, StopCode integer, SettingName TEXT, SettingValue TEXT)";
 
 	    public static final String[] CREATE_TABLE_SQL = {
 	    	CREATE_BOOKMARKS_TABLE_SQL,

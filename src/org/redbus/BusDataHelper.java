@@ -106,31 +106,23 @@ public class BusDataHelper {
 		return null;
 	}
 	
-	private static boolean checkForResponseErrors(BusDataRequest request)
+	private static void getBusTimesResponse(BusDataRequest request)
 	{
 		if (request.throwable != null) {
 			Log.e("BusDataHelper.GetBusTimesResponse(HTTPERROR)", request.content, request.throwable);
 			request.callback.getBusTimesError(request.requestId, BUSSTATUS_HTTPERROR, "A network problem occurred (" + request.throwable.getMessage() + ")");
-			return false;
+			return;
 		}
 		if (request.responseCode != HttpURLConnection.HTTP_OK) {
 			if (request.responseMessage != null)
 				Log.e("BusDataHelper.GetBusTimesResponse(HTTPRESPONSE)", request.responseMessage);
 			request.callback.getBusTimesError(request.requestId, request.responseCode, "A network problem occurred (" + request.responseMessage + ")");
-			return false;
+			return;
 		}
 		if (request.content.toLowerCase().contains("doesn't exist")) {
 			request.callback.getBusTimesError(request.requestId, BUSSTATUS_BADSTOPCODE, "The BusStop code was invalid");
-			return false;
-		}
-		
-		return true;
-	}
-	
-	private static void getBusTimesResponse(BusDataRequest request)
-	{
-		if (!checkForResponseErrors(request))
 			return;
+		}
 		
 		ArrayList<BusTime> busTimes = new ArrayList<BusTime>();
 		try {
@@ -230,8 +222,21 @@ public class BusDataHelper {
 
 	private static void getStopNameResponse(BusDataRequest request)
 	{
-		if (!checkForResponseErrors(request))
+		if (request.throwable != null) {
+			Log.e("BusDataHelper.GetBusTimesResponse(HTTPERROR)", request.content, request.throwable);
+			request.callback.getStopNameError(request.requestId, BUSSTATUS_HTTPERROR, "A network problem occurred (" + request.throwable.getMessage() + ")");
 			return;
+		}
+		if (request.responseCode != HttpURLConnection.HTTP_OK) {
+			if (request.responseMessage != null)
+				Log.e("BusDataHelper.GetBusTimesResponse(HTTPRESPONSE)", request.responseMessage);
+			request.callback.getStopNameError(request.requestId, request.responseCode, "A network problem occurred (" + request.responseMessage + ")");
+			return;
+		}
+		if (request.content.toLowerCase().contains("doesn't exist")) {
+			request.callback.getStopNameError(request.requestId, BUSSTATUS_BADSTOPCODE, "The BusStop code was invalid");
+			return;
+		}
 
 		long stopCode = -1;
 		String stopName = null;

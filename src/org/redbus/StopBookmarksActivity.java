@@ -49,6 +49,7 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 	private String bookmarkName = null;
 	private ProgressDialog busyDialog = null;
 	private int expectedRequestId = -1;
+	private boolean addingBookmark = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
@@ -105,10 +106,7 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 		
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_item_menu_bustimes:
-			Intent i = new Intent(this, BusTimesActivity.class);
-			i.putExtra("StopCode", bookmarkId);
-			i.putExtra("StopName", bookmarkName);
-			startActivity(i);
+			BusTimesActivity.showActivity(this, bookmarkId, bookmarkName);
 			return true;
 
 		case R.id.stopbookmarks_item_menu_showonmap:
@@ -169,6 +167,8 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		final EditText input = new EditText(this);
+
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_menu_nearby_stops:
 			new AlertDialog.Builder(this).
@@ -183,12 +183,34 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 			return true;
 
 		case R.id.stopbookmarks_menu_bustimes:
-			startActivity(new Intent(this, BusTimesActivity.class));
+			new AlertDialog.Builder(this)
+				.setTitle("Enter BusStop code to view")
+				.setView(input)
+				.setPositiveButton(android.R.string.ok,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int whichButton) {
+								long stopCode = -1;
+								try {
+									stopCode = Long.parseLong(input.getText().toString());
+								} catch (Exception ex) {
+									new AlertDialog.Builder(StopBookmarksActivity.this)
+											.setTitle("Invalid BusStop code")
+											.setMessage("The code was invalid; please try again using only numbers")
+											.setPositiveButton(android.R.string.ok, null)
+											.show();
+									return;
+								}
+								
+								displayBusy("Validating BusStop code");
+								StopBookmarksActivity.this.addingBookmark = false;
+								StopBookmarksActivity.this.expectedRequestId = BusDataHelper.getStopNameAsync(stopCode, StopBookmarksActivity.this);
+							}
+						})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
 			return true;
 			
 		case R.id.stopbookmarks_menu_addbookmark:
-			final EditText input = new EditText(this);
-
 			new AlertDialog.Builder(this)
 				.setTitle("Enter BusStop code for bookmark")
 				.setView(input)
@@ -208,14 +230,15 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 								}
 								
 								displayBusy("Validating BusStop code");
+								StopBookmarksActivity.this.addingBookmark = true;
 								StopBookmarksActivity.this.expectedRequestId = BusDataHelper.getStopNameAsync(stopCode, StopBookmarksActivity.this);
 							}
 						})
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
-			break;
+			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -245,13 +268,17 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 
 		dismissBusy();
 
-		LocalDBHelper db = new LocalDBHelper(this);
-		try {
-			db.addBookmark(stopCode, stopName);
-		} finally {
-			db.close();
+		if (addingBookmark) {
+			LocalDBHelper db = new LocalDBHelper(this);
+			try {
+				db.addBookmark(stopCode, stopName);
+			} finally {
+				db.close();
+			}
+			update();
+		} else {
+			BusTimesActivity.showActivity(this, stopCode, stopName);
 		}
-		update();
 	}
 
 	private void displayBusy(String reason) {
