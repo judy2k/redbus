@@ -5,12 +5,11 @@
 <item android:id="@+id/bustimes_menu_enterstopcode" android:title="Change Bus Stop"></item>
 
 
-<item android:title="Add Bookmark" android:id="@+id/bustimes_menu_addbookmark"></item><item android:id="@+id/bustimes_menu_settings" android:title="Settings"><menu>
-<item android:title="Sorting" android:id="@+id/bustimes_menu_settings_sorting"></item>
-<item android:id="@+id/bustimes_menu_settings_filtering" android:title="Filtering"></item>
-
+<item android:title="Add Bookmark" android:id="@+id/bustimes_menu_addbookmark"></item>
+<item android:id="@+id/bustimes_menu_futuredepartures" android:title="Future Departures"></item><item android:id="@+id/bustimes_menu_sorting" android:title="Sorting"><menu><item android:id="@+id/bustimes_menu_sorting_service" android:title="Service"></item>
+<item android:id="@+id/bustimes_menu_sorting_arrival" android:title="Arrival Time"></item>
 </menu>
-</item>
-<item android:title="View on Map" android:id="@+id/bustimes_menu_viewonmap" android:enabled="false"></item>
-<item android:id="@+id/bustimes_menu_futuredepartures" android:title="Future Departures"></item>
+</item><item android:title="View on Map" android:id="@+id/bustimes_menu_viewonmap" android:enabled="false"></item>
+
+
 </menu>

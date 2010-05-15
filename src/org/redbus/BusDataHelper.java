@@ -158,7 +158,7 @@ public class BusDataHelper {
 		boolean lowFloorBus =  false;
 		boolean arrivalEstimated = false;
 		boolean arrivalIsDue= false;
-		int arrivalMinutesLeft = -1;
+		int arrivalMinutesLeft = 0;
 		String arrivalAbsoluteTime = null;
 		
 		boolean done = false;

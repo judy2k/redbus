@@ -21,6 +21,7 @@ package org.redbus;
 public class BusTime 
 {	
 	public String service;
+	public int baseService;
 	public String destination;
 	public boolean lowFloorBus;
 	public boolean arrivalEstimated;
@@ -28,14 +29,27 @@ public class BusTime
 	public int arrivalMinutesLeft;
 	public String arrivalAbsoluteTime;
 	
+	public int arrivalSortingIndex;
+
+	
 	public BusTime(String service, String destination, boolean lowFloorBus, boolean arrivalEstimated, boolean arrivalIsDue, int arrivalMinutesLeft, String arrivalAbsoluteTime) 
 	{
 		this.service = service;
+		this.baseService = Integer.parseInt(service.replaceAll("[^0-9]", "").trim());
 		this.destination = destination;
 		this.lowFloorBus = lowFloorBus;
 		this.arrivalEstimated = arrivalEstimated;
 		this.arrivalIsDue = arrivalIsDue;
 		this.arrivalMinutesLeft = arrivalMinutesLeft;
 		this.arrivalAbsoluteTime = arrivalAbsoluteTime;
+		
+		if (arrivalIsDue) {
+			arrivalSortingIndex = 0;
+		} else if (arrivalMinutesLeft > 0) {
+			arrivalSortingIndex = arrivalMinutesLeft;
+		} else {
+			// works if we're not comparing two abstimes... that is done in the comparator itself
+			arrivalSortingIndex = 1000;
+		}
 	}
 }

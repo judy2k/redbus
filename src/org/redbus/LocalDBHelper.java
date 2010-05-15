@@ -115,7 +115,7 @@ public class LocalDBHelper
 	public void setBusStopSetting(long stopCode, String name, String value)
 	{
 		deleteBusStopSetting(stopCode, name);
-		db.execSQL("INSERT INTO Settings VALUES (?, ?, ?)", new Object[] {stopCode, name, value});
+		db.execSQL("INSERT INTO Settings (StopCode, SettingName, SettingValue) VALUES (?, ?, ?)", new Object[] {stopCode, name, value});
 	}
 
 	public void deleteBusStopSetting(long stopCode, String name)

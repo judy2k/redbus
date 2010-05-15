@@ -21,6 +21,8 @@ package org.redbus;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -56,6 +58,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	private SimpleDateFormat titleDateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
 	private SimpleDateFormat advanceDateFormat = new SimpleDateFormat("EEE dd MMM yyyy");
 	
+	private String sorting = "";
+	
 	public static void showActivity(Context context, long stopCode,
 			String stopName) {
 		Intent i = new Intent(context, BusTimesActivity.class);
@@ -80,13 +84,20 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		if (tmp != null)
 			StopName = tmp.toString();
 		
+		LocalDBHelper db = new LocalDBHelper(this);
+		try {
+			sorting = db.getGlobalSetting("bustimesort", "arrival");
+		} finally {
+			db.close();
+		}
+		
 		update();
 	}
 
 	private void update() {
 		update(0, null);
 	}
-	
+
 	private void update(int daysInAdvance, Date timeInAdvance) {
 		if (StopCode != -1) {
 			Date displayDate = timeInAdvance;
@@ -151,6 +162,26 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		
 		dismissBusy();
 		hideStatusBoxes();
+		
+		if (sorting.equalsIgnoreCase("service")) {
+			Collections.sort(busTimes, new Comparator<BusTime>() {
+				public int compare(BusTime arg0, BusTime arg1) {
+					if (arg0.baseService != arg1.baseService)
+						return arg0.baseService - arg1.baseService;
+					return arg0.service.compareTo(arg1.service);
+				}
+			});
+		} else if (sorting.equalsIgnoreCase("arrival")) {
+			Collections.sort(busTimes, new Comparator<BusTime>() {
+				public int compare(BusTime arg0, BusTime arg1) {
+					if ((arg0.arrivalAbsoluteTime != null) && (arg1.arrivalAbsoluteTime != null)) {
+						// bus data never seems to span to the next day, so this string comparison should always work
+						return arg0.arrivalAbsoluteTime.compareTo(arg1.arrivalAbsoluteTime);
+					}
+					return arg0.arrivalSortingIndex - arg1.arrivalSortingIndex;
+				}
+			});
+		}
 
 		setListAdapter(new BusTimesAdapter(this, R.layout.bustimes_item, busTimes));
 		if (busTimes.isEmpty())
@@ -252,13 +283,31 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 				.show();
 			return true;
 
-		case R.id.bustimes_menu_settings_sorting:
-			// FIXME: implement
-			return true;
+		case R.id.bustimes_menu_sorting_arrival: {
+			sorting = "arrival";
 			
-		case R.id.bustimes_menu_settings_filtering:
-			// FIXME: implement
+			LocalDBHelper db = new LocalDBHelper(this);
+			try {
+				db.setGlobalSetting("bustimesort",  sorting);
+			} finally {
+				db.close();
+			}
+			update();
 			return true;
+		}
+
+		case R.id.bustimes_menu_sorting_service: {
+			sorting = "service";
+			
+			LocalDBHelper db = new LocalDBHelper(this);
+			try {
+				db.setGlobalSetting("bustimesort",  sorting);
+			} finally {
+				db.close();
+			}
+			update();
+			return true;
+		}
 		}
 
 		return false;
