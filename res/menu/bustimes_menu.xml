@@ -2,7 +2,7 @@
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
 <item android:title="Refresh" android:id="@+id/bustimes_menu_refresh"></item>
-<item android:title="Enter Stop Code" android:id="@+id/bustimes_menu_enterstopcode"></item>
+<item android:id="@+id/bustimes_menu_enterstopcode" android:title="Change Bus Stop"></item>
 
 
 <item android:title="Add Bookmark" android:id="@+id/bustimes_menu_addbookmark"></item><item android:title="Settings" android:id="@+id/bustimes_menu_settings" android:enabled="false"><menu><item android:title="Auto Refresh" android:id="@+id/bustimes_menu_settings_autorefresh"></item>
