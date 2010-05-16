@@ -20,7 +20,7 @@ services = {}
 soup = BeautifulSoup.BeautifulSoup(browser.open('http://www.mybustracker.co.uk/index.php?display=Service').read())
 service_select = soup.find("select", {"name":"serviceService"})
 for option in service_select.findAll("option"):
-    serviceName = option["value"].split('|')[0];
+    serviceName = option["value"].split('|')[0].strip();
     services[serviceName] = { 'ServiceName': serviceName }
 print >>sys.stderr, "Found %i services" % len(services)
 
@@ -38,6 +38,11 @@ for service in services:
         x = xpath.Evaluate('x/text()', stop)[0].data.strip()
         y = xpath.Evaluate('y/text()', stop)[0].data.strip()
         servicesAtThisStop = [tmpsrv.data.strip() for tmpsrv in xpath.Evaluate('services/service/mnemo/text()', stop)]
+
+        for tmpservice in servicesAtThisStop:
+            if not services.has_key(tmpservice):
+                print >>sys.stderr, "Warning: Stop %s has services which do not exist (%s)" % (stopCode, tmpservice)
+                
         
         if stops.has_key(stopCode):
             oldStop = stops[stopCode]
@@ -78,10 +83,10 @@ for stop in stops.values():
 # Finally, populate the link table between services and stops
 for stop in stops.values():
     for serviceName in stop['Services']:
-        service = services[serviceName]
-
-        dbcur.execute("INSERT INTO stops_services (stop_id, service_id, created_date) VALUES (%s, %s, %s)", 
-                      (stop['DbStopId'], service['DbServiceId'], nowdate))
+        if services.has_key(serviceName):
+            service = services[serviceName]
+            dbcur.execute("INSERT INTO stops_services (stop_id, service_id, created_date) VALUES (%s, %s, %s)", 
+                          (stop['DbStopId'], service['DbServiceId'], nowdate))
     db.commit()
 
 # DONE
