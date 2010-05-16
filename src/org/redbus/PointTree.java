@@ -30,6 +30,8 @@ import java.io.InputStream;
 import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Map;
 
 import android.util.Log;
 
@@ -69,7 +71,7 @@ public class PointTree {
 	}
 	
 	private BusStopTreeNode[] nodes;
-	private Dictionary<Integer, Integer> stopByStopCode;
+	private Map<Integer, Integer> nodeIdxByStopCode;
 	private int rootRecordNum;
 
 	// Read Data from the Android resource 'stops.dat' into memory
@@ -85,12 +87,13 @@ public class PointTree {
 			
 		// Root is always the last record in the file
 		this.nodes = new BusStopTreeNode[rootRecordNum+1];
+		this.nodeIdxByStopCode = new HashMap<Integer, Integer>();
 
 		for(int i = 0; i <= rootRecordNum; ++i)
 		{
 			BusStopTreeNode node = new BusStopTreeNode(is);
 			nodes[i] = node;
-			stopByStopCode.put(new Integer(node.getStopCode()), new Integer(i));
+			nodeIdxByStopCode.put(new Integer(node.getStopCode()), new Integer(i));
 		}
 	}
 	
@@ -251,7 +254,7 @@ public class PointTree {
 	
 	public BusStopTreeNode lookupStopByStopCode(int stopCode)
 	{
-		Integer node = stopByStopCode.get(new Integer(stopCode));
+		Integer node = nodeIdxByStopCode.get(new Integer(stopCode));
 		if (node == null)
 			return null;
 		if (node.intValue() >= nodes.length)
