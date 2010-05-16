@@ -18,14 +18,18 @@
 
 package org.redbus;
 
-import android.os.Bundle;
 
+import android.os.Bundle;
 import com.google.android.maps.MapActivity;
+import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
+import com.google.android.maps.MyLocationOverlay;
 
 public class StopMapActivity extends MapActivity {
 
-	MapView mapView;
+	private MapView mapView;
+	private MapController mapController;
+	private MyLocationOverlay myLocationOverlay;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) { 
@@ -34,11 +38,43 @@ public class StopMapActivity extends MapActivity {
        
        mapView = (MapView) findViewById(R.id.mapview);
        mapView.setBuiltInZoomControls(true);
+       mapController = mapView.getController();
+       
+       mapController.setZoom(17);
+       
+       // Make map update automatically as user moves around
+       myLocationOverlay = new MyLocationOverlay(this, mapView);
+       
+       myLocationOverlay.runOnFirstFix(new Runnable() {
+           public void run() {
+               mapController.animateTo(myLocationOverlay.getMyLocation());
+           }
+       });
+          
+       mapView.getOverlays().add(myLocationOverlay);
+       myLocationOverlay.enableCompass();
+       
+       //int latSpan = mapView.getLatitudeSpan();
+       //int longSpan = mapView.getLongitudeSpan();
+       
 	}
 
 	@Override
 	protected boolean isRouteDisplayed() {
 		return false;
 	}
-
+	
+	@Override
+	public void onPause() {
+	       myLocationOverlay.disableMyLocation();
+	       super.onPause();
+	}
+	
+	@Override
+	public void onResume() {
+	       myLocationOverlay.enableMyLocation();
+	       super.onResume();
+	}
+	
+	
 }
