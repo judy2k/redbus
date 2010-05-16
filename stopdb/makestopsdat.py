@@ -80,13 +80,13 @@ f=file("stops.dat","wb")
 f.seek(8,os.SEEK_SET)
 recordnumgen=recordnumgenerator()
 rootpos=tree.write(f,recordnumgen)
+
+for service in servicesList:
+    f.write(service['ServiceName'])
+    f.write("\0")
+
 f.seek(0,os.SEEK_SET)
 print rootpos ," root"
-
 f.write(struct.pack('>4si','bus1',rootpos))
-f.close()
 
-f=file("services.dat", "wb")
-for service in servicesList:
-    print >>f, service['ServiceName']
 f.close()
