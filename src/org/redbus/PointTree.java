@@ -30,6 +30,8 @@ import java.io.InputStream;
 import java.lang.Math;
 import java.util.ArrayList;
 
+import android.util.Log;
+
 
 public class PointTree {
 
@@ -167,6 +169,8 @@ public class PointTree {
 			                                         int depth)
 	{
 		if (here==null) return stops;
+	
+		//Log.println(Log.DEBUG, "visiting", here.getStopName());
 		
 		double topleft, bottomright, herepos, herex, herey;
 		
@@ -185,8 +189,8 @@ public class PointTree {
 		}
 		
 		if (topleft > bottomright) {
-			
-		} // FIXME throw error
+			Log.println(Log.ERROR,"redbus", "co-ord error!");
+		}
 		
 		if (bottomright > herepos) {
 			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.rightNode),stops, depth+1);
