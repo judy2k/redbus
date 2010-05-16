@@ -7,9 +7,4 @@
 	<style parent="@android:style/TextAppearance" name="textappearance_realtime">
 		<item name="android:textSize">30sp</item>
 	</style>
-
-	<style parent="@android:style/TextAppearance" name="textappearance_esttime">
-		<item name="android:textSize">30sp</item>
-		<item name="android:textColor">#c3c3c3</item>
-	</style>
 </resources>
