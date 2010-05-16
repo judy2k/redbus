@@ -1,5 +1,21 @@
 #!/usr/bin/python
 
+# Copyright 2010 Andrew De Quincey -  adq@lidskialf.net
+# This file is part of rEdBus.
+#
+#  rEdBus is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  rEdBus is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
+
 import sys
 import os
 import mechanize
@@ -8,6 +24,7 @@ import datetime
 from xml.dom.minidom import parseString
 from xml import xpath
 import psycopg2
+import time
 
 nowdate = datetime.datetime.today()
 
@@ -60,7 +77,10 @@ for service in services:
                                 'StopName': stopName,
                                 'X': x,
                                 'Y': y,
-                                'Services': servicesAtThisStop }     
+                                'Services': servicesAtThisStop }  
+
+    print >>sys.stderr, "Sleeping for 10 seconds to avoid hammering..."
+    time.sleep(10);
 
 # Connect to database
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
