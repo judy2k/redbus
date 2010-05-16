@@ -43,6 +43,7 @@ public class PointTree {
 		private int rightNode;
 		private int stopCode;
 		private String stopName;
+		private long servicesMap;
 		
 		public BusStopTreeNode(DataInputStream inputStream) throws IOException
 		{
@@ -55,12 +56,15 @@ public class PointTree {
 			byte[] b = new byte[16];
 			inputStream.read(b,0,16); // Read name
 			this.stopName = new String(b);
+
+			this.servicesMap = inputStream.readLong();
 		}
 		
 		public String getStopName() { return this.stopName; }
 		public int getStopCode() { return this.stopCode; }
 		public double getX() { return this.x; }
 		public double getY() { return this.y; }
+		public long getServicesMap() { return this.servicesMap; }
 	}
 	
 	private BusStopTreeNode[] nodes;
