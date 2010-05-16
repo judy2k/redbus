@@ -72,7 +72,7 @@ public class PointTree {
 	
 	private BusStopTreeNode[] nodes;
 	private Map<Integer, Integer> nodeIdxByStopCode;
-	private CharSequence[] services;
+	private String[] services;
 	private int rootRecordNum;
 
 	// Read Data from the Android resource 'stops.dat' into memory
@@ -98,17 +98,17 @@ public class PointTree {
 		}
 		
 		int servicesCount = is.readInt();
-		this.services = new CharSequence[servicesCount];
-		StringBuffer tmp = new StringBuffer();
+		this.services = new String[servicesCount];
+		byte[] tmp = new byte[10];
 		for(int i =0; i< servicesCount; i++) {
-			tmp.setLength(0);
+			int charIdx = 0;
 			while(true) {
 				int c = is.readByte();
 				if (c == 0)
 					break;
-				tmp.append(c);
+				tmp[charIdx++] = (byte) c;
 			}
-			this.services[i] = tmp.toString();
+			this.services[i] = new String(tmp, 0, charIdx);
 		}
 	}
 	
@@ -277,9 +277,9 @@ public class PointTree {
 		return nodes[node.intValue()];
 	}
 	
-	public ArrayList<CharSequence> lookupServices(long servicesMap)
+	public ArrayList<String> lookupServices(long servicesMap)
 	{
-		ArrayList<CharSequence> result = new ArrayList<CharSequence>();
+		ArrayList<String> result = new ArrayList<String>();
 		for(int i=0; i< 64; i++)
 			if ((servicesMap & (1 << i)) != 0)
 				result.add(services[i]);
