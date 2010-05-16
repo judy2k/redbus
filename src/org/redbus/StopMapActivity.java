@@ -19,8 +19,6 @@
 package org.redbus;
 
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 
 import org.redbus.PointTree.BusStopTreeNode;
@@ -49,16 +47,7 @@ public class StopMapActivity extends MapActivity {
 		private double bry, oldbry;
 		
 		public StopOverlay(MapView view) {
-			
-	        // Load the stops data
-	        InputStream stopsFile = getResources().openRawResource(R.raw.stops);
-	        try {
-				this.busStopLocations = new PointTree(stopsFile);
-			} catch (IOException e) {
-				Log.println(Log.ERROR,"redbus","Error reading stops");
-				e.printStackTrace();
-			}
-			
+			this.busStopLocations = PointTree.getPointTree(StopMapActivity.this);			
 	        this.projection = view.getProjection();
 	        oldtlx = oldtly = oldbrx = oldbry = 0;
 	    }

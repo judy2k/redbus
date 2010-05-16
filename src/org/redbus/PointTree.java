@@ -29,15 +29,32 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.Math;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.content.Context;
 import android.util.Log;
 
 
 public class PointTree {
-
+	
+	private static PointTree pointTree;
+	
+	public static PointTree getPointTree(Context ctx)
+	{
+		if (pointTree == null) {
+	        InputStream stopsFile = ctx.getResources().openRawResource(R.raw.stops);
+			try {
+				pointTree = new PointTree(stopsFile);
+			} catch (IOException e) {
+				Log.println(Log.ERROR,"redbus","Error reading stops");
+				e.printStackTrace();
+			}
+		}
+		
+		return pointTree;
+	}
+	
 	// Represents a node in the tree
 	public class BusStopTreeNode {
 		private double x;
@@ -77,7 +94,7 @@ public class PointTree {
 
 	// Read Data from the Android resource 'stops.dat' into memory
 	
-	public PointTree(InputStream file) throws IOException
+	private PointTree(InputStream file) throws IOException
 	{
 		DataInputStream is = new DataInputStream(file);
 		

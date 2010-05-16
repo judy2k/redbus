@@ -18,9 +18,6 @@
 
 package org.redbus;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -95,15 +92,8 @@ public class FindNearestStopActivity extends Activity {
         txtStopCode = (TextView)findViewById(R.id.txtStopCode);
         txtStopName = (TextView)findViewById(R.id.txtStopName);
         txtStopDistance = (TextView)findViewById(R.id.txtStopDistance);
-        // Load the stops data
-        InputStream stopsFile = getResources().openRawResource(R.raw.stops);
-        try {
-			this.busStopLocations = new PointTree(stopsFile);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-        
-		
+		this.busStopLocations = PointTree.getPointTree(this);
+        		
         // Register for GPS location updates
         lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);    
         
