@@ -81,6 +81,7 @@ f.seek(8,os.SEEK_SET)
 recordnumgen=recordnumgenerator()
 rootpos=tree.write(f,recordnumgen)
 
+f.write(struct.pack('>i', len(servicesList)));
 for service in servicesList:
     f.write(service['ServiceName'])
     f.write("\0")
