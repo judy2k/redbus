@@ -69,7 +69,7 @@ public class PointTree {
 	}
 	
 	private BusStopTreeNode[] nodes;
-	private Dictionary<Integer, BusStopTreeNode> stopByStopCode;
+	private Dictionary<Integer, Integer> stopByStopCode;
 	private int rootRecordNum;
 
 	// Read Data from the Android resource 'stops.dat' into memory
@@ -90,7 +90,7 @@ public class PointTree {
 		{
 			BusStopTreeNode node = new BusStopTreeNode(is);
 			nodes[i] = node;
-			stopByStopCode.put(new Integer(node.getStopCode()), node);
+			stopByStopCode.put(new Integer(node.getStopCode()), new Integer(i));
 		}
 	}
 	
@@ -251,6 +251,11 @@ public class PointTree {
 	
 	public BusStopTreeNode lookupStopByStopCode(int stopCode)
 	{
-		return stopByStopCode.get(new Integer(stopCode));
+		Integer node = stopByStopCode.get(new Integer(stopCode));
+		if (node == null)
+			return null;
+		if (node.intValue() >= nodes.length)
+			return null;
+		return nodes[node.intValue()];
 	}
 }
