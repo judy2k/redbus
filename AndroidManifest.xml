@@ -13,13 +13,14 @@
 		
 		<activity android:name="BusTimesActivity" android:label="Bus Times" />
 		<activity android:name="FindNearestStopActivity" android:label="Closest stop" />
+		<activity android:name="StopMapActivity" android:label="Stop map" />
+		<uses-library android:name="com.google.android.maps" />
 	</application>
 
 
 	<uses-sdk android:minSdkVersion="3"></uses-sdk>
 
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
-	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"></uses-permission>
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
 
 </manifest> 
