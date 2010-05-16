@@ -56,8 +56,6 @@ for service in services:
                                 'X': x,
                                 'Y': y,
                                 'Services': servicesAtThisStop }     
-            
-    break
 
 # Connect to database
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
