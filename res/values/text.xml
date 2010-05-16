@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<style parent="@android:style/TextAppearance" name="textappearance_service">
+		<item name="android:textSize">30sp</item>
+	</style>
+
+	<style parent="@android:style/TextAppearance" name="textappearance_realtime">
+		<item name="android:textSize">30sp</item>
+	</style>
+
+	<style parent="@android:style/TextAppearance" name="textappearance_esttime">
+		<item name="android:textSize">30sp</item>
+		<item name="android:textColor">#c3c3c3</item>
+	</style>
+</resources>

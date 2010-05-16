@@ -372,7 +372,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 					timeView.setText(Integer.toString(busTime.arrivalMinutesLeft));
 				
 				if (busTime.arrivalEstimated)
-					timeView.setTextColor(getResources().getColor(R.color.bustime_estimated));
+					timeView.setTextAppearance(BusTimesActivity.this, R.style.textappearance_esttime);
 			}
 
 			return v;
