@@ -50,15 +50,14 @@ import android.widget.Toast;
 public class BusTimesActivity extends ListActivity implements BusDataResponseListener {
 
 	private long StopCode = -1;
-	private String StopName = "";
+	private String StopName = "";	
+	private String sorting = "";
 
 	private ProgressDialog busyDialog = null;
 	private int expectedRequestId = -1;
 
-	private SimpleDateFormat titleDateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
-	private SimpleDateFormat advanceDateFormat = new SimpleDateFormat("EEE dd MMM yyyy");
-	
-	private String sorting = "";
+	private static final SimpleDateFormat titleDateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
+	private static final SimpleDateFormat advanceDateFormat = new SimpleDateFormat("EEE dd MMM yyyy");
 	
 	public static void showActivity(Context context, long stopCode,
 			String stopName) {

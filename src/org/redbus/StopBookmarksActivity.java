@@ -44,12 +44,13 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 {	
 	private static final String[] columnNames = new String[] { LocalDBHelper.ID, LocalDBHelper.BOOKMARKS_COL_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
-	private Cursor listContentsCursor = null;
+
 	private long bookmarkId = -1;
 	private String bookmarkName = null;
+	private boolean addingBookmark = false;
+	
 	private ProgressDialog busyDialog = null;
 	private int expectedRequestId = -1;
-	private boolean addingBookmark = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
@@ -70,15 +71,12 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 	
 	private void update()
 	{
-		if (listContentsCursor != null) {
-			stopManagingCursor(listContentsCursor);
-			listContentsCursor.close();
-			listContentsCursor = null;
-		}
-
         LocalDBHelper db = new LocalDBHelper(this);
         try {
-	        listContentsCursor = db.getBookmarks();
+        	SimpleCursorAdapter oldAdapter = ((SimpleCursorAdapter) getListAdapter());
+        	if (oldAdapter != null)
+        		oldAdapter.getCursor().close();
+	        Cursor listContentsCursor = db.getBookmarks();
 	        startManagingCursor(listContentsCursor);
 	        setListAdapter(new SimpleCursorAdapter(this, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds));
         } finally {

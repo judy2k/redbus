@@ -44,10 +44,10 @@ public class BusDataHelper {
 	public static final int BUSSTATUS_BADSTOPCODE = -2;
 	public static final int BUSSTATUS_BADDATA = -3;
 
-	private static Pattern stopDetailsRegex = Pattern.compile("([0-9]+)\\s+([^/]+).*");
-	private static Pattern destinationRegex = Pattern.compile("(\\S+)\\s+(.*)");
-	private static Pattern destinationAndTimeRegex = Pattern.compile("(\\S+)\\s+(.*)\\s+(\\S+)");
-	private static SimpleDateFormat advanceTimeFormat = new SimpleDateFormat("HH:mm");
+	private static final Pattern stopDetailsRegex = Pattern.compile("([0-9]+)\\s+([^/]+).*");
+	private static final Pattern destinationRegex = Pattern.compile("(\\S+)\\s+(.*)");
+	private static final Pattern destinationAndTimeRegex = Pattern.compile("(\\S+)\\s+(.*)\\s+(\\S+)");
+	private static final SimpleDateFormat advanceTimeFormat = new SimpleDateFormat("HH:mm");
 
 	private static Integer RequestId = new Integer(0);
 

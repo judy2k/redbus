@@ -38,7 +38,7 @@ import android.util.Log;
 
 public class PointTree {
 	
-	private static PointTree pointTree;
+	private static PointTree pointTree = null;
 	
 	public static PointTree getPointTree(Context ctx)
 	{
