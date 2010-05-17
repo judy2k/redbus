@@ -24,7 +24,10 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.RectF;
+import android.location.Location;
 import android.os.Bundle;
+import android.widget.Toast;
+
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
@@ -111,6 +114,33 @@ public class StopMapActivity extends MapActivity {
 				if (showServiceLabels)
 					canvas.drawText(getServicesForStop(node), stopCircle.x+radius, stopCircle.y+radius, brush);
 			}  
+		}
+		
+		
+		@Override
+		public boolean onTap(GeoPoint point, MapView mapView)
+		{
+			double lat = point.getLatitudeE6()/1E6;
+			double lng = point.getLongitudeE6()/1E6;
+			
+			PointTree.BusStopTreeNode node = busStopLocations.findNearest(lat,lng);
+
+			// Yuk - there must be a better way to convert GeoPoint->Point than this?			
+			Location touchLoc = new Location("");
+			touchLoc.setLatitude(lat);
+			touchLoc.setLongitude(lng);
+
+			Location stopLoc = new Location("");
+			stopLoc.setLatitude(node.getX());
+			stopLoc.setLongitude(node.getY());
+
+			// Use distance of 50metres - ignore out of range touches
+			if (touchLoc.distanceTo(stopLoc) < 50) {
+				BusTimesActivity.showActivity(StopMapActivity.this, node.getStopCode(), node.getStopName());
+				return true; // handled
+			}
+
+			return false; // Not handled
 		}
 	}
 
