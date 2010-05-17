@@ -92,6 +92,12 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		
 		update();
 	}
+	
+	@Override
+	protected void onDestroy() {
+		busyDialog = null;
+		super.onDestroy();		
+	}
 
 	private void update() {
 		update(0, null);

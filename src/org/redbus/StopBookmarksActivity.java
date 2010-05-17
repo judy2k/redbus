@@ -69,6 +69,12 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 		update();
 	}
 	
+	@Override
+	protected void onDestroy() {
+		busyDialog = null;
+		super.onDestroy();
+	}
+	
 	private void update()
 	{
         LocalDBHelper db = new LocalDBHelper(this);
