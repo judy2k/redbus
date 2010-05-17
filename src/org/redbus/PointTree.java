@@ -213,6 +213,9 @@ public class PointTree {
 	{
 		if (here==null) return stops;
 	
+		// Limit number of stops, otherwise the map gets slow
+		if (stops.size() >= 200) return stops;
+		
 		//Log.println(Log.DEBUG, "visiting", here.getStopName());
 		
 		double topleft, bottomright, herepos, herex, herey;

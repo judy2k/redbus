@@ -42,19 +42,24 @@ public class StopMapActivity extends MapActivity {
 		private Projection projection;
 		private PointTree busStopLocations;
 		private Paint brush;
+		private Paint blackBrush;
+
 		private ArrayList<BusStopTreeNode> nodes;
 		private boolean showServiceLabels;
+		private int numberOfStops;
 
 		private double tlx, oldtlx;
 		private double tly, oldtly;
 		private double brx, oldbrx;
 		private double bry, oldbry;
-
+		
 		public StopOverlay(MapView view) {
 			this.busStopLocations = PointTree.getPointTree(StopMapActivity.this);			
 			this.projection = view.getProjection();
 			this.brush = new Paint();
+			this.blackBrush = new Paint();
 			brush.setARGB(250, 250, 0, 0); // rEdB[r]us[h] ;-)
+			blackBrush.setARGB(200,0,0,0);
 			brush.setAntiAlias(true);
 
 			oldtlx = oldtly = oldbrx = oldbry = 0;
@@ -93,11 +98,21 @@ public class StopMapActivity extends MapActivity {
 
 				// Prevent zoomed out view looking like abstract art
 				// with too many labels drawn...
-				showServiceLabels = nodes.size() < 20;
+				numberOfStops = nodes.size();
+				
+				showServiceLabels = numberOfStops < 20;
 			}
 
 			if (shadow == true)
 				return;
+			
+			// Prevent maps slowing down with too many stops
+			if (numberOfStops >= 200)
+			{
+				canvas.drawRect(0, 0, 130, 30, blackBrush);
+				canvas.drawText("Zoom in to see stops", 10, 15, brush);
+				return;
+			}
 
 			// For each node, draw a circle and optionally service number list
 			for (BusStopTreeNode node: nodes) {
