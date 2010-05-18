@@ -141,22 +141,22 @@ public class PointTree {
 	
 	private int readInt(byte[] b, int off)
 	{
-		return ((b[off+0] & 0xff) << 24) |
-			   ((b[off+1] & 0xff) << 16) |
-			   ((b[off+2] & 0xff) <<  8) |
-			    (b[off+3] & 0xff);
+		return ((((int) b[off+0]) & 0xff) << 24) |
+			   ((((int) b[off+1]) & 0xff) << 16) |
+			   ((((int) b[off+2]) & 0xff) <<  8) |
+			    (((int) b[off+3]) & 0xff);
 	}
 
 	private long readLong(byte[] b, int off)
 	{
-		return ((b[off+0] & 0xff) << 56) |
-			   ((b[off+1] & 0xff) << 48) |
-			   ((b[off+2] & 0xff) << 40) |
-			   ((b[off+3] & 0xff) << 32) |
-			   ((b[off+4] & 0xff) << 24) |
-			   ((b[off+5] & 0xff) << 16) |
-			   ((b[off+6] & 0xff) <<  8) |
-			    (b[off+7] & 0xff);
+		return ((((long) b[off+0]) & 0xff) << 56) |
+			   ((((long) b[off+1]) & 0xff) << 48) |
+			   ((((long) b[off+2]) & 0xff) << 40) |
+			   ((((long) b[off+3]) & 0xff) << 32) |
+			   ((((long) b[off+4]) & 0xff) << 24) |
+			   ((((long) b[off+5]) & 0xff) << 16) |
+			   ((((long) b[off+6]) & 0xff) <<  8) |
+			    (((long) b[off+7]) & 0xff);
 	}
 
 	// Could use Android location class to do this, but kept in here from prototype.
@@ -331,7 +331,7 @@ public class PointTree {
 	{
 		ArrayList<String> result = new ArrayList<String>();
 		for(int i=0; i< 64; i++)
-			if ((servicesMap & (1 << i)) != 0)
+			if ((servicesMap & (1L << i)) != 0)
 				result.add(services[i]);
 		return result;
 	}
