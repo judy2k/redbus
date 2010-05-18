@@ -43,12 +43,19 @@ public class PointTree {
 	public static PointTree getPointTree(Context ctx)
 	{
 		if (pointTree == null) {
-	        InputStream stopsFile = ctx.getResources().openRawResource(R.raw.stops);
+	        InputStream stopsFile = null;
 			try {
+		        stopsFile = ctx.getResources().openRawResource(R.raw.stops);
 				pointTree = new PointTree(stopsFile);
 			} catch (IOException e) {
 				Log.println(Log.ERROR,"redbus","Error reading stops");
 				e.printStackTrace();
+			} finally {
+				try {
+					if (stopsFile != null)
+						stopsFile.close();
+				} catch (Throwable t) {
+				}
 			}
 		}
 		
@@ -65,19 +72,15 @@ public class PointTree {
 		private String stopName;
 		private long servicesMap;
 		
-		public BusStopTreeNode(DataInputStream inputStream) throws IOException
+		public BusStopTreeNode(int leftNode, int rightNode, double x, double y, int stopCode, String stopName, long servicesMap)
 		{
-			this.leftNode = inputStream.readInt();
-			this.rightNode = inputStream.readInt();
-			this.x = inputStream.readDouble();
-			this.y = inputStream.readDouble();
-			this.stopCode = inputStream.readInt();	
-			
-			byte[] b = new byte[16];
-			inputStream.read(b,0,16); // Read name
-			this.stopName = new String(b);
-
-			this.servicesMap = inputStream.readLong();
+			this.leftNode = leftNode;
+			this.rightNode = rightNode;
+			this.x = x;
+			this.y = y;
+			this.stopCode = stopCode;		
+			this.stopName = stopName;
+			this.servicesMap = servicesMap;
 		}
 		
 		public String getStopName() { return this.stopName; }
@@ -94,41 +97,69 @@ public class PointTree {
 
 	// Read Data from the Android resource 'stops.dat' into memory
 	
-	private PointTree(InputStream file) throws IOException
+	private PointTree(InputStream is) throws IOException
 	{
-		DataInputStream is = new DataInputStream(file);
-		
-		byte[] b = new byte[4];
-        
-		is.read(b,0,4); // Header version
-		this.rootRecordNum = is.readInt();
-			
+		// read entire file into temp buffer
+		byte[] b = new byte[200*1024];
+		if (is.read(b) == b.length)
+			throw new RuntimeException("PointTree temp buffer was too small");
+		this.rootRecordNum = readInt(b, 4);
+
 		// Root is always the last record in the file
 		this.nodes = new BusStopTreeNode[rootRecordNum+1];
 		this.nodeIdxByStopCode = new HashMap<Integer, Integer>();
-
+		
+		int off = 8;
 		for(int i = 0; i <= rootRecordNum; ++i)
 		{
-			BusStopTreeNode node = new BusStopTreeNode(is);
+			int leftNode = readInt(b, off + 0);
+			int rightNode = readInt(b, off + 4);
+			double x = Double.longBitsToDouble(readLong(b, off + 8));
+			double y = Double.longBitsToDouble(readLong(b, off + 16));
+			int stopCode = readInt(b, off + 24);
+			String stopName = new String(b, off + 28, 16, "utf-8").trim();
+			long servicesMap = readLong(b, off + 44);
+
+			BusStopTreeNode node = new BusStopTreeNode(leftNode, rightNode, x, y, stopCode, stopName, servicesMap);
 			nodes[i] = node;
 			nodeIdxByStopCode.put(new Integer(node.getStopCode()), new Integer(i));
+			
+			off += 52;
 		}
 		
-		int servicesCount = is.readInt();
+		int servicesCount = readInt(b, off);
+		off += 4;
 		this.services = new String[servicesCount];
-		byte[] tmp = new byte[10];
+		int startoff = off;
 		for(int i =0; i< servicesCount; i++) {
-			int charIdx = 0;
-			while(true) {
-				int c = is.readByte();
-				if (c == 0)
-					break;
-				tmp[charIdx++] = (byte) c;
-			}
-			this.services[i] = new String(tmp, 0, charIdx);
+			while(b[off] != 0)
+				off++;
+			this.services[i] = new String(b, startoff, off - startoff, "utf-8");
+			off++;
+			startoff = off;
 		}
 	}
 	
+	private int readInt(byte[] b, int off)
+	{
+		return ((b[off+0] & 0xff) << 24) |
+			   ((b[off+1] & 0xff) << 16) |
+			   ((b[off+2] & 0xff) <<  8) |
+			    (b[off+3] & 0xff);
+	}
+
+	private long readLong(byte[] b, int off)
+	{
+		return ((b[off+0] & 0xff) << 56) |
+			   ((b[off+1] & 0xff) << 48) |
+			   ((b[off+2] & 0xff) << 40) |
+			   ((b[off+3] & 0xff) << 32) |
+			   ((b[off+4] & 0xff) << 24) |
+			   ((b[off+5] & 0xff) << 16) |
+			   ((b[off+6] & 0xff) <<  8) |
+			    (b[off+7] & 0xff);
+	}
+
 	// Could use Android location class to do this, but kept in here from prototype.
 	// sqrt isn't technically needed, but in here to possibly do distance conversions later.
 	
