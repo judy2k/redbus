@@ -367,17 +367,23 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 				TextView timeView = (TextView) v.findViewById(R.id.bustimes_time);
 
 				serviceView.setText(busTime.service);
-				destinationView.setText(busTime.destination);
-
-				if (busTime.arrivalIsDue)
-					timeView.setText("Due");
-				else if (busTime.arrivalAbsoluteTime != null)
-					timeView.setText(busTime.arrivalAbsoluteTime);
-				else
-					timeView.setText(Integer.toString(busTime.arrivalMinutesLeft));
 				
-				if (busTime.arrivalEstimated)
-					timeView.setText("~" + timeView.getText());
+				if (busTime.isDiverted) {
+					destinationView.setText("DIVERTED");
+					timeView.setText("");
+				} else {
+					destinationView.setText(busTime.destination);
+	
+					if (busTime.arrivalIsDue)
+						timeView.setText("Due");
+					else if (busTime.arrivalAbsoluteTime != null)
+						timeView.setText(busTime.arrivalAbsoluteTime);
+					else
+						timeView.setText(Integer.toString(busTime.arrivalMinutesLeft));
+					
+					if (busTime.arrivalEstimated)
+						timeView.setText("~" + timeView.getText());
+					}
 			}
 
 			return v;

@@ -27,6 +27,8 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -124,6 +126,8 @@ public class BusDataHelper {
 			return;
 		}
 		
+		HashMap<String, BusTime> wasDiverted = new HashMap<String, BusTime>();
+		HashMap<String, BusTime> hasTime = new HashMap<String, BusTime>();
 		ArrayList<BusTime> busTimes = new ArrayList<BusTime>();
 		try {
 			XmlPullParser parser = Xml.newPullParser();
@@ -133,10 +137,23 @@ public class BusDataHelper {
 				switch(parser.getEventType()) {
 				case XmlPullParser.START_TAG:
 					String tagName = parser.getName();
-					if (tagName == "pre")
-						busTimes.add(parseStopTime(parser));
+					if (tagName == "pre") {
+						BusTime bt = parseStopTime(parser);
+						if (bt.isDiverted) {
+							if (wasDiverted.containsKey(bt.service))
+								continue;
+							wasDiverted.put(bt.service, bt);
+						} else {
+							hasTime.put(bt.service, bt);
+							busTimes.add(bt);
+						}
+					}
 				}
 			}
+			
+			for(BusTime bt: wasDiverted.values())
+				if (!hasTime.containsKey(bt.service))
+					busTimes.add(bt);
 			
 		} catch (Exception ex) {
 			Log.e("BusDataHelper.GetBusTimesResponse", request.content, ex);
@@ -155,6 +172,7 @@ public class BusDataHelper {
 		
 		String service =  null;
 		String destination = null;
+		boolean isDiverted = false;
 		boolean lowFloorBus =  false;
 		boolean arrivalEstimated = false;
 		boolean arrivalIsDue= false;
@@ -185,39 +203,50 @@ public class BusDataHelper {
 			}
 		}
 		
-		// parse the rawDestination
-		if (rawTime == null) {
-			Matcher m = destinationAndTimeRegex.matcher(rawDestination.trim());
-			if (m.matches()) {
-				service = m.group(1).trim();
-				destination = m.group(2).trim();
-				rawTime = m.group(3).trim();
-			} else {
-				throw new RuntimeException("Failed to parse rawTime");
-			}
-		} else {
+		if (rawDestination.toLowerCase().contains("diverted")) {
+			isDiverted = true;
 			Matcher m = destinationRegex.matcher(rawDestination.trim());
 			if (m.matches()) {
 				service = m.group(1).trim();
-				destination = m.group(2).trim();
+				destination = null;
 			} else {
 				throw new RuntimeException("Failed to parse destination");
 			}
+		} else {
+			// parse the rawDestination
+			if (rawTime == null) {
+				Matcher m = destinationAndTimeRegex.matcher(rawDestination.trim());
+				if (m.matches()) {
+					service = m.group(1).trim();
+					destination = m.group(2).trim();
+					rawTime = m.group(3).trim();
+				} else {
+					throw new RuntimeException("Failed to parse rawTime");
+				}
+			} else {
+				Matcher m = destinationRegex.matcher(rawDestination.trim());
+				if (m.matches()) {
+					service = m.group(1).trim();
+					destination = m.group(2).trim();
+				} else {
+					throw new RuntimeException("Failed to parse destination");
+				}
+			}
+	
+			// parse the rawTime
+			if (rawTime.startsWith("*")) {
+				arrivalEstimated = true;
+				rawTime = rawTime.substring(1).trim();
+			}
+			if (rawTime.equalsIgnoreCase("due"))
+				arrivalIsDue = true;
+			else if (rawTime.contains(":"))
+				arrivalAbsoluteTime = rawTime;
+			else
+				arrivalMinutesLeft = Integer.parseInt(rawTime);
 		}
 
-		// parse the rawTime
-		if (rawTime.startsWith("*")) {
-			arrivalEstimated = true;
-			rawTime = rawTime.substring(1).trim();
-		}
-		if (rawTime.equalsIgnoreCase("due"))
-			arrivalIsDue = true;
-		else if (rawTime.contains(":"))
-			arrivalAbsoluteTime = rawTime;
-		else
-			arrivalMinutesLeft = Integer.parseInt(rawTime);
-
-		return new BusTime(service, destination, lowFloorBus, arrivalEstimated, arrivalIsDue, arrivalMinutesLeft, arrivalAbsoluteTime);
+		return new BusTime(service, destination, isDiverted, lowFloorBus, arrivalEstimated, arrivalIsDue, arrivalMinutesLeft, arrivalAbsoluteTime);
 	}
 
 	private static void getStopNameResponse(BusDataRequest request)

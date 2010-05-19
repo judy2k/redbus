@@ -24,6 +24,7 @@ public class BusTime
 	public int baseService;
 	public String destination;
 	public boolean lowFloorBus;
+	public boolean isDiverted;
 	public boolean arrivalEstimated;
 	public boolean arrivalIsDue;
 	public int arrivalMinutesLeft;
@@ -32,24 +33,29 @@ public class BusTime
 	public int arrivalSortingIndex;
 
 	
-	public BusTime(String service, String destination, boolean lowFloorBus, boolean arrivalEstimated, boolean arrivalIsDue, int arrivalMinutesLeft, String arrivalAbsoluteTime) 
+	public BusTime(String service, String destination, boolean isDiverted, boolean lowFloorBus, boolean arrivalEstimated, boolean arrivalIsDue, int arrivalMinutesLeft, String arrivalAbsoluteTime) 
 	{
 		this.service = service;
 		this.baseService = Integer.parseInt(service.replaceAll("[^0-9]", "").trim());
 		this.destination = destination;
+		this.isDiverted = isDiverted;
 		this.lowFloorBus = lowFloorBus;
 		this.arrivalEstimated = arrivalEstimated;
 		this.arrivalIsDue = arrivalIsDue;
 		this.arrivalMinutesLeft = arrivalMinutesLeft;
 		this.arrivalAbsoluteTime = arrivalAbsoluteTime;
 		
-		if (arrivalIsDue) {
-			arrivalSortingIndex = 0;
-		} else if (arrivalMinutesLeft > 0) {
-			arrivalSortingIndex = arrivalMinutesLeft;
-		} else {
-			// works if we're not comparing two abstimes... that is done in the comparator itself
+		if (isDiverted) {
 			arrivalSortingIndex = 1000000;
+		} else {
+			if (arrivalIsDue) {
+				arrivalSortingIndex = 0;
+			} else if (arrivalMinutesLeft > 0) {
+				arrivalSortingIndex = arrivalMinutesLeft;
+			} else {
+				// works if we're not comparing two abstimes... that is done in the comparator itself
+				arrivalSortingIndex = 100000;
+			}
 		}
 	}
 }
