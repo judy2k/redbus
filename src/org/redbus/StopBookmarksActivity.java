@@ -175,12 +175,13 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_menu_nearby_stops:
+			//startActivity(new Intent(StopBookmarksActivity.this, FindNearestStopActivity.class));
 			new AlertDialog.Builder(this).
 				setMessage("This is an experimental unoptimised feature under heavy development; are you sure you wish to continue?").
 				setNegativeButton(android.R.string.cancel, null).
 				setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int whichButton) {
-	        			startActivity(new Intent(StopBookmarksActivity.this, FindNearestStopActivity.class));
+	        			startActivity(new Intent(StopBookmarksActivity.this, StopMapActivity.class));
 	                }
 				}).
 	            show();
