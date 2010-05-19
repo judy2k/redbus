@@ -18,14 +18,10 @@
 
 package org.redbus;
 
-import java.util.List;
-
 import android.app.AlertDialog;
 import android.app.ListActivity;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.DialogInterface.OnCancelListener;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -40,17 +36,13 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
-public class StopBookmarksActivity extends ListActivity implements BusDataResponseListener
+public class StopBookmarksActivity extends ListActivity
 {	
 	private static final String[] columnNames = new String[] { LocalDBHelper.ID, LocalDBHelper.BOOKMARKS_COL_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
 
 	private long bookmarkId = -1;
 	private String bookmarkName = null;
-	private boolean addingBookmark = false;
-	
-	private ProgressDialog busyDialog = null;
-	private int expectedRequestId = -1;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
@@ -67,12 +59,6 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 		super.onStart();
 		
 		update();
-	}
-	
-	@Override
-	protected void onDestroy() {
-		busyDialog = null;
-		super.onDestroy();
 	}
 	
 	private void update()
@@ -206,9 +192,16 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 									return;
 								}
 								
-								displayBusy("Validating BusStop code");
-								StopBookmarksActivity.this.addingBookmark = false;
-								StopBookmarksActivity.this.expectedRequestId = BusDataHelper.getStopNameAsync(stopCode, StopBookmarksActivity.this);
+								PointTree.BusStopTreeNode busStop = PointTree.getPointTree(StopBookmarksActivity.this).lookupStopByStopCode((int) stopCode);
+								if (busStop != null) {
+									BusTimesActivity.showActivity(StopBookmarksActivity.this, (int) busStop.getStopCode(), busStop.getStopName());
+								} else {
+									new AlertDialog.Builder(StopBookmarksActivity.this)
+										.setTitle("Invalid BusStop code")
+										.setMessage("The code was invalid; please try again")
+										.setPositiveButton(android.R.string.ok, null)
+										.show();
+								}
 							}
 						})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -234,9 +227,22 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 									return;
 								}
 								
-								displayBusy("Validating BusStop code");
-								StopBookmarksActivity.this.addingBookmark = true;
-								StopBookmarksActivity.this.expectedRequestId = BusDataHelper.getStopNameAsync(stopCode, StopBookmarksActivity.this);
+								PointTree.BusStopTreeNode busStop = PointTree.getPointTree(StopBookmarksActivity.this).lookupStopByStopCode((int) stopCode);
+								if (busStop != null) {
+									LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this);
+									try {
+										db.addBookmark((int) busStop.getStopCode(), busStop.getStopName());
+									} finally {
+										db.close();
+									}
+									update();
+								} else {
+									new AlertDialog.Builder(StopBookmarksActivity.this)
+										.setTitle("Invalid BusStop code")
+										.setMessage("The code was invalid; please try again")
+										.setPositiveButton(android.R.string.ok, null)
+										.show();
+								}
 							}
 						})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -245,64 +251,5 @@ public class StopBookmarksActivity extends ListActivity implements BusDataRespon
 		}
 
 		return false;
-	}
-
-	public void getBusTimesError(int requestId, int code, String message) {
-		// unused
-	}
-
-	public void getBusTimesSuccess(int requestId, List<BusTime> busTimes) {
-		// unused
-	}
-
-	public void getStopNameError(int requestId, int code, String message) {
-		if (requestId != expectedRequestId)
-			return;
-
-		dismissBusy();
-
-		new AlertDialog.Builder(this).setTitle("Error")
-			.setMessage("Unable to validate BusStop code: " + message)
-			.setPositiveButton(android.R.string.ok, null)
-			.show();
-	}
-
-	public void getStopNameSuccess(int requestId, long stopCode, String stopName) {
-		if (requestId != expectedRequestId)
-			return;
-
-		dismissBusy();
-
-		if (addingBookmark) {
-			LocalDBHelper db = new LocalDBHelper(this);
-			try {
-				db.addBookmark(stopCode, stopName);
-			} finally {
-				db.close();
-			}
-			update();
-		} else {
-			BusTimesActivity.showActivity(this, stopCode, stopName);
-		}
-	}
-
-	private void displayBusy(String reason) {
-		dismissBusy();
-
-		busyDialog = ProgressDialog.show(this, "", reason, true, true, new OnCancelListener() {
-			public void onCancel(DialogInterface dialog) {
-				StopBookmarksActivity.this.expectedRequestId = -1;
-			}
-		});
-	}
-
-	private void dismissBusy() {
-		if (busyDialog != null) {
-			try {
-				busyDialog.dismiss();
-			} catch (Throwable t) {
-			}
-			busyDialog = null;
-		}
 	}
 }

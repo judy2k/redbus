@@ -229,8 +229,17 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 										return;
 									}
 									
-									displayBusy("Validating BusStop code");
-									BusTimesActivity.this.expectedRequestId = BusDataHelper.getStopNameAsync(stopCode, BusTimesActivity.this);
+									PointTree.BusStopTreeNode busStop = PointTree.getPointTree(BusTimesActivity.this).lookupStopByStopCode((int) stopCode);
+									if (busStop != null) {
+										StopCode = busStop.getStopCode();
+										StopName = busStop.getStopName();
+										update();
+									} else {
+										new AlertDialog.Builder(BusTimesActivity.this).setTitle("Error")
+											.setMessage("The code was invalid; please try again")
+											.setPositiveButton(android.R.string.ok, null)
+											.show();
+									}
 								}
 							})
 					.setNegativeButton(android.R.string.cancel, null)
@@ -319,26 +328,11 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	}
 
 	public void getStopNameError(int requestId, int code, String message) {
-		if (requestId != expectedRequestId)
-			return;
-
-		dismissBusy();
-
-		new AlertDialog.Builder(this).setTitle("Error")
-			.setMessage("Unable to validate BusStop code: " + message)
-			.setPositiveButton(android.R.string.ok, null)
-			.show();
+		// unused
 	}
 
 	public void getStopNameSuccess(int requestId, long stopCode, String stopName) {
-		if (requestId != expectedRequestId)
-			return;
-
-		dismissBusy();
-
-		StopCode = stopCode;
-		StopName = stopName;
-		update();
+		// unused
 	}
 
 	private class BusTimesAdapter extends ArrayAdapter<BusTime> {
