@@ -162,7 +162,7 @@ public class StopBookmarksActivity extends ListActivity
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_menu_nearby_stops:
 			new AlertDialog.Builder(this).
-				setMessage("This feature's GUI is under heavy GUI development").
+				setMessage("This feature's user interface is under heavy development").
 				setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int whichButton) {
 	        			startActivity(new Intent(StopBookmarksActivity.this, StopMapActivity.class));
