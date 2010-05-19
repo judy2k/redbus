@@ -26,7 +26,6 @@ import android.graphics.Point;
 import android.graphics.RectF;
 import android.location.Location;
 import android.os.Bundle;
-import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -96,11 +95,12 @@ public class StopMapActivity extends MapActivity {
 
 				nodes = busStopLocations.findRect(tlx,tly,brx,bry);
 
-				// Prevent zoomed out view looking like abstract art
-				// with too many labels drawn...
 				numberOfStops = nodes.size();
 				
-				showServiceLabels = numberOfStops < 20;
+				// Prevent zoomed out view looking like abstract art
+				// with too many labels drawn...
+				
+				showServiceLabels = view.getZoomLevel() > 16;
 			}
 
 			if (shadow == true)
