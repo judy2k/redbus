@@ -11,7 +11,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.SystemClock;
-import android.widget.Toast;
 
 public class TemporalAlarmReceiver extends BroadcastReceiver implements
 		BusDataResponseListener {
@@ -32,24 +31,22 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 		if (stopCode == -1)
 			return;
 
-		Toast.makeText(context, "ALARM", Toast.LENGTH_SHORT).show();
-
 		BusDataHelper.getBusTimesAsync(stopCode, 0, null, this);
 	}
 
 	private void rescheduleAlarm() {
+		// make sure alarms don't run forever
 		long startTime = intent.getLongExtra("StartTime", -1);
 		if ((startTime == -1) || ((startTime + ALARM_MAX_TIMEOUT_MSEC) < System.currentTimeMillis()))
 				return;
-		
+
+		// schedule it in 60 seconds
 		PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
 		AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 		am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 60000, pi);
 	}
 
 	public void getBusTimesError(int requestId, int code, String message) {
-		Toast.makeText(context, "FAILED", Toast.LENGTH_SHORT).show();
-
 		rescheduleAlarm();
 	}
 
@@ -64,15 +61,17 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 					true));
 
 		for (BusTime curTime : busTimes) {
-			if (requestedServicesLookup.containsKey(curTime.service.toLowerCase()) && (curTime.arrivalMinutesLeft <= timeout)) {
+			if (requestedServicesLookup.containsKey(curTime.service.toLowerCase()) && 
+					(curTime.arrivalAbsoluteTime == null) &&
+					((curTime.arrivalMinutesLeft * 60) <= timeout)) {
 
 				StringBuffer text = new StringBuffer();
 				text.append("The ");
 				text.append(curTime.service);
 				text.append(" is due");
-				if (timeout > 0) {
+				if (curTime.arrivalMinutesLeft > 0) {
 					text.append(" in ");
-					text.append(timeout);
+					text.append(curTime.arrivalMinutesLeft);
 					text.append("minutes");
 				}
 				text.append("!");

@@ -292,11 +292,13 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 					i.putExtra("StartTime", System.currentTimeMillis());
 					i.putExtra("TimeoutSecs", temporalAlarmTimeouts[timeSpinner.getSelectedItemPosition()]);
 
-					// schedule it in 60 seconds
+					// schedule it in 10 seconds
 					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, 0);					
 					AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 					am.cancel(pi);
 					am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 10000, pi);
+	
+					Toast.makeText(BusTimesActivity.this, "Alarm added!", Toast.LENGTH_SHORT).show();
 				}
 			})
 			.setNegativeButton(android.R.string.cancel, null)
