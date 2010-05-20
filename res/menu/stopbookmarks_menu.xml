@@ -2,8 +2,7 @@
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
 
-<item android:title="Nearby Stops" android:id="@+id/stopbookmarks_menu_nearby_stops" android:enabled="true"></item>
-
-<item android:id="@+id/stopbookmarks_menu_bustimes" android:title="Bus Times"></item><item android:id="@+id/stopbookmarks_menu_addbookmark" android:title="Add Bookmark"></item>
+<item android:id="@+id/stopbookmarks_menu_nearby_stops" android:title="Nearby Stops map"></item>
+<item android:id="@+id/stopbookmarks_menu_bustimes" android:title="Enter stop code"></item>
 
 </menu>

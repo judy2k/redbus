@@ -209,48 +209,7 @@ public class StopBookmarksActivity extends ListActivity
 						})
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
-			return true;
-			
-		case R.id.stopbookmarks_menu_addbookmark:
-			new AlertDialog.Builder(this)
-				.setTitle("Enter BusStop code for bookmark")
-				.setView(input)
-				.setPositiveButton(android.R.string.ok,
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog, int whichButton) {
-								long stopCode = -1;
-								try {
-									stopCode = Long.parseLong(input.getText().toString());
-								} catch (Exception ex) {
-									new AlertDialog.Builder(StopBookmarksActivity.this)
-											.setTitle("Invalid BusStop code")
-											.setMessage("The code was invalid; please try again using only numbers")
-											.setPositiveButton(android.R.string.ok, null)
-											.show();
-									return;
-								}
-								
-								PointTree.BusStopTreeNode busStop = PointTree.getPointTree(StopBookmarksActivity.this).lookupStopByStopCode((int) stopCode);
-								if (busStop != null) {
-									LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this);
-									try {
-										db.addBookmark((int) busStop.getStopCode(), busStop.getStopName());
-									} finally {
-										db.close();
-									}
-									update();
-								} else {
-									new AlertDialog.Builder(StopBookmarksActivity.this)
-										.setTitle("Invalid BusStop code")
-										.setMessage("The code was invalid; please try again")
-										.setPositiveButton(android.R.string.ok, null)
-										.show();
-								}
-							}
-						})
-				.setNegativeButton(android.R.string.cancel, null)
-				.show();
-			return true;
+			return true;			
 		}
 
 		return false;

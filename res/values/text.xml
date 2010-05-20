@@ -11,4 +11,7 @@
 	<style parent="@android:style/TextAppearance" name="textappearance_bookmarkname">
 		<item name="android:textSize">30sp</item>
 	</style>
+    <style parent="@android:style/TextAppearance" name="textappearance_help">
+        <item name="android:textSize">20sp</item>
+    </style>
 </resources>

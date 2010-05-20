@@ -113,6 +113,14 @@ public class StopMapActivity extends MapActivity {
 				canvas.drawText("Zoom in to see stops", 10, 15, brush);
 				return;
 			}
+			else
+			{
+				if (!showServiceLabels)
+				{
+					canvas.drawRect(0, 0, 150, 30, blackBrush);
+					canvas.drawText("Zoom in to see services", 10, 15, brush);
+				}
+			}
 
 			// For each node, draw a circle and optionally service number list
 			for (BusStopTreeNode node: nodes) {
@@ -187,6 +195,9 @@ public class StopMapActivity extends MapActivity {
 		myLocationOverlay.enableCompass();
 
 		mapView.getOverlays().add(new StopOverlay(mapView));
+		
+		// Centre map in Edinburgh until GPS lock found
+		//mapController.setCenter(new GeoPoint(55946052,-3188879));
 	}
 
 	@Override
