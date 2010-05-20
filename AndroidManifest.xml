@@ -15,7 +15,8 @@
 		<activity android:name="FindNearestStopActivity" android:label="Closest stop" />
 		<activity android:name="StopMapActivity" android:label="Map" />
 		<uses-library android:name="com.google.android.maps" />
-	</application>
+	<receiver android:name=".TemporalAlarmReceiver"></receiver>
+</application>
 
 
 	<uses-sdk android:minSdkVersion="3"></uses-sdk>

@@ -26,14 +26,18 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+
+import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.method.DigitsKeyListener;
@@ -63,11 +67,11 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 	private static final SimpleDateFormat titleDateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
 	private static final SimpleDateFormat advanceDateFormat = new SimpleDateFormat("EEE dd MMM yyyy");
-	
-	private static final String[] temporalAlertStrings = new String[] { "Due", "5 mins away", "10 mins away", "20 mins away" };
-	
-	public static void showActivity(Context context, long stopCode,
-			String stopName) {
+
+	private static final String[] temporalAlarmStrings = new String[] { "Due", "5 mins away", "10 mins away", "20 mins away" };
+	private static final int[] temporalAlarmTimeouts = new int[] { 0, 5, 10, 20 };
+
+	public static void showActivity(Context context, long stopCode, String stopName) {
 		Intent i = new Intent(context, BusTimesActivity.class);
 		i.putExtra("StopCode", stopCode);
 		i.putExtra("StopName", stopName);
@@ -263,17 +267,35 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 		// setup time selector
 		final Spinner timeSpinner = (Spinner) dialogView.findViewById(R.id.addtemporalalert_time);
-		ArrayAdapter<String> timeAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, temporalAlertStrings);
+		ArrayAdapter<String> timeAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, temporalAlarmStrings);
 		timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		timeSpinner.setAdapter(timeAdapter);
 
 		// show the dialog!
 		new AlertDialog.Builder(this)
 			.setView(dialogView)
-			.setTitle("Create new alarm")
+			.setTitle("Set alarm")
 			.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
-					// FIXME: implement
+					// figure out list of services
+					ArrayList<String> selectedServicesList = new ArrayList<String>();
+					for(int i=0; i< services.length; i++) {
+						if (selectedServices[i]) {
+							selectedServicesList.add(services[i]);
+						}
+					}
+					
+					// create an intent
+					Intent i = new Intent(BusTimesActivity.this, TemporalAlarmReceiver.class);
+					i.putExtra("StopCode", StopCode);
+					i.putExtra("Services", selectedServicesList.toArray(new String[selectedServicesList.size()]));
+					i.putExtra("Timeout", temporalAlarmTimeouts[timeSpinner.getSelectedItemPosition()]);
+
+					// schedule it in 60 seconds
+					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, 0);					
+					AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+					am.cancel(pi);
+					am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 60000, pi);
 				}
 			})
 			.setNegativeButton(android.R.string.cancel, null)
