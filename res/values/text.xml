@@ -4,7 +4,11 @@
 		<item name="android:textSize">30sp</item>
 	</style>
 
-	<style parent="@android:style/TextAppearance" name="textappearance_realtime">
+	<style parent="@android:style/TextAppearance" name="textappearance_time">
+		<item name="android:textSize">30sp</item>
+	</style>
+
+	<style parent="@android:style/TextAppearance" name="textappearance_bookmarkname">
 		<item name="android:textSize">30sp</item>
 	</style>
 </resources>
