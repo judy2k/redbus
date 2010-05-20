@@ -24,6 +24,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.text.method.DigitsKeyListener;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -158,6 +161,8 @@ public class StopBookmarksActivity extends ListActivity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		final EditText input = new EditText(this);
+		input.setInputType(InputType.TYPE_CLASS_PHONE);
+		input.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
 
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_menu_nearby_stops:

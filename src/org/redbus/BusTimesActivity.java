@@ -34,6 +34,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.text.method.DigitsKeyListener;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -210,6 +213,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 		case R.id.bustimes_menu_enterstopcode:
 			final EditText input = new EditText(this);
+			input.setInputType(InputType.TYPE_CLASS_PHONE);
+			input.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
 
 			new AlertDialog.Builder(this)
 					.setTitle("Enter BusStop code")
