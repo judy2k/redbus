@@ -68,8 +68,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	private static final SimpleDateFormat titleDateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
 	private static final SimpleDateFormat advanceDateFormat = new SimpleDateFormat("EEE dd MMM yyyy");
 
-	private static final String[] temporalAlarmStrings = new String[] { "Due", "5 mins away", "10 mins away", "20 mins away" };
-	private static final int[] temporalAlarmTimeouts = new int[] { 0, 5 * 60, 10 *  60, 20 * 60};
+	private static final String[] temporalAlarmStrings = new String[] { "Due", "5 mins away", "10 mins away" };
+	private static final int[] temporalAlarmTimeouts = new int[] { 0, 5 * 60, 10 *  60};
 
 	public static void showActivity(Context context, long stopCode, String stopName) {
 		Intent i = new Intent(context, BusTimesActivity.class);

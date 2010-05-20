@@ -20,7 +20,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 
 	private static final int TEMPORAL_NOTIFICATION_ID = 1;
 
-	private static final int ALARM_MAX_TIMEOUT_MSEC = 30 * 60 * 1000;
+	private static final int ALARM_MAX_TIMEOUT_MSEC = 21 * 60 * 1000;
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
