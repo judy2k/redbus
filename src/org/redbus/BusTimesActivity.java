@@ -284,16 +284,16 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 							selectedServicesList.add(services[i]);
 						}
 					}
-					
-					// create an intent
+
+					// create/update an intent
 					Intent i = new Intent(BusTimesActivity.this, TemporalAlarmReceiver.class);
 					i.putExtra("StopCode", StopCode);
 					i.putExtra("Services", selectedServicesList.toArray(new String[selectedServicesList.size()]));
 					i.putExtra("StartTime", System.currentTimeMillis());
 					i.putExtra("TimeoutSecs", temporalAlarmTimeouts[timeSpinner.getSelectedItemPosition()]);
+					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 
 					// schedule it in 10 seconds
-					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, 0);					
 					AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 					am.cancel(pi);
 					am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 10000, pi);
