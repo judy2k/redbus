@@ -96,15 +96,8 @@ public class BusDataHelper {
 	
 	private static void getBusTimesResponse(BusDataRequest request)
 	{
-		if (request.throwable != null) {
-			Log.e("BusDataHelper.GetBusTimesResponse(HTTPERROR)", request.content, request.throwable);
-			request.callback.getBusTimesError(request.requestId, BUSSTATUS_HTTPERROR, "A network problem occurred (" + request.throwable.getMessage() + ")");
-			return;
-		}
-		if (request.responseCode != HttpURLConnection.HTTP_OK) {
-			if (request.responseMessage != null)
-				Log.e("BusDataHelper.GetBusTimesResponse(HTTPRESPONSE)", request.responseMessage);
-			request.callback.getBusTimesError(request.requestId, request.responseCode, "A network problem occurred (" + request.responseMessage + ")");
+		if (request.content == null) {
+			request.callback.getBusTimesError(request.requestId, BUSSTATUS_HTTPERROR, "A network error occurred");
 			return;
 		}
 		if (request.content.toLowerCase().contains("doesn't exist")) {
@@ -141,9 +134,9 @@ public class BusDataHelper {
 				if (!hasTime.containsKey(bt.service))
 					busTimes.add(bt);
 			
-		} catch (Exception ex) {
-			Log.e("BusDataHelper.GetBusTimesResponse", request.content, ex);
-			request.callback.getBusTimesError(request.requestId, BUSSTATUS_BADDATA, "Invalid data received from the bus website (" + ex.getMessage() + ")");
+		} catch (Throwable t) {
+			Log.e("BusDataHelper.GetBusTimesResponse", request.content, t);
+			request.callback.getBusTimesError(request.requestId, BUSSTATUS_BADDATA, "Invalid data was received from the bus website");
 			return;
 		}
 		
@@ -239,16 +232,17 @@ public class BusDataHelper {
 		
 		protected BusDataRequest doInBackground(BusDataRequest... params) {
 			BusDataRequest bdr = params[0];
-			
+			bdr.content = null;
+
 			for(int retries = 0; retries < 2; retries++) {
+				HttpURLConnection connection = null;
 				InputStreamReader reader = null;
 				try {
 					// make the request and check the response code
-					HttpURLConnection connection = (HttpURLConnection) bdr.url.openConnection();
-					bdr.responseCode = connection.getResponseCode();
-					if (bdr.responseCode != HttpURLConnection.HTTP_OK) {
-						bdr.responseMessage = connection.getResponseMessage();
-						return bdr;
+					connection = (HttpURLConnection) bdr.url.openConnection();
+					if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+						Log.e("AsyncHttpRequestTask.doInBackGround", "HttpError: " + connection.getResponseMessage());
+						continue;
 					}
 					
 					// figure out the content encoding
@@ -269,13 +263,18 @@ public class BusDataHelper {
 					bdr.content = result.toString();
 					break;
 				} catch (Throwable t) {
-					bdr.throwable = t;
+					Log.e("AsyncHttpRequestTask.doInBackGround", "Throwable", t);
 				} finally {
-					if (reader != null)
-						try {
+					try {
+						if (reader != null)
 							reader.close();
-						} catch (IOException e) {
-						}
+					} catch (Throwable t) {
+					}
+					try {
+						if (connection != null)
+							connection.disconnect();
+					} catch (Throwable t) {
+					}
 				}
 			}
 			
@@ -307,9 +306,6 @@ public class BusDataHelper {
 		public URL url;
 		public int requestType;
 		public BusDataResponseListener callback;
-		public int responseCode = -1;
-		public String responseMessage = null;
 		public String content = null;
-		public Throwable throwable = null;
 	}
 }
