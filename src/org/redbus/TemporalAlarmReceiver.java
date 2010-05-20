@@ -20,7 +20,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 
 	private static final int TEMPORAL_NOTIFICATION_ID = 1;
 
-	private static final int ALARM_MAX_TIMEOUT_MSEC = 21 * 60 * 1000;
+	private static final int ALARM_MAX_TIMEOUT_MSEC = 20 * 60 * 1000;
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -39,6 +39,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 		long startTime = intent.getLongExtra("StartTime", -1);
 		if ((startTime == -1) || ((startTime + ALARM_MAX_TIMEOUT_MSEC) < System.currentTimeMillis()))
 				return;
+		// FIXME: should warn the user the alarm is giving up
 
 		// schedule it in 60 seconds
 		PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
