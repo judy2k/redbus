@@ -69,7 +69,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	private static final SimpleDateFormat advanceDateFormat = new SimpleDateFormat("EEE dd MMM yyyy");
 
 	private static final String[] temporalAlarmStrings = new String[] { "Due", "5 mins away", "10 mins away", "20 mins away" };
-	private static final int[] temporalAlarmTimeouts = new int[] { 0, 5, 10, 20 };
+	private static final int[] temporalAlarmTimeouts = new int[] { 0, 5 * 60, 10 *  60, 20 * 60};
 
 	public static void showActivity(Context context, long stopCode, String stopName) {
 		Intent i = new Intent(context, BusTimesActivity.class);
@@ -289,7 +289,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 					Intent i = new Intent(BusTimesActivity.this, TemporalAlarmReceiver.class);
 					i.putExtra("StopCode", StopCode);
 					i.putExtra("Services", selectedServicesList.toArray(new String[selectedServicesList.size()]));
-					i.putExtra("Timeout", temporalAlarmTimeouts[timeSpinner.getSelectedItemPosition()]);
+					i.putExtra("StartTime", SystemClock.elapsedRealtime());
+					i.putExtra("TimeoutSecs", temporalAlarmTimeouts[timeSpinner.getSelectedItemPosition()]);
 
 					// schedule it in 60 seconds
 					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, 0);					
