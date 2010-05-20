@@ -23,7 +23,4 @@ import java.util.List;
 public interface BusDataResponseListener {
 	public void getBusTimesError(int requestId, int code, String message);
 	public void getBusTimesSuccess(int requestId, List<BusTime> busTimes);
-
-	public void getStopNameError(int requestId, int code, String message);
-	public void getStopNameSuccess(int requestId, long stopCode, String stopName);
 }

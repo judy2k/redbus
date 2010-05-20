@@ -289,14 +289,14 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 					Intent i = new Intent(BusTimesActivity.this, TemporalAlarmReceiver.class);
 					i.putExtra("StopCode", StopCode);
 					i.putExtra("Services", selectedServicesList.toArray(new String[selectedServicesList.size()]));
-					i.putExtra("StartTime", SystemClock.elapsedRealtime());
+					i.putExtra("StartTime", System.currentTimeMillis());
 					i.putExtra("TimeoutSecs", temporalAlarmTimeouts[timeSpinner.getSelectedItemPosition()]);
 
 					// schedule it in 60 seconds
 					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, 0);					
 					AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 					am.cancel(pi);
-					am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 60000, pi);
+					am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 10000, pi);
 				}
 			})
 			.setNegativeButton(android.R.string.cancel, null)
@@ -439,14 +439,6 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		}
 
 		return false;
-	}
-	
-	public void getStopNameError(int requestId, int code, String message) {
-		// unused
-	}
-
-	public void getStopNameSuccess(int requestId, long stopCode, String stopName) {
-		// unused
 	}
 
 	private class BusTimesAdapter extends ArrayAdapter<BusTime> {

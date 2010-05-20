@@ -45,7 +45,6 @@ public class BusDataHelper {
 	public static final int BUSSTATUS_BADSTOPCODE = -2;
 	public static final int BUSSTATUS_BADDATA = -3;
 
-	private static final Pattern stopDetailsRegex = Pattern.compile("([0-9]+)\\s+([^/]+).*");
 	private static final Pattern destinationRegex = Pattern.compile("(\\S+)\\s+(.*)");
 	private static final Pattern destinationAndTimeRegex = Pattern.compile("(\\S+)\\s+(.*)\\s+(\\S+)");
 	private static final SimpleDateFormat advanceTimeFormat = new SimpleDateFormat("HH:mm");
@@ -60,18 +59,6 @@ public class BusDataHelper {
 				buildURL(stopCode, daysInAdvance, timeInAdvance, 4), 
 				BusDataRequest.REQ_BUSTIMES, 
 				callback));		
-		
-		return requestId;
-	}
-	
-	public static int getStopNameAsync(long stopCode, BusDataResponseListener callback)
-	{
-		int requestId = RequestId++;
-		
-		new AsyncHttpRequestTask().execute(new BusDataRequest(requestId, 
-				buildURL(stopCode, 1, "09:00", 0), 
-				BusDataRequest.REQ_STOPNAME, 
-				callback));
 		
 		return requestId;
 	}
@@ -247,101 +234,49 @@ public class BusDataHelper {
 
 		return new BusTime(service, destination, isDiverted, lowFloorBus, arrivalEstimated, arrivalIsDue, arrivalMinutesLeft, arrivalAbsoluteTime);
 	}
-
-	private static void getStopNameResponse(BusDataRequest request)
-	{
-		if (request.throwable != null) {
-			Log.e("BusDataHelper.GetBusTimesResponse(HTTPERROR)", request.content, request.throwable);
-			request.callback.getStopNameError(request.requestId, BUSSTATUS_HTTPERROR, "A network problem occurred (" + request.throwable.getMessage() + ")");
-			return;
-		}
-		if (request.responseCode != HttpURLConnection.HTTP_OK) {
-			if (request.responseMessage != null)
-				Log.e("BusDataHelper.GetBusTimesResponse(HTTPRESPONSE)", request.responseMessage);
-			request.callback.getStopNameError(request.requestId, request.responseCode, "A network problem occurred (" + request.responseMessage + ")");
-			return;
-		}
-		if (request.content.toLowerCase().contains("doesn't exist")) {
-			request.callback.getStopNameError(request.requestId, BUSSTATUS_BADSTOPCODE, "The BusStop code was invalid");
-			return;
-		}
-
-		long stopCode = -1;
-		String stopName = null;
-		try {
-			XmlPullParser parser = Xml.newPullParser();
-			parser.setInput(new StringReader(request.content));
-			
-			boolean done = false;
-			while((!done) && (parser.next() != XmlPullParser.END_DOCUMENT)) {
-				switch(parser.getEventType()) {
-				case XmlPullParser.START_TAG:
-					String tagName = parser.getName();
-					if (tagName == "a") {
-						String tmp = parser.nextText().trim();
-						Matcher m = stopDetailsRegex.matcher(tmp);
-						if (m.matches()) {
-							stopCode = Long.parseLong(m.group(1).trim());
-							stopName = m.group(2).trim();
-						} else {
-							throw new RuntimeException("Failed to parse BusStop details");
-						}
-
-						done = true;
-						break;
-					}
-				}
-			}
-			
-		} catch (Exception ex) {
-			Log.e("BusDataHelper.GetStopNameResponse", request.content, ex);
-			request.callback.getStopNameError(request.requestId, BUSSTATUS_BADDATA, "Invalid data received from the bus website (" + ex.getMessage() + ")");
-			return;
-		}
-		
-		request.callback.getStopNameSuccess(request.requestId, stopCode, stopName);
-	}
-
 	
 	private static class AsyncHttpRequestTask extends AsyncTask<BusDataRequest, Integer, BusDataRequest> {
 		
 		protected BusDataRequest doInBackground(BusDataRequest... params) {
 			BusDataRequest bdr = params[0];
 			
-			InputStreamReader reader = null;
-			try {
-				// make the request and check the response code
-				HttpURLConnection connection = (HttpURLConnection) bdr.url.openConnection();
-				bdr.responseCode = connection.getResponseCode();
-				if (bdr.responseCode != HttpURLConnection.HTTP_OK) {
-					bdr.responseMessage = connection.getResponseMessage();
-					return bdr;
-				}
-				
-				// figure out the content encoding
-				String charset = connection.getContentEncoding();
-				if (charset == null)
-					charset = HTTP.DEFAULT_CONTENT_CHARSET;
-				
-				// read the request data
-				reader = new InputStreamReader(connection.getInputStream(), charset);
-				StringBuilder result = new StringBuilder();
-				char[] buf= new char[1024];
-				while(true) {
-					int len = reader.read(buf);
-					if (len < 0)
-						break;
-					result.append(buf, 0, len);
-				}
-				bdr.content = result.toString();
-			} catch (Throwable t) {
-				bdr.throwable = t;
-			} finally {
-				if (reader != null)
-					try {
-						reader.close();
-					} catch (IOException e) {
+			for(int retries = 0; retries < 2; retries++) {
+				InputStreamReader reader = null;
+				try {
+					// make the request and check the response code
+					HttpURLConnection connection = (HttpURLConnection) bdr.url.openConnection();
+					bdr.responseCode = connection.getResponseCode();
+					if (bdr.responseCode != HttpURLConnection.HTTP_OK) {
+						bdr.responseMessage = connection.getResponseMessage();
+						return bdr;
 					}
+					
+					// figure out the content encoding
+					String charset = connection.getContentEncoding();
+					if (charset == null)
+						charset = HTTP.DEFAULT_CONTENT_CHARSET;
+					
+					// read the request data
+					reader = new InputStreamReader(connection.getInputStream(), charset);
+					StringBuilder result = new StringBuilder();
+					char[] buf= new char[1024];
+					while(true) {
+						int len = reader.read(buf);
+						if (len < 0)
+							break;
+						result.append(buf, 0, len);
+					}
+					bdr.content = result.toString();
+					break;
+				} catch (Throwable t) {
+					bdr.throwable = t;
+				} finally {
+					if (reader != null)
+						try {
+							reader.close();
+						} catch (IOException e) {
+						}
+				}
 			}
 			
 			return bdr;
@@ -352,9 +287,6 @@ public class BusDataHelper {
 			case BusDataRequest.REQ_BUSTIMES:
 				BusDataHelper.getBusTimesResponse(request);			
 				break;
-			case BusDataRequest.REQ_STOPNAME:
-				BusDataHelper.getStopNameResponse(request);			
-				break;
 			}
 		}
 	}
@@ -362,7 +294,6 @@ public class BusDataHelper {
 	private static class BusDataRequest {
 		
 		public static final int REQ_BUSTIMES = 0;
-		public static final int REQ_STOPNAME = 1;
 		
 		public BusDataRequest(int requestId, URL url, int requestType, BusDataResponseListener callback)
 		{
