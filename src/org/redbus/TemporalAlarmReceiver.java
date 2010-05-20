@@ -21,7 +21,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 	private static final int TEMPORAL_NOTIFICATION_ID = 1;
 
 	private static final int ALARM_MAX_TIMEOUT_MSEC = 20 * 60 * 1000;
-	
+
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		this.context = context;
@@ -58,8 +58,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 			return;
 		HashMap<String, Boolean> requestedServicesLookup = new HashMap<String, Boolean>();
 		for (String curService : requestedServices)
-			requestedServicesLookup.put(curService.toLowerCase(), new Boolean(
-					true));
+			requestedServicesLookup.put(curService.toLowerCase(), new Boolean(true));
 
 		for (BusTime curTime : busTimes) {
 			if (requestedServicesLookup.containsKey(curTime.service.toLowerCase()) && 
@@ -76,10 +75,10 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 					text.append("minutes");
 				}
 				text.append("!");
-				
+
 				Intent notificationIntent = new Intent("REDBUS_DONOTHING");
 				PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-				
+
 				Notification notification = new Notification(R.drawable.tracker_24x24_masked, text, System.currentTimeMillis());
 				notification.defaults |= Notification.DEFAULT_ALL;
 				notification.flags |= Notification.FLAG_AUTO_CANCEL;
@@ -90,7 +89,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 				return;
 			}
 		}
-		
+
 		// nothing matched, just reschedule it
 		rescheduleAlarm();
 	}
