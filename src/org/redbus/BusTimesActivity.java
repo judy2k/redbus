@@ -44,7 +44,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -61,6 +63,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 	private static final SimpleDateFormat titleDateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
 	private static final SimpleDateFormat advanceDateFormat = new SimpleDateFormat("EEE dd MMM yyyy");
+	
+	private static final String[] temporalAlertStrings = new String[] { "Due", "5 mins away", "10 mins away", "20 mins away" };
 	
 	public static void showActivity(Context context, long stopCode,
 			String stopName) {
@@ -195,6 +199,86 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		if (busTimes.isEmpty())
 			findViewById(R.id.bustimes_nodepartures).setVisibility(View.VISIBLE);
 	}
+	
+	private void UpdateServicesList(Button b, String[] services, boolean[] selectedServices)
+	{
+		StringBuffer result = new StringBuffer();
+		for(int i=0; i< services.length; i++) {
+			if (selectedServices[i]) {
+				if (result.length() > 0)
+					result.append(", ");
+				result.append(services[i]);
+			}
+		}
+		if (result.length() > 0)
+			b.setText(result);
+		else
+			b.setText("...");
+	}
+	
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		// get the bus stop details
+		PointTree pt = PointTree.getPointTree(this);
+		PointTree.BusStopTreeNode busStop = pt.lookupStopByStopCode((int) StopCode);
+		if (busStop == null)
+			return;
+
+		// get the list of services for this stop
+		ArrayList<String> servicesList = pt.lookupServices(busStop.getServicesMap());
+		final String[] services = servicesList.toArray(new String[servicesList.size()]);
+		final boolean[] selectedServices = new boolean[services.length];
+
+		// preselect the clicked-on service
+		TextView clickedService = (TextView) v.findViewById(R.id.bustimes_service);
+		for(int i=0; i< services.length; i++) {
+			if (clickedService.getText().toString().equalsIgnoreCase(services[i])) {
+				selectedServices[i] = true;
+				break;
+			}
+		}
+
+		// load the view
+		View dialogView = getLayoutInflater().inflate(R.layout.addtemporalalert, null);		
+
+		// setup services selector
+		final Button servicesButton = (Button) dialogView.findViewById(R.id.addtemporalalert_services);
+		BusTimesActivity.this.UpdateServicesList(servicesButton, services, selectedServices);
+		servicesButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				new AlertDialog.Builder( BusTimesActivity.this )
+	     	       .setMultiChoiceItems( services, selectedServices, new DialogInterface.OnMultiChoiceClickListener() {
+						public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+							selectedServices[which] = isChecked;							
+						}
+	     	       })
+	     	       .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							BusTimesActivity.this.UpdateServicesList(servicesButton, services, selectedServices);
+						}
+	     	       })
+	     	       .show();
+			}
+		});
+
+		// setup time selector
+		final Spinner timeSpinner = (Spinner) dialogView.findViewById(R.id.addtemporalalert_time);
+		ArrayAdapter<String> timeAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, temporalAlertStrings);
+		timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		timeSpinner.setAdapter(timeAdapter);
+
+		// show the dialog!
+		new AlertDialog.Builder(this)
+			.setView(dialogView)
+			.setTitle("Create new alarm")
+			.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					// FIXME: implement
+				}
+			})
+			.setNegativeButton(android.R.string.cancel, null)
+			.show();
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -284,7 +368,9 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 				calendar.add(Calendar.DAY_OF_MONTH, 1);
 			}
 			calendar.add(Calendar.DAY_OF_MONTH, -4);
-			datePicker.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, dates));
+			ArrayAdapter<String> dateAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, dates);
+			dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			datePicker.setAdapter(dateAdapter);
 
 			new AlertDialog.Builder(this)
 				.setTitle("Choose the desired date/time")
@@ -331,7 +417,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 		return false;
 	}
-
+	
 	public void getStopNameError(int requestId, int code, String message) {
 		// unused
 	}
