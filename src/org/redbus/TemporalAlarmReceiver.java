@@ -72,7 +72,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 				if (curTime.arrivalMinutesLeft > 0) {
 					text.append(" in ");
 					text.append(curTime.arrivalMinutesLeft);
-					text.append("minutes");
+					text.append(" minutes");
 				}
 				text.append("!");
 
