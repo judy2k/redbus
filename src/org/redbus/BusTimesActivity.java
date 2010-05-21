@@ -214,10 +214,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 				result.append(services[i]);
 			}
 		}
-		if (result.length() > 0)
-			b.setText(result);
-		else
-			b.setText("...");
+		b.setText(result);
 	}
 	
 	@Override
@@ -284,6 +281,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 							selectedServicesList.add(services[i]);
 						}
 					}
+					if (selectedServicesList.size() == 0)
+						return;
 
 					// create/update an intent
 					Intent i = new Intent(BusTimesActivity.this, TemporalAlarmReceiver.class);
