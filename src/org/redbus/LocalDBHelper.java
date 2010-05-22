@@ -50,6 +50,23 @@ public class LocalDBHelper
 	}
 
 
+	public boolean isBookmark(long stopCode)
+	{
+		Cursor c = null;
+		try {
+			c = db.query(BOOKMARKS_TABLE, 
+						new String[] { ID }, 
+						"_id = ?",
+						new String[] { Long.toString(stopCode) }, 
+						null, 
+						null, 
+						null);
+			return c.moveToNext();
+		} finally {
+			if (c != null)
+				c.close();
+		}
+	}
 
 	public Cursor getBookmarks()
 	{

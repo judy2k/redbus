@@ -36,6 +36,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.text.InputFilter;
@@ -70,6 +71,9 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 	private static final String[] temporalAlarmStrings = new String[] { "Due", "5 mins away", "10 mins away" };
 	private static final int[] temporalAlarmTimeouts = new int[] { 0, 5 * 60, 10 *  60};
+
+	private static final String[] proximityAlarmStrings = new String[] { "20 metres", "50  metres", "100 metres", "250 metres", "500 metres" };
+	private static final int[] proximitylAlarmDistances= new int[] { 20, 50, 100, 200, 500};
 
 	public static void showActivity(Context context, long stopCode, String stopName) {
 		Intent i = new Intent(context, BusTimesActivity.class);
@@ -308,6 +312,19 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.bustimes_menu, menu);
+		
+        LocalDBHelper db = new LocalDBHelper(this);
+        try {
+        	if (db.isBookmark(StopCode)) {
+        		menu.findItem(R.id.bustimes_menu_addbookmark).setEnabled(false);
+        	} else {
+        		menu.findItem(R.id.bustimes_menu_renamebookmark).setEnabled(false);
+        		menu.findItem(R.id.bustimes_menu_deletebookmark).setEnabled(false);
+        	}
+        } finally {
+        	db.close();
+        }
+		
 		return true;
 	}
 
@@ -319,7 +336,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			update();
 			return true;
 
-		case R.id.bustimes_menu_enterstopcode:
+		case R.id.bustimes_menu_enterstopcode: {
 			final EditText input = new EditText(this);
 			input.setInputType(InputType.TYPE_CLASS_PHONE);
 			input.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
@@ -358,6 +375,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 					.setNegativeButton(android.R.string.cancel, null)
 					.show();
 			return true;
+		}
 
 		case R.id.bustimes_menu_addbookmark:
 			if (StopCode != -1) {
@@ -370,10 +388,56 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 				Toast.makeText(this, "Added bookmark", Toast.LENGTH_SHORT).show();
 			}
 			return true;
+			
+		case R.id.bustimes_menu_renamebookmark: {
+			 final EditText input = new EditText(this);
+				input.setText(StopName);
 
+				new AlertDialog.Builder(this)
+						.setTitle("Rename bookmark")
+						.setView(input)
+						.setPositiveButton(android.R.string.ok,
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog, int whichButton) {
+				                        LocalDBHelper db = new LocalDBHelper(BusTimesActivity.this);
+				                        try {
+				                        	db.renameBookmark(BusTimesActivity.this.StopCode, input.getText().toString());
+				                        } finally {
+				                        	db.close();
+				                        }
+				                        StopName = input.getText().toString();
+				                        update();
+									}
+								})
+						.setNegativeButton(android.R.string.cancel, null)
+						.show();
+			return true;
+		}
+
+		case R.id.bustimes_menu_deletebookmark: {
+			new AlertDialog.Builder(this).
+				setMessage("Are you sure you want to delete this bookmark?").
+				setNegativeButton(android.R.string.cancel, null).
+				setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+	                public void onClick(DialogInterface dialog, int whichButton) {
+	                    LocalDBHelper db = new LocalDBHelper(BusTimesActivity.this);
+	                    try {
+	                    	db.deleteBookmark(BusTimesActivity.this.StopCode);
+	                    } finally {
+	                    	db.close();
+	                    }
+	                    BusTimesActivity.this.update();
+	                }
+				}).
+	            show();
+			return true;
+		}
+
+/*
 		case R.id.bustimes_menu_viewonmap:
 			// FIXME: implement
 			return true;
+*/
 
 		case R.id.bustimes_menu_futuredepartures:
 			LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -436,6 +500,47 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			}
 			update();
 			return true;
+		}
+		
+		case R.id.bustimes_menu_proximityalert: {
+			// get the bus stop details
+			PointTree pt = PointTree.getPointTree(this);
+			final PointTree.BusStopTreeNode busStop = pt.lookupStopByStopCode((int) StopCode);
+			if (busStop == null)
+				break;
+
+			// load the view
+			View dialogView = getLayoutInflater().inflate(R.layout.addproximityalert, null);		
+
+			// setup distance selector
+			final Spinner distanceSpinner = (Spinner) dialogView.findViewById(R.id.addproximityalert_distance);
+			ArrayAdapter<String> timeAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, proximityAlarmStrings);
+			timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			distanceSpinner.setAdapter(timeAdapter);
+
+			// show the dialog!
+			new AlertDialog.Builder(this)
+				.setView(dialogView)
+				.setTitle("Set alarm")
+				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						// create/update an intent
+						Intent i = new Intent(BusTimesActivity.this, ProximityAlarmReceiver.class);
+						i.putExtra("StopCode", StopCode);
+						i.putExtra("StopName", StopName);
+						i.putExtra("X", busStop.getX());
+						i.putExtra("Y", busStop.getY());
+						i.putExtra("Distance", proximitylAlarmDistances[distanceSpinner.getSelectedItemPosition()]);
+						PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
+
+						LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+						lm.addProximityAlert(busStop.getY(), busStop.getX(), proximitylAlarmDistances[distanceSpinner.getSelectedItemPosition()], 60 * 60 * 1000, pi);
+		
+						Toast.makeText(BusTimesActivity.this, "Alarm added!", Toast.LENGTH_SHORT).show();
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
 		}
 		}
 
