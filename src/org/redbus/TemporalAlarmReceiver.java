@@ -17,6 +17,8 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 
 	private Context context;
 	private Intent intent;
+	private long stopCode;
+	private String stopName;
 
 	private static final int TEMPORAL_NOTIFICATION_ID = 1;
 
@@ -27,8 +29,11 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 		this.context = context;
 		this.intent = intent;
 
-		long stopCode = intent.getLongExtra("StopCode", -1);
+		stopCode = intent.getLongExtra("StopCode", -1);
 		if (stopCode == -1)
+			return;
+		stopName = intent.getStringExtra("StopName");
+		if (stopName == null)
 			return;
 
 		BusDataHelper.getBusTimesAsync(stopCode, 0, null, this);
@@ -76,8 +81,10 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 				}
 				text.append("!");
 
-				Intent notificationIntent = new Intent("REDBUS_DONOTHING");
-				PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+				Intent i = new Intent(context, BusTimesActivity.class);
+				i.putExtra("StopCode", stopCode);
+				i.putExtra("StopName", stopName);
+				PendingIntent contentIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 
 				Notification notification = new Notification(R.drawable.tracker_24x24_masked, text, System.currentTimeMillis());
 				notification.defaults |= Notification.DEFAULT_ALL;

@@ -291,6 +291,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 					// create/update an intent
 					Intent i = new Intent(BusTimesActivity.this, TemporalAlarmReceiver.class);
 					i.putExtra("StopCode", StopCode);
+					i.putExtra("StopName", StopName);
 					i.putExtra("Services", selectedServicesList.toArray(new String[selectedServicesList.size()]));
 					i.putExtra("StartTime", System.currentTimeMillis());
 					i.putExtra("TimeoutSecs", temporalAlarmTimeouts[timeSpinner.getSelectedItemPosition()]);
