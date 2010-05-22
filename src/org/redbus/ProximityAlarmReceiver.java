@@ -27,8 +27,8 @@ public class ProximityAlarmReceiver extends BroadcastReceiver {
 		text.append(intent.getStringExtra("StopName"));
 		text.append("\"!");
 
-		Intent notificationIntent = new Intent("REDBUS_DONOTHING");
-		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+		Intent i = new Intent(context, StopMapActivity.class);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 
 		Notification notification = new Notification(R.drawable.tracker_24x24_masked, text, System.currentTimeMillis());
 		notification.defaults |= Notification.DEFAULT_ALL;
