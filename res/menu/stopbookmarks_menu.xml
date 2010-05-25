@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:id="@+id/stopbookmarks_menu_nearby_stops" android:title="Nearby stops map"></item>
-	<item android:id="@+id/stopbookmarks_menu_bustimes" android:title="Enter StopCode"></item>
+	<item android:id="@+id/stopbookmarks_menu_nearby_stops"
+		android:title="Nearby stops map"></item>
+	<item android:id="@+id/stopbookmarks_menu_bustimes" android:title="Enter stopcode"></item>
 
-<item android:title="Backup / Restore" android:id="@+id/stopbookmarks_menu_backuprestore"><menu><item android:id="@+id/stopbookmarks_menu_backup" android:title="Backup"></item>
-<item android:id="@+id/stopbookmarks_menu_restore" android:title="Restore"></item>
-</menu>
-</item>
+	<item android:title="Backup / Restore" android:id="@+id/stopbookmarks_menu_backuprestore">
+		<menu>
+			<item android:id="@+id/stopbookmarks_menu_backup" android:title="Backup"></item>
+			<item android:id="@+id/stopbookmarks_menu_restore"
+				android:title="Restore"></item>
+		</menu>
+	</item>
 </menu>
