@@ -80,8 +80,7 @@ public class StopBookmarksActivity extends ListActivity
 	}
 
 	@Override
-	protected void onListItemClick(ListView l, View v, int position, long id) {		
-		String stopName = ((TextView) v.findViewById(R.id.stopbookmarks_name)).getText().toString();
+	protected void onListItemClick(ListView l, View v, int position, long id) {
 		BusTimesActivity.showActivity(this, id);
 	}
 
