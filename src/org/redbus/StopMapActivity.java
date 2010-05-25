@@ -79,6 +79,9 @@ public class StopMapActivity extends MapActivity {
 		public void draw(Canvas canvas, MapView view, boolean shadow) {
 			super.draw(canvas, view,shadow);
 
+			if (shadow == true)
+				return;
+
 			GeoPoint tl = projection.fromPixels(0,canvas.getHeight());
 			GeoPoint br = projection.fromPixels(canvas.getWidth(),0);
 
@@ -102,9 +105,6 @@ public class StopMapActivity extends MapActivity {
 				
 				showServiceLabels = view.getZoomLevel() > 16;
 			}
-
-			if (shadow == true)
-				return;
 			
 			// Prevent maps slowing down with too many stops
 			if (numberOfStops >= 200)
