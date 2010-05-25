@@ -159,7 +159,7 @@ public class StopMapActivity extends MapActivity {
 
 			// Use distance of 50metres - ignore out of range touches
 			if (touchLoc.distanceTo(stopLoc) < 50) {
-				BusTimesActivity.showActivity(StopMapActivity.this, node.getStopCode(), node.getStopName());
+				BusTimesActivity.showActivity(StopMapActivity.this, node.getStopCode());
 				return true; // handled
 			}
 

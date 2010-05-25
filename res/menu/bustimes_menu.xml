@@ -1,30 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:title="Refresh" android:id="@+id/bustimes_menu_refresh"></item>
-	<item android:id="@+id/bustimes_menu_enterstopcode" android:title="Change Bus Stop"></item>
-
-
-	<item android:id="@+id/bustimes_menu_bookmarks" android:title="Bookmarks"><menu><item android:id="@+id/bustimes_menu_addbookmark" android:title="Add bookmark"></item>
-<item android:id="@+id/bustimes_menu_renamebookmark" android:title="Rename bookmark"></item>
-<item android:id="@+id/bustimes_menu_deletebookmark" android:title="Delete bookmark"></item>
-</menu>
-</item>
-	<item android:id="@+id/bustimes_menu_futuredepartures"
-		android:title="Future Departures"></item>
-	<item android:id="@+id/bustimes_menu_sorting" android:title="Sorting">
+	<item android:id="@+id/bustimes_menu_refresh" android:title="Refresh"></item>
+	<item android:id="@+id/bustimes_menu_enterstopcode" android:title="Change bus stop"></item>
+	<item android:id="@+id/bustimes_menu_bookmarks" android:title="Bookmarks">
 		<menu>
-			<item android:id="@+id/bustimes_menu_sorting_service"
-				android:title="Service"></item>
-			<item android:id="@+id/bustimes_menu_sorting_arrival"
-				android:title="Arrival Time"></item>
+			<item android:id="@+id/bustimes_menu_addbookmark" android:title="Add bookmark"></item>
+			<item android:id="@+id/bustimes_menu_renamebookmark" android:title="Rename bookmark"></item>
+			<item android:id="@+id/bustimes_menu_deletebookmark" android:title="Delete bookmark"></item>
 		</menu>
 	</item>
-	<!-- 
-	<item android:title="View on Map" android:id="@+id/bustimes_menu_viewonmap"
+	<item android:id="@+id/bustimes_menu_futuredepartures" android:title="Future departures"></item>
+	<item android:id="@+id/bustimes_menu_sorting" android:title="Sorting">
+		<menu>
+			<item android:id="@+id/bustimes_menu_sorting_service" android:title="Service"></item>
+			<item android:id="@+id/bustimes_menu_sorting_arrival" android:title="Arrival time"></item>
+		</menu>
+	</item>
+	<!--
+		<item android:title="View on Map"
+		android:id="@+id/bustimes_menu_viewonmap"
 		android:enabled="false"></item>
-		-->
-
-
-	<item android:id="@+id/bustimes_menu_proximityalert"
-		android:title="Stop Proximity Alarm"></item>
+	-->
+	<item android:id="@+id/bustimes_menu_proximityalert" android:title="Set proximity alarm"></item>
 </menu>

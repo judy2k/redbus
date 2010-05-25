@@ -82,7 +82,7 @@ public class StopBookmarksActivity extends ListActivity
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {		
 		String stopName = ((TextView) v.findViewById(R.id.stopbookmarks_name)).getText().toString();
-		BusTimesActivity.showActivity(this, id, stopName);
+		BusTimesActivity.showActivity(this, id);
 	}
 
 	@Override
@@ -99,7 +99,7 @@ public class StopBookmarksActivity extends ListActivity
 		
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_item_menu_bustimes:
-			BusTimesActivity.showActivity(this, bookmarkId, bookmarkName);
+			BusTimesActivity.showActivity(this, bookmarkId);
 			return true;
 
 		case R.id.stopbookmarks_item_menu_showonmap:
@@ -178,7 +178,7 @@ public class StopBookmarksActivity extends ListActivity
 
 		case R.id.stopbookmarks_menu_bustimes:
 			new AlertDialog.Builder(this)
-				.setTitle("Enter BusStop code to view")
+				.setTitle("Enter StopCode")
 				.setView(input)
 				.setPositiveButton(android.R.string.ok,
 						new DialogInterface.OnClickListener() {
@@ -188,8 +188,8 @@ public class StopBookmarksActivity extends ListActivity
 									stopCode = Long.parseLong(input.getText().toString());
 								} catch (Exception ex) {
 									new AlertDialog.Builder(StopBookmarksActivity.this)
-											.setTitle("Invalid BusStop code")
-											.setMessage("The code was invalid; please try again using only numbers")
+											.setTitle("Error")
+											.setMessage("The StopCode was invalid; please try again using only numbers")
 											.setPositiveButton(android.R.string.ok, null)
 											.show();
 									return;
@@ -197,11 +197,11 @@ public class StopBookmarksActivity extends ListActivity
 								
 								PointTree.BusStopTreeNode busStop = PointTree.getPointTree(StopBookmarksActivity.this).lookupStopByStopCode((int) stopCode);
 								if (busStop != null) {
-									BusTimesActivity.showActivity(StopBookmarksActivity.this, (int) busStop.getStopCode(), busStop.getStopName());
+									BusTimesActivity.showActivity(StopBookmarksActivity.this, (int) busStop.getStopCode());
 								} else {
 									new AlertDialog.Builder(StopBookmarksActivity.this)
-										.setTitle("Invalid BusStop code")
-										.setMessage("The code was invalid; please try again")
+										.setTitle("Error")
+										.setMessage("The StopCode was invalid; please try again")
 										.setPositiveButton(android.R.string.ok, null)
 										.show();
 								}

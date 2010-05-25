@@ -129,8 +129,7 @@ public class FindNearestStopActivity extends Activity {
         btnTimes.setOnClickListener(new View.OnClickListener() {
            public void onClick(View arg0) {
 	          BusTimesActivity.showActivity(FindNearestStopActivity.this,
-	        		  nearestStop.getStopCode(),
-	        		  nearestStop.getStopName());
+	        		  nearestStop.getStopCode());
            } 
         });
     }

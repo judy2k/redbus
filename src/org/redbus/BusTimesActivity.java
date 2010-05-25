@@ -59,8 +59,8 @@ import android.widget.Toast;
 
 public class BusTimesActivity extends ListActivity implements BusDataResponseListener {
 
-	private long StopCode = -1;
-	private String StopName = "";	
+	private long stopCode = -1;
+	private String stopName = "";	
 	private String sorting = "";
 
 	private ProgressDialog busyDialog = null;
@@ -75,10 +75,9 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	private static final String[] proximityAlarmStrings = new String[] { "20 metres", "50  metres", "100 metres", "250 metres", "500 metres" };
 	private static final int[] proximitylAlarmDistances= new int[] { 20, 50, 100, 200, 500};
 
-	public static void showActivity(Context context, long stopCode, String stopName) {
+	public static void showActivity(Context context, long stopCode) {
 		Intent i = new Intent(context, BusTimesActivity.class);
 		i.putExtra("StopCode", stopCode);
-		i.putExtra("StopName", stopName);
 		context.startActivity(i);
 	}
 
@@ -89,20 +88,23 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		setContentView(R.layout.bustimes);
 		registerForContextMenu(getListView());
 		
-		StopCode = getIntent().getLongExtra("StopCode", -1);
-		if (StopCode != -1)
+		stopCode = getIntent().getLongExtra("StopCode", -1);
+		if (stopCode != -1)
 			findViewById(android.R.id.empty).setVisibility(View.GONE);
-
-		StopName = "";
-		CharSequence tmp = getIntent().getCharSequenceExtra("StopName");
-		if (tmp != null)
-			StopName = tmp.toString();
 		
 		LocalDBHelper db = new LocalDBHelper(this);
 		try {
 			sorting = db.getGlobalSetting("bustimesort", "arrival");
+			stopName = db.getBookmarkName(stopCode);
 		} finally {
 			db.close();
+		}
+		if (stopName == null) {
+			PointTree.BusStopTreeNode busStop = PointTree.getPointTree(this).lookupStopByStopCode((int) stopCode);
+			if (busStop != null)
+				stopName = busStop.getStopName();
+			else
+				stopName = "";
 		}
 		
 		update();
@@ -119,17 +121,17 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	}
 
 	private void update(int daysInAdvance, Date timeInAdvance) {
-		if (StopCode != -1) {
+		if (stopCode != -1) {
 			Date displayDate = timeInAdvance;
 			if (displayDate == null)
 				displayDate = new Date();
 	
-			setTitle(StopName + " (" + titleDateFormat.format(displayDate) + ")");
-			displayBusy("Getting BusStop times");
+			setTitle(stopName + " (" + titleDateFormat.format(displayDate) + ")");
+			displayBusy("Retrieving bus times");
 
-			expectedRequestId = BusDataHelper.getBusTimesAsync(StopCode, daysInAdvance, timeInAdvance, this);
+			expectedRequestId = BusDataHelper.getBusTimesAsync(stopCode, daysInAdvance, timeInAdvance, this);
 		} else {
-			setTitle("Unknown BusStop");
+			setTitle("Unknown bus stop");
 			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
 		}
 	}
@@ -171,7 +173,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		findViewById(R.id.bustimes_error).setVisibility(View.VISIBLE);
 
 		new AlertDialog.Builder(this).setTitle("Error").
-			setMessage("Unable to download stop times: " + message).
+			setMessage("Unable to download bus times: " + message).
 			setPositiveButton(android.R.string.ok, null).
 			show();
 	}
@@ -225,7 +227,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		// get the bus stop details
 		PointTree pt = PointTree.getPointTree(this);
-		PointTree.BusStopTreeNode busStop = pt.lookupStopByStopCode((int) StopCode);
+		PointTree.BusStopTreeNode busStop = pt.lookupStopByStopCode((int) stopCode);
 		if (busStop == null)
 			return;
 
@@ -290,8 +292,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 					// create/update an intent
 					Intent i = new Intent(BusTimesActivity.this, TemporalAlarmReceiver.class);
-					i.putExtra("StopCode", StopCode);
-					i.putExtra("StopName", StopName);
+					i.putExtra("StopCode", stopCode);
+					i.putExtra("StopName", stopName);
 					i.putExtra("Services", selectedServicesList.toArray(new String[selectedServicesList.size()]));
 					i.putExtra("StartTime", System.currentTimeMillis());
 					i.putExtra("TimeoutSecs", temporalAlarmTimeouts[timeSpinner.getSelectedItemPosition()]);
@@ -316,7 +318,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		
         LocalDBHelper db = new LocalDBHelper(this);
         try {
-        	if (db.isBookmark(StopCode)) {
+        	if (db.isBookmark(stopCode)) {
         		menu.findItem(R.id.bustimes_menu_addbookmark).setEnabled(false);
         	} else {
         		menu.findItem(R.id.bustimes_menu_renamebookmark).setEnabled(false);
@@ -343,7 +345,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			input.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
 
 			new AlertDialog.Builder(this)
-					.setTitle("Enter BusStop code")
+					.setTitle("Enter StopCode")
 					.setView(input)
 					.setPositiveButton(android.R.string.ok,
 							new DialogInterface.OnClickListener() {
@@ -353,8 +355,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 										stopCode = Long.parseLong(input.getText().toString());
 									} catch (Exception ex) {
 										new AlertDialog.Builder(BusTimesActivity.this)
-												.setTitle("Invalid BusStop code")
-												.setMessage("The code was invalid; please try again using only numbers")
+												.setTitle("Error")
+												.setMessage("The StopCode was invalid; please try again using only numbers")
 												.setPositiveButton(android.R.string.ok, null)
 												.show();
 										return;
@@ -362,12 +364,13 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 									
 									PointTree.BusStopTreeNode busStop = PointTree.getPointTree(BusTimesActivity.this).lookupStopByStopCode((int) stopCode);
 									if (busStop != null) {
-										StopCode = busStop.getStopCode();
-										StopName = busStop.getStopName();
+										stopCode = busStop.getStopCode();
+										stopName = busStop.getStopName();
 										update();
 									} else {
-										new AlertDialog.Builder(BusTimesActivity.this).setTitle("Error")
-											.setMessage("The code was invalid; please try again")
+										new AlertDialog.Builder(BusTimesActivity.this)
+											.setTitle("Error")
+											.setMessage("The StopCode was invalid; please try again")
 											.setPositiveButton(android.R.string.ok, null)
 											.show();
 									}
@@ -379,10 +382,10 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		}
 
 		case R.id.bustimes_menu_addbookmark:
-			if (StopCode != -1) {
+			if (stopCode != -1) {
 				LocalDBHelper db = new LocalDBHelper(this);
 				try {
-					db.addBookmark(StopCode, StopName);
+					db.addBookmark(stopCode, stopName);
 				} finally {
 					db.close();
 				}
@@ -392,7 +395,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			
 		case R.id.bustimes_menu_renamebookmark: {
 			 final EditText input = new EditText(this);
-				input.setText(StopName);
+				input.setText(stopName);
 
 				new AlertDialog.Builder(this)
 						.setTitle("Rename bookmark")
@@ -402,11 +405,11 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 									public void onClick(DialogInterface dialog, int whichButton) {
 				                        LocalDBHelper db = new LocalDBHelper(BusTimesActivity.this);
 				                        try {
-				                        	db.renameBookmark(BusTimesActivity.this.StopCode, input.getText().toString());
+				                        	db.renameBookmark(BusTimesActivity.this.stopCode, input.getText().toString());
 				                        } finally {
 				                        	db.close();
 				                        }
-				                        StopName = input.getText().toString();
+				                        stopName = input.getText().toString();
 				                        update();
 									}
 								})
@@ -423,7 +426,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	                public void onClick(DialogInterface dialog, int whichButton) {
 	                    LocalDBHelper db = new LocalDBHelper(BusTimesActivity.this);
 	                    try {
-	                    	db.deleteBookmark(BusTimesActivity.this.StopCode);
+	                    	db.deleteBookmark(BusTimesActivity.this.stopCode);
 	                    } finally {
 	                    	db.close();
 	                    }
@@ -506,7 +509,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		case R.id.bustimes_menu_proximityalert: {
 			// get the bus stop details
 			PointTree pt = PointTree.getPointTree(this);
-			final PointTree.BusStopTreeNode busStop = pt.lookupStopByStopCode((int) StopCode);
+			final PointTree.BusStopTreeNode busStop = pt.lookupStopByStopCode((int) stopCode);
 			if (busStop == null)
 				break;
 
@@ -527,8 +530,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 					public void onClick(DialogInterface dialog, int which) {
 						// create/update an intent
 						Intent i = new Intent(BusTimesActivity.this, ProximityAlarmReceiver.class);
-						i.putExtra("StopCode", StopCode);
-						i.putExtra("StopName", StopName);
+						i.putExtra("StopCode", stopCode);
+						i.putExtra("StopName", stopName);
 						i.putExtra("X", busStop.getX());
 						i.putExtra("Y", busStop.getY());
 						i.putExtra("Distance", proximitylAlarmDistances[distanceSpinner.getSelectedItemPosition()]);

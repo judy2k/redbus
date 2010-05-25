@@ -68,6 +68,27 @@ public class LocalDBHelper
 		}
 	}
 
+	public String getBookmarkName(long stopCode)
+	{
+		Cursor c = null;
+		try {
+			c = db.query(BOOKMARKS_TABLE, 
+						new String[] { BOOKMARKS_COL_STOPNAME }, 
+						"_id = ?",
+						new String[] { Long.toString(stopCode) }, 
+						null, 
+						null, 
+						null);
+			if (c.moveToNext())
+				return c.getString(0);
+			else
+				return null;
+		} finally {
+			if (c != null)
+				c.close();
+		}
+	}
+
 	public Cursor getBookmarks()
 	{
 		return db.query(BOOKMARKS_TABLE, null, null, null, null, null, BOOKMARKS_COL_STOPNAME);
