@@ -528,16 +528,21 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 				.setTitle("Set alarm")
 				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-						// create/update an intent
+						LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+						// clean up any existing proximity alert
 						Intent i = new Intent(BusTimesActivity.this, ProximityAlarmReceiver.class);
+						PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_NO_CREATE);
+						if (pi != null)
+							lm.removeProximityAlert(pi);
+
+						// create a new alert
 						i.putExtra("StopCode", stopCode);
 						i.putExtra("StopName", stopName);
 						i.putExtra("X", busStop.getX());
 						i.putExtra("Y", busStop.getY());
 						i.putExtra("Distance", proximitylAlarmDistances[distanceSpinner.getSelectedItemPosition()]);
-						PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
-
-						LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+						pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
 						lm.addProximityAlert(busStop.getX(), busStop.getY(), proximitylAlarmDistances[distanceSpinner.getSelectedItemPosition()], 60 * 60 * 1000, pi);
 		
 						Toast.makeText(BusTimesActivity.this, "Alarm added!", Toast.LENGTH_SHORT).show();

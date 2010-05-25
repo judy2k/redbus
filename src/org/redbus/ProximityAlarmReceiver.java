@@ -15,9 +15,9 @@ public class ProximityAlarmReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-		Intent i = new Intent(context, ProximityAlarmReceiver.class);
-		PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
-		lm.removeProximityAlert(pi);
+		PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_NO_CREATE);
+		if (pi != null)
+			lm.removeProximityAlert(pi);
 
 		String stopName = intent.getStringExtra("StopName");
 		if (stopName == null)
@@ -33,8 +33,8 @@ public class ProximityAlarmReceiver extends BroadcastReceiver {
 		text.append(intent.getStringExtra("StopName"));
 		text.append("\"!");
 
-		i = new Intent(context, StopMapActivity.class);
-		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
+		Intent i = new Intent(context, StopMapActivity.class);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_ONE_SHOT);
 
 		Notification notification = new Notification(R.drawable.tracker_24x24_masked, text, System.currentTimeMillis());
 		notification.defaults |= Notification.DEFAULT_ALL;
