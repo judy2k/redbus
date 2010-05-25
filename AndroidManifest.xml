@@ -16,6 +16,7 @@
 		<activity android:name="StopMapActivity" android:label="Map" />
 		<uses-library android:name="com.google.android.maps" />
 	<receiver android:name=".TemporalAlarmReceiver"></receiver>
+	<receiver android:name=".ProximityAlarmReceiver"></receiver>
 
 </application>
 
