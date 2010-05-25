@@ -116,7 +116,7 @@ public class StopBookmarksActivity extends ListActivity
 			// FIXME: implement
 			return true;
 
-		case R.id.stopbookmarks_item_menu_edit:
+		case R.id.stopbookmarks_item_menu_rename:
 			final EditText input = new EditText(this);
 			input.setText(bookmarkName);
 
