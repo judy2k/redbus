@@ -20,7 +20,6 @@ package org.redbus;
 
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.StringReader;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlSerializer;
@@ -236,7 +235,7 @@ public class StopBookmarksActivity extends ListActivity
 		        while(c.moveToNext()) {
                     serializer.startTag("", "busstop");
                     serializer.attribute("", "stopcode", Long.toString(c.getLong(0)));
-                    serializer.attribute("", "stopcode", c.getString(1));
+                    serializer.attribute("", "name", c.getString(1));
                     serializer.endTag("", "busstop");
 		        }
                 serializer.endTag("", "redbus");
@@ -294,8 +293,8 @@ public class StopBookmarksActivity extends ListActivity
 	        	db.close();
 	        }
 	        
-	        update();
 	        Toast.makeText(this, "Bookmarks restored from " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
+	        update();
 			return true;		
 		}
 		}
