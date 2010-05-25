@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.location.LocationManager;
 
 public class ProximityAlarmReceiver extends BroadcastReceiver {
 
@@ -13,6 +14,11 @@ public class ProximityAlarmReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
+		LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		Intent i = new Intent(context, ProximityAlarmReceiver.class);
+		PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
+		lm.removeProximityAlert(pi);
+
 		String stopName = intent.getStringExtra("StopName");
 		if (stopName == null)
 			return;
@@ -27,15 +33,15 @@ public class ProximityAlarmReceiver extends BroadcastReceiver {
 		text.append(intent.getStringExtra("StopName"));
 		text.append("\"!");
 
-		Intent i = new Intent(context, StopMapActivity.class);
+		i = new Intent(context, StopMapActivity.class);
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 
 		Notification notification = new Notification(R.drawable.tracker_24x24_masked, text, System.currentTimeMillis());
 		notification.defaults |= Notification.DEFAULT_ALL;
 		notification.flags |= Notification.FLAG_AUTO_CANCEL;
-		notification.setLatestEventInfo(context, "Bus alert!", text, contentIntent);
+		notification.setLatestEventInfo(context, "Bus alarm!", text, contentIntent);
 
 		NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-		nm.notify(PROXIMITY_NOTIFICATION_ID, notification);
+		nm.notify(PROXIMITY_NOTIFICATION_ID, notification);		
 	}
 }

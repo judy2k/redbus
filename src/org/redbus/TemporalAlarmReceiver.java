@@ -89,7 +89,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 				Notification notification = new Notification(R.drawable.tracker_24x24_masked, text, System.currentTimeMillis());
 				notification.defaults |= Notification.DEFAULT_ALL;
 				notification.flags |= Notification.FLAG_AUTO_CANCEL;
-				notification.setLatestEventInfo(context, "Bus alert!", text, contentIntent);
+				notification.setLatestEventInfo(context, "Bus alarm!", text, contentIntent);
 
 				NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 				nm.notify(TEMPORAL_NOTIFICATION_ID, notification);
