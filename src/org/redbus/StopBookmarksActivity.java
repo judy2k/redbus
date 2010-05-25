@@ -187,7 +187,7 @@ public class StopBookmarksActivity extends ListActivity
 
 		case R.id.stopbookmarks_menu_bustimes:
 			new AlertDialog.Builder(this)
-				.setTitle("Enter StopCode")
+				.setTitle("Enter stopcode")
 				.setView(input)
 				.setPositiveButton(android.R.string.ok,
 						new DialogInterface.OnClickListener() {
@@ -198,7 +198,7 @@ public class StopBookmarksActivity extends ListActivity
 								} catch (Exception ex) {
 									new AlertDialog.Builder(StopBookmarksActivity.this)
 											.setTitle("Error")
-											.setMessage("The StopCode was invalid; please try again using only numbers")
+											.setMessage("The stopcode was invalid; please try again using only numbers")
 											.setPositiveButton(android.R.string.ok, null)
 											.show();
 									return;
@@ -210,7 +210,7 @@ public class StopBookmarksActivity extends ListActivity
 								} else {
 									new AlertDialog.Builder(StopBookmarksActivity.this)
 										.setTitle("Error")
-										.setMessage("The StopCode was invalid; please try again")
+										.setMessage("The stopcode was invalid; please try again")
 										.setPositiveButton(android.R.string.ok, null)
 										.show();
 								}

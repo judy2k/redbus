@@ -345,7 +345,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			input.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
 
 			new AlertDialog.Builder(this)
-					.setTitle("Enter StopCode")
+					.setTitle("Enter stopcode")
 					.setView(input)
 					.setPositiveButton(android.R.string.ok,
 							new DialogInterface.OnClickListener() {
@@ -356,7 +356,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 									} catch (Exception ex) {
 										new AlertDialog.Builder(BusTimesActivity.this)
 												.setTitle("Error")
-												.setMessage("The StopCode was invalid; please try again using only numbers")
+												.setMessage("The stopcode was invalid; please try again using only numbers")
 												.setPositiveButton(android.R.string.ok, null)
 												.show();
 										return;
@@ -370,7 +370,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 									} else {
 										new AlertDialog.Builder(BusTimesActivity.this)
 											.setTitle("Error")
-											.setMessage("The StopCode was invalid; please try again")
+											.setMessage("The stopcode was invalid; please try again")
 											.setPositiveButton(android.R.string.ok, null)
 											.show();
 									}
