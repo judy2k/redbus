@@ -73,7 +73,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	private static final int[] temporalAlarmTimeouts = new int[] { 0, 5 * 60, 10 *  60};
 
 	private static final String[] proximityAlarmStrings = new String[] { "20 metres", "50  metres", "100 metres", "250 metres", "500 metres" };
-	private static final int[] proximitylAlarmDistances= new int[] { 20, 50, 100, 200, 500};
+	private static final int[] proximityAlarmDistances= new int[] { 20, 50, 100, 200, 500};
 
 	public static void showActivity(Context context, long stopCode) {
 		Intent i = new Intent(context, BusTimesActivity.class);
@@ -541,9 +541,9 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 						i.putExtra("StopName", stopName);
 						i.putExtra("X", busStop.getX());
 						i.putExtra("Y", busStop.getY());
-						i.putExtra("Distance", proximitylAlarmDistances[distanceSpinner.getSelectedItemPosition()]);
+						i.putExtra("Distance", proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()]);
 						pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
-						lm.addProximityAlert(busStop.getX(), busStop.getY(), proximitylAlarmDistances[distanceSpinner.getSelectedItemPosition()], 60 * 60 * 1000, pi);
+						lm.addProximityAlert(busStop.getX(), busStop.getY(), proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()], 60 * 60 * 1000, pi);
 		
 						Toast.makeText(BusTimesActivity.this, "Alarm added!", Toast.LENGTH_SHORT).show();
 					}
