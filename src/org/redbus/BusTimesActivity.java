@@ -535,7 +535,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 						PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 
 						LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-						lm.addProximityAlert(busStop.getY(), busStop.getX(), proximitylAlarmDistances[distanceSpinner.getSelectedItemPosition()], 60 * 60 * 1000, pi);
+						lm.addProximityAlert(busStop.getX(), busStop.getY(), proximitylAlarmDistances[distanceSpinner.getSelectedItemPosition()], 60 * 60 * 1000, pi);
 		
 						Toast.makeText(BusTimesActivity.this, "Alarm added!", Toast.LENGTH_SHORT).show();
 					}
