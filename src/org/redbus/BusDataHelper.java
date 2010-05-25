@@ -240,6 +240,8 @@ public class BusDataHelper {
 				try {
 					// make the request and check the response code
 					connection = (HttpURLConnection) bdr.url.openConnection();
+					connection.setReadTimeout(30 * 1000);
+					connection.setConnectTimeout(30 * 1000);
 					if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
 						Log.e("AsyncHttpRequestTask.doInBackGround", "HttpError: " + connection.getResponseMessage());
 						continue;
