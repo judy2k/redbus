@@ -18,6 +18,13 @@
 
 package org.redbus;
 
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.StringReader;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlSerializer;
+
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
@@ -38,11 +45,15 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.util.Log;
+import android.util.Xml;
 
 public class StopBookmarksActivity extends ListActivity
 {	
 	private static final String[] columnNames = new String[] { LocalDBHelper.ID, LocalDBHelper.BOOKMARKS_COL_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
+	private static final String bookmarksXmlFile = "/sdcard/redbus-stops.xml";
 
 	private long bookmarkId = -1;
 	private String bookmarkName = null;
@@ -144,7 +155,7 @@ public class StopBookmarksActivity extends ListActivity
                     }
 				}).
                 show();
-			return true;		
+			return true;	
 		}
 
 		return super.onContextItemSelected(item);
@@ -208,7 +219,85 @@ public class StopBookmarksActivity extends ListActivity
 						})
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
-			return true;			
+			return true;				
+			
+		case R.id.stopbookmarks_menu_backup: {
+	        LocalDBHelper db = new LocalDBHelper(this);
+	        Cursor c = null;
+	        FileWriter output = null;
+	        try {
+	        	output = new FileWriter(bookmarksXmlFile);
+	            XmlSerializer serializer = Xml.newSerializer();
+                serializer.setOutput(output);
+                serializer.startDocument("UTF-8", true);
+                serializer.startTag("", "redbus");
+
+		        c = db.getBookmarks();
+		        while(c.moveToNext()) {
+                    serializer.startTag("", "busstop");
+                    serializer.attribute("", "stopcode", Long.toString(c.getLong(0)));
+                    serializer.attribute("", "stopcode", c.getString(1));
+                    serializer.endTag("", "busstop");
+		        }
+                serializer.endTag("", "redbus");
+                serializer.endDocument();
+	        } catch (Throwable t) {
+	        	Log.e("StopBookmarks.Backup", "Backup failed", t);
+	        	return true;
+	        } finally {
+	        	if (output != null) {
+	        		try {
+		        		output.flush();
+	        		} catch (Throwable t) {}
+	        		try {
+		        		output.close();
+	        		} catch (Throwable t) {}
+	        	}
+	        	if (c != null)
+	        		c.close();
+	        	db.close();
+	        }
+	        Toast.makeText(this, "Bookmarks saved to " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
+			return true;
+		}
+			
+		case R.id.stopbookmarks_menu_restore: {
+	        LocalDBHelper db = new LocalDBHelper(this);
+	        FileReader inputFile = null;
+	        try {
+	        	inputFile = new FileReader(bookmarksXmlFile);
+	        	
+				XmlPullParser parser = Xml.newPullParser();
+				parser.setInput(inputFile);
+				db.deleteBookmarks();
+
+				while(parser.next() != XmlPullParser.END_DOCUMENT) {
+					switch(parser.getEventType()) {
+					case XmlPullParser.START_TAG:
+						String tagName = parser.getName();
+						if (tagName == "busstop") {
+							long stopCode = Long.parseLong(parser.getAttributeValue(null, "stopcode"));
+							String stopName = parser.getAttributeValue(null, "name");
+							db.addBookmark(stopCode, stopName);
+						}
+					}
+				}
+	        } catch (Throwable t) {
+	        	Log.e("StopBookmarks.Restore", "Restore failed", t);
+	        	return true;
+	        } finally {
+	        	if (inputFile != null) {
+	        		try {
+	        			inputFile.close();
+	        		} catch (Throwable t) {}
+	        	}
+	        	db.close();
+	        }
+	        
+	        update();
+	        Toast.makeText(this, "Bookmarks restored from " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
+			return true;		
+		}
 		}
 
 		return false;

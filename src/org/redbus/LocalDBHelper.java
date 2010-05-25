@@ -98,6 +98,10 @@ public class LocalDBHelper
 		db.execSQL("DELETE FROM Bookmarks WHERE _id = ?", new Object[] { bookmarkId });
 	}
 	
+	public void deleteBookmarks() {
+		db.execSQL("DELETE FROM Bookmarks");
+	}
+	
 	public void addBookmark(long bookmarkId, String stopName) {
 		try {
 			db.execSQL("INSERT INTO Bookmarks VALUES (?, ?)", new Object[] { bookmarkId, stopName });
