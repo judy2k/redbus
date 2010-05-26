@@ -10,7 +10,7 @@
 		</menu>
 	</item>
 	<item android:id="@+id/bustimes_menu_futuredepartures" android:title="Future departures"></item>
-	<item android:id="@+id/bustimes_menu_sorting" android:title="Sorting">
+	<item android:id="@+id/bustimes_menu_sorting" android:title="Sort by...">
 		<menu>
 			<item android:id="@+id/bustimes_menu_sorting_service" android:title="Service"></item>
 			<item android:id="@+id/bustimes_menu_sorting_arrival" android:title="Arrival time"></item>
