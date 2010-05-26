@@ -62,7 +62,9 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	private long stopCode = -1;
 	private String stopName = "";	
 	private String sorting = "";
-
+	
+	private PointTree.BusStopTreeNode busStop;
+	
 	private ProgressDialog busyDialog = null;
 	private int expectedRequestId = -1;
 
@@ -99,12 +101,14 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		} finally {
 			db.close();
 		}
-		if (stopName == null) {
-			PointTree.BusStopTreeNode busStop = PointTree.getPointTree(this).lookupStopByStopCode((int) stopCode);
-			if (busStop != null)
-				stopName = busStop.getStopName();
-			else
-				stopName = "";
+		
+		busStop = PointTree.getPointTree(this).lookupStopByStopCode((int) stopCode);
+
+		if (busStop != null) {
+			stopName = busStop.getStopName();
+		}
+		else {
+			stopName = "";
 		}
 		
 		update();
@@ -229,6 +233,26 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		addTemporalAlert(clickedService.getText().toString());
 	}
 	
+	private void addOngoingNotification(Context context,String text)
+	{
+		/* FIXME - need a way to turn off notification before instating this!
+		 
+		Intent intent = new Intent(this,BusTimesActivity.class);
+		
+		PendingIntent cancelIntent = PendingIntent.getActivity(context, 0, intent, 0); 
+		
+		int ongoingNotificationID=0;
+		Notification notification = new Notification(R.drawable.tracker_24x24_masked, text, System.currentTimeMillis());
+		notification.defaults |= Notification.DEFAULT_ALL;
+		notification.flags |= Notification.FLAG_ONGOING_EVENT;
+		notification.setLatestEventInfo(context, "Bus alarm set", text, cancelIntent);
+
+		NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		nm.notify(ongoingNotificationID, notification);
+		 * 
+		 */
+	}
+	
 	private void addTemporalAlert(String selectedService) {
 		// get the bus stop details
 		PointTree pt = PointTree.getPointTree(this);
@@ -313,6 +337,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 					am.cancel(pi);
 					am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 10000, pi);
 	
+					addOngoingNotification(BusTimesActivity.this, stopName);
+				
 					Toast.makeText(BusTimesActivity.this, "Alarm added!", Toast.LENGTH_SHORT).show();
 				}
 			})
@@ -320,6 +346,54 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			.show();
 	}
 
+	private void addProximityAlert() {
+		// get the bus stop details
+		PointTree pt = PointTree.getPointTree(this);
+		final PointTree.BusStopTreeNode busStop = pt.lookupStopByStopCode((int) stopCode);
+		if (busStop == null)
+			return;
+
+		// load the view
+		View dialogView = getLayoutInflater().inflate(R.layout.addproximityalert, null);		
+
+		// setup distance selector
+		final Spinner distanceSpinner = (Spinner) dialogView.findViewById(R.id.addproximityalert_distance);
+		ArrayAdapter<String> timeAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, proximityAlarmStrings);
+		timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		distanceSpinner.setAdapter(timeAdapter);
+
+		// show the dialog!
+		new AlertDialog.Builder(this)
+			.setView(dialogView)
+			.setTitle("Set alarm")
+			.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+					// clean up any existing proximity alert
+					Intent i = new Intent(BusTimesActivity.this, ProximityAlarmReceiver.class);
+					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_NO_CREATE);
+					if (pi != null)
+						lm.removeProximityAlert(pi);
+
+					// create a new alert
+					i.putExtra("StopCode", stopCode);
+					i.putExtra("StopName", stopName);
+					i.putExtra("X", busStop.getX());
+					i.putExtra("Y", busStop.getY());
+					i.putExtra("Distance", proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()]);
+					pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+					lm.addProximityAlert(busStop.getX(), busStop.getY(), proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()], 60 * 60 * 1000, pi);
+	
+					addOngoingNotification(BusTimesActivity.this, stopName);
+
+					Toast.makeText(BusTimesActivity.this, "Alarm added!", Toast.LENGTH_SHORT).show();
+				}
+			})
+			.setNegativeButton(android.R.string.cancel, null)
+			.show();
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -448,11 +522,11 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			return true;
 		}
 
-/*
+
 		case R.id.bustimes_menu_viewonmap:
-			// FIXME: implement
+			StopMapActivity.showActivityForServiceMap(this, busStop.getServicesMap(), busStop.getX(), busStop.getY());
 			return true;
-*/
+
 
 		case R.id.bustimes_menu_futuredepartures:
 			LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -518,49 +592,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		}
 		
 		case R.id.bustimes_menu_proximityalert: {
-			// get the bus stop details
-			PointTree pt = PointTree.getPointTree(this);
-			final PointTree.BusStopTreeNode busStop = pt.lookupStopByStopCode((int) stopCode);
-			if (busStop == null)
-				break;
-
-			// load the view
-			View dialogView = getLayoutInflater().inflate(R.layout.addproximityalert, null);		
-
-			// setup distance selector
-			final Spinner distanceSpinner = (Spinner) dialogView.findViewById(R.id.addproximityalert_distance);
-			ArrayAdapter<String> timeAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, proximityAlarmStrings);
-			timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-			distanceSpinner.setAdapter(timeAdapter);
-
-			// show the dialog!
-			new AlertDialog.Builder(this)
-				.setView(dialogView)
-				.setTitle("Set alarm")
-				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-						// clean up any existing proximity alert
-						Intent i = new Intent(BusTimesActivity.this, ProximityAlarmReceiver.class);
-						PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_NO_CREATE);
-						if (pi != null)
-							lm.removeProximityAlert(pi);
-
-						// create a new alert
-						i.putExtra("StopCode", stopCode);
-						i.putExtra("StopName", stopName);
-						i.putExtra("X", busStop.getX());
-						i.putExtra("Y", busStop.getY());
-						i.putExtra("Distance", proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()]);
-						pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
-						lm.addProximityAlert(busStop.getX(), busStop.getY(), proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()], 60 * 60 * 1000, pi);
-		
-						Toast.makeText(BusTimesActivity.this, "Alarm added!", Toast.LENGTH_SHORT).show();
-					}
-				})
-				.setNegativeButton(android.R.string.cancel, null)
-				.show();
+			addProximityAlert();
 			return true;
 		}
 		

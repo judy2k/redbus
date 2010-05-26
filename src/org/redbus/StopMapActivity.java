@@ -20,12 +20,16 @@ package org.redbus;
 
 import java.util.ArrayList;
 import org.redbus.PointTree.BusStopTreeNode;
+
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.location.Location;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -52,8 +56,11 @@ public class StopMapActivity extends MapActivity {
 		private double brx, oldbrx;
 		private double bry, oldbry;
 		
-		public StopOverlay(MapView view) {
-			this.busStopLocations = PointTree.getPointTree(StopMapActivity.this);			
+		private long serviceFilter;
+		
+		public StopOverlay(MapView view, long serviceFilter) {
+			this.busStopLocations = PointTree.getPointTree(StopMapActivity.this);
+			this.serviceFilter = serviceFilter;
 			this.projection = view.getProjection();
 			this.brush = new Paint();
 			this.blackBrush = new Paint();
@@ -96,7 +103,7 @@ public class StopMapActivity extends MapActivity {
 				oldtlx = tlx; oldtly = tly; oldbrx = brx; oldbry = bry;
 				//Log.println(Log.DEBUG, "colin"," newpos "+tl.toString()+ " -> "+br.toString());
 
-				nodes = busStopLocations.findRect(tlx,tly,brx,bry);
+				nodes = busStopLocations.findRect(tlx,tly,brx,bry,serviceFilter);
 
 				numberOfStops = nodes.size();
 				
@@ -107,16 +114,14 @@ public class StopMapActivity extends MapActivity {
 			}
 			
 			// Prevent maps slowing down with too many stops
-			if (numberOfStops >= 200)
-			{
+			if (numberOfStops >= 200) {
 				canvas.drawRect(0, 0, 130, 30, blackBrush);
 				canvas.drawText("Zoom in to see stops", 10, 15, brush);
 				return;
 			}
 			else
 			{
-				if (!showServiceLabels)
-				{
+				if (!showServiceLabels) {
 					canvas.drawRect(0, 0, 150, 30, blackBrush);
 					canvas.drawText("Zoom in to see services", 10, 15, brush);
 				}
@@ -170,7 +175,23 @@ public class StopMapActivity extends MapActivity {
 	private MapView mapView;
 	private MapController mapController;
 	private MyLocationOverlay myLocationOverlay;
-
+	
+	public static void showActivity(Context context) {
+		Intent i = new Intent(context, StopMapActivity.class);
+		context.startActivity(i);
+	}
+	
+	public static void showActivityForServiceMap(Context context, 
+			long serviceMap,
+			double lat,
+			double lng) {
+		Intent i = new Intent(context, StopMapActivity.class);
+		i.putExtra("StopFilter", serviceMap);
+		i.putExtra("Lat", lat);
+		i.putExtra("Lng", lng);
+		context.startActivity(i);
+	}
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) { 
 		super.onCreate(savedInstanceState); 
@@ -185,19 +206,31 @@ public class StopMapActivity extends MapActivity {
 		// Make map update automatically as user moves around
 		myLocationOverlay = new MyLocationOverlay(this, mapView);
 
-		myLocationOverlay.runOnFirstFix(new Runnable() {
-			public void run() {
-				mapController.animateTo(myLocationOverlay.getMyLocation());
-			}
-		});
-
 		mapView.getOverlays().add(myLocationOverlay);
 		myLocationOverlay.enableCompass();
 
-		mapView.getOverlays().add(new StopOverlay(mapView));
+		// Check to see if we've been passed data
 		
-		// Centre map in Edinburgh until GPS lock found
-		//mapController.setCenter(new GeoPoint(55946052,-3188879));
+		long stopFilter = getIntent().getLongExtra("StopFilter", 0xffffffff);
+		double lat = getIntent().getDoubleExtra("Lat", -1);
+		double lng = getIntent().getDoubleExtra("Lng", -1);
+		
+		// Not been passed a location, so use GPS and default to centre
+		if (lat == -1 && lng == -1) {
+			myLocationOverlay.runOnFirstFix(new Runnable() {
+				public void run() {
+					mapController.animateTo(myLocationOverlay.getMyLocation());
+				}
+			});
+
+			// Default map to centre of Edinburgh
+			lat = 55.946052;
+			lng = -3.188879;
+		}
+		
+		mapView.getOverlays().add(new StopOverlay(mapView,stopFilter));
+		
+		mapController.setCenter(new GeoPoint((int)(lat*1E6),(int)(lng*1E6)));
 	}
 
 	@Override
@@ -215,7 +248,7 @@ public class StopMapActivity extends MapActivity {
 	public void onResume() {
 		myLocationOverlay.enableMyLocation();
 		super.onResume();
+		Toast.makeText(this, "Waiting for GPS...", Toast.LENGTH_SHORT).show();
 	}
-
-
+	
 }

@@ -27,7 +27,6 @@ import org.xmlpull.v1.XmlSerializer;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.text.InputFilter;
@@ -181,7 +180,7 @@ public class StopBookmarksActivity extends ListActivity
 				setMessage("This feature's user interface is under heavy development").
 				setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int whichButton) {
-	        			startActivity(new Intent(StopBookmarksActivity.this, StopMapActivity.class));
+	                	StopMapActivity.showActivity(StopBookmarksActivity.this);
 	                }
 				}).
 	            show();

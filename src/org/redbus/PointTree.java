@@ -239,7 +239,8 @@ public class PointTree {
 			                                         double xbr, double ybr,
 			                                         BusStopTreeNode here,
 			                                         ArrayList<BusStopTreeNode> stops,
-			                                         int depth)
+			                                         int depth,
+			                                         long serviceFilter)
 	{
 		if (here==null) return stops;
 	
@@ -269,16 +270,18 @@ public class PointTree {
 		}
 		
 		if (bottomright > herepos) {
-			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.rightNode),stops, depth+1);
+			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.rightNode),stops, depth+1,serviceFilter);
 		}
 		
 		if (topleft < herepos) {
-			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.leftNode),stops, depth+1);
+			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.leftNode),stops, depth+1,serviceFilter);
 		}
 		
 		// If this node falls within range, add it
 		if (xtl <= herex && xbr >= herex && ytl <= herey && ybr >= herey) {
-			stops.add(here);
+			if ((here.servicesMap & serviceFilter) != 0) {
+				stops.add(here);
+			}
 		}
 		
 		return stops;
@@ -286,18 +289,20 @@ public class PointTree {
 	
 	// Return nodes within a certain rectangle - top-left/bottom-right
 	public ArrayList<BusStopTreeNode> findRect(double xtl, double ytl,
-	                                             double xbr, double ybr)
+	                                             double xbr, double ybr,
+	                                             long serviceFilter)
 	{
 		ArrayList<BusStopTreeNode> stops = new ArrayList<BusStopTreeNode>();
 		
 		//Log.println(Log.DEBUG, "redbus", "tl: "+ Double.toString(xtl) + "," + Double.toString(ytl));
 		//Log.println(Log.DEBUG, "redbus", "br: "+ Double.toString(xbr) + "," + Double.toString(ybr));
 		
-		return searchRect(xtl,ytl,xbr,ybr,this.getRoot(),stops,0);
+		return searchRect(xtl,ytl,xbr,ybr,this.getRoot(),stops,0,serviceFilter);
 	}
 	
 	// Return nodes within a certain radius
-	public ArrayList<BusStopTreeNode> findRadius(double xcentre, double ycentre, double radiusMetres)
+	public ArrayList<BusStopTreeNode> findRadius(double xcentre, double ycentre, double radiusMetres,
+			long serviceFilter)
 	{
 		// Convert radius in metres to approximate decimal degrees.
 		// http://en.wikipedia.org/wiki/Decimal_degrees
@@ -314,7 +319,8 @@ public class PointTree {
 		return findRect(xcentre-radiusDegrees,
 				          ycentre-radiusDegrees,
 				          xcentre+radiusDegrees,
-				          ycentre+radiusDegrees);
+				          ycentre+radiusDegrees,
+				          serviceFilter);
 	}
 	
 	public BusStopTreeNode lookupStopByStopCode(int stopCode)
