@@ -225,6 +225,11 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
+		TextView clickedService = (TextView) v.findViewById(R.id.bustimes_service);
+		addTemporalAlert(clickedService.getText().toString());
+	}
+	
+	private void addTemporalAlert(String selectedService) {
 		// get the bus stop details
 		PointTree pt = PointTree.getPointTree(this);
 		PointTree.BusStopTreeNode busStop = pt.lookupStopByStopCode((int) stopCode);
@@ -237,12 +242,16 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		final boolean[] selectedServices = new boolean[services.length];
 
 		// preselect the clicked-on service
-		TextView clickedService = (TextView) v.findViewById(R.id.bustimes_service);
-		for(int i=0; i< services.length; i++) {
-			if (clickedService.getText().toString().equalsIgnoreCase(services[i])) {
-				selectedServices[i] = true;
-				break;
+		if (selectedService != null) {
+			for(int i=0; i< services.length; i++) {
+				if (selectedService.equalsIgnoreCase(services[i])) {
+					selectedServices[i] = true;
+					break;
+				}
 			}
+		} else {
+			if (selectedServices.length > 0)
+				selectedServices[0] = true;
 		}
 
 		// load the view
@@ -552,7 +561,12 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 				})
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
+			return true;
 		}
+		
+		case R.id.bustimes_menu_temporalalert:
+			addTemporalAlert(null);
+			return true;			
 		}
 
 		return false;
