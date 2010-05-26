@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 	<item android:id="@+id/bustimes_menu_refresh" android:title="Refresh"></item>
 	<item android:id="@+id/bustimes_menu_enterstopcode" android:title="Change bus stop"></item>
-	<item android:id="@+id/bustimes_menu_bookmarks" android:title="Bookmarks">
+	<item android:id="@+id/bustimes_menu_bookmarks" android:title="Bookmarks...">
 		<menu>
 			<item android:id="@+id/bustimes_menu_addbookmark" android:title="Add bookmark"></item>
 			<item android:id="@+id/bustimes_menu_renamebookmark" android:title="Rename bookmark"></item>
@@ -21,7 +21,7 @@
 		android:id="@+id/bustimes_menu_viewonmap"
 		android:enabled="false"></item>
 	-->
-	<item android:id="@+id/bustimes_menu_alerts" android:title="Set bus alarms"><menu><item android:id="@+id/bustimes_menu_proximityalert" android:title="Set proximity alarm"></item><item android:id="@+id/bustimes_menu_temporalalert" android:title="Set arrival time alarm"></item>
+	<item android:id="@+id/bustimes_menu_alerts" android:title="Set bus alarms..."><menu><item android:id="@+id/bustimes_menu_proximityalert" android:title="Set proximity alarm"></item><item android:id="@+id/bustimes_menu_temporalalert" android:title="Set arrival time alarm"></item>
 </menu>
 </item>
 
