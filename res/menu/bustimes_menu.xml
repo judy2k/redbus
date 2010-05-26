@@ -21,7 +21,7 @@
 		android:id="@+id/bustimes_menu_viewonmap"
 		android:enabled="false"></item>
 	-->
-	<item android:id="@+id/bustimes_menu_alerts" android:title="Set alarms"><menu><item android:id="@+id/bustimes_menu_proximityalert" android:title="Set proximity alarm"></item><item android:id="@+id/bustimes_menu_temporalalert" android:title="Set arrival time alarm"></item>
+	<item android:id="@+id/bustimes_menu_alerts" android:title="Set bus alarms"><menu><item android:id="@+id/bustimes_menu_proximityalert" android:title="Set proximity alarm"></item><item android:id="@+id/bustimes_menu_temporalalert" android:title="Set arrival time alarm"></item>
 </menu>
 </item>
 
