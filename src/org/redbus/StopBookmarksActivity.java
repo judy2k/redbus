@@ -105,7 +105,7 @@ public class StopBookmarksActivity extends ListActivity
 		AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 		bookmarkId = menuInfo.id;
 		bookmarkName = ((TextView) menuInfo.targetView.findViewById(R.id.stopbookmarks_name)).getText().toString();
-		
+
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_item_menu_bustimes:
 			BusTimesActivity.showActivity(this, bookmarkId);
@@ -120,7 +120,7 @@ public class StopBookmarksActivity extends ListActivity
 			input.setText(bookmarkName);
 
 			new AlertDialog.Builder(this)
-					.setTitle("Edit bookmark name")
+					.setTitle("Rename bookmark")
 					.setView(input)
 					.setPositiveButton(android.R.string.ok,
 							new DialogInterface.OnClickListener() {
@@ -139,21 +139,23 @@ public class StopBookmarksActivity extends ListActivity
 			return true;
 
 		case R.id.stopbookmarks_item_menu_delete:
-			new AlertDialog.Builder(this).
-				setMessage("Are you sure you want to delete this bookmark?").
-				setNegativeButton(android.R.string.cancel, null).
-				setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this);
-                        try {
-                        	db.deleteBookmark(StopBookmarksActivity.this.bookmarkId);
-                        } finally {
-                        	db.close();
-                        }
-                        StopBookmarksActivity.this.update();
-                    }
-				}).
-                show();
+			new AlertDialog.Builder(this)
+				.setTitle("Delete bookmark")
+				.setMessage("Are you sure you want to delete this bookmark?")
+				.setPositiveButton(android.R.string.ok, 
+						new DialogInterface.OnClickListener() {
+		                    public void onClick(DialogInterface dialog, int whichButton) {
+		                        LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this);
+		                        try {
+		                        	db.deleteBookmark(StopBookmarksActivity.this.bookmarkId);
+		                        } finally {
+		                        	db.close();
+		                        }
+		                        StopBookmarksActivity.this.update();
+		                    }
+						})
+				.setNegativeButton(android.R.string.cancel, null)
+                .show();
 			return true;	
 		}
 

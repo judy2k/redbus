@@ -419,21 +419,23 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		}
 
 		case R.id.bustimes_menu_deletebookmark: {
-			new AlertDialog.Builder(this).
-				setMessage("Are you sure you want to delete this bookmark?").
-				setNegativeButton(android.R.string.cancel, null).
-				setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-	                public void onClick(DialogInterface dialog, int whichButton) {
-	                    LocalDBHelper db = new LocalDBHelper(BusTimesActivity.this);
-	                    try {
-	                    	db.deleteBookmark(BusTimesActivity.this.stopCode);
-	                    } finally {
-	                    	db.close();
-	                    }
-	                    BusTimesActivity.this.update();
-	                }
-				}).
-	            show();
+			new AlertDialog.Builder(this)
+				.setTitle("Delete bookmark")
+				.setMessage("Are you sure you want to delete this bookmark?")
+				.setPositiveButton(android.R.string.ok, 
+						new DialogInterface.OnClickListener() {
+			                public void onClick(DialogInterface dialog, int whichButton) {
+			                    LocalDBHelper db = new LocalDBHelper(BusTimesActivity.this);
+			                    try {
+			                    	db.deleteBookmark(BusTimesActivity.this.stopCode);
+			                    } finally {
+			                    	db.close();
+			                    }
+			                    BusTimesActivity.this.update();
+			                }
+						})
+				.setNegativeButton(android.R.string.cancel, null)
+	            .show();
 			return true;
 		}
 
