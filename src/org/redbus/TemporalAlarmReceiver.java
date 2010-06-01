@@ -20,8 +20,6 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 	private long stopCode;
 	private String stopName;
 
-	private static final int TEMPORAL_NOTIFICATION_ID = 1;
-
 	private static final int ALARM_MAX_TIMEOUT_MSEC = 20 * 60 * 1000;
 
 	@Override
@@ -42,9 +40,19 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 	private void rescheduleAlarm() {
 		// make sure alarms don't run forever
 		long startTime = intent.getLongExtra("StartTime", -1);
-		if ((startTime == -1) || ((startTime + ALARM_MAX_TIMEOUT_MSEC) < System.currentTimeMillis()))
-				return;
-		// FIXME: should warn the user the alarm is giving up
+		if ((startTime == -1) || ((startTime + ALARM_MAX_TIMEOUT_MSEC) < System.currentTimeMillis())) {
+			Intent i = new Intent(context, BusTimesActivity.class);
+			PendingIntent contentIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
+
+			Notification notification = new Notification(R.drawable.tracker_24x24_masked, "Bus alarm aborted!", System.currentTimeMillis());
+			notification.defaults |= Notification.DEFAULT_ALL;
+			notification.flags |= Notification.FLAG_AUTO_CANCEL;
+			notification.setLatestEventInfo(context, "Bus alarm aborted!", "Bus did not arrive within 20 mins; cancelling alarm", contentIntent);
+
+			NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+			nm.notify(BusTimesActivity.ALERT_NOTIFICATION_ID, notification);
+			return;
+		}
 
 		// schedule it in 60 seconds
 		PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
@@ -92,7 +100,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 				notification.setLatestEventInfo(context, "Bus alarm!", text, contentIntent);
 
 				NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-				nm.notify(TEMPORAL_NOTIFICATION_ID, notification);
+				nm.notify(BusTimesActivity.ALERT_NOTIFICATION_ID, notification);
 				return;
 			}
 		}

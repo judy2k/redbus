@@ -70,7 +70,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	private ProgressDialog busyDialog = null;
 	private int expectedRequestId = -1;
 	
-	public static final int ongoingAlertNotificationId = 1;
+	public static final int ALERT_NOTIFICATION_ID = 1;
 
 	private static final SimpleDateFormat titleDateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
 	private static final SimpleDateFormat advanceDateFormat = new SimpleDateFormat("EEE dd MMM yyyy");
@@ -248,7 +248,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		notification.setLatestEventInfo(context, "Bus alarm active", "Press to cancel", pi);
 
 		NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-		nm.notify(ongoingAlertNotificationId, notification);
+		nm.notify(ALERT_NOTIFICATION_ID, notification);
 	}
 
 	public static void cancelAlerts(Context ctx) {
@@ -267,6 +267,10 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
 			lm.removeUpdates(pi);
 		}
+		
+		// cancel any ongoing alerts
+		NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+		nm.cancel(ALERT_NOTIFICATION_ID);
 	}
 	
 	private void addTemporalAlert(String selectedService) {

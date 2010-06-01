@@ -10,10 +10,10 @@ import android.location.LocationManager;
 
 public class ProximityAlarmReceiver extends BroadcastReceiver {
 
-	private static final int PROXIMITY_NOTIFICATION_ID = 2;
-
 	@Override
 	public void onReceive(Context context, Intent intent) {
+		// FIXME: need to check location
+		
 		LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_NO_CREATE);
 		if (pi != null)
@@ -42,6 +42,6 @@ public class ProximityAlarmReceiver extends BroadcastReceiver {
 		notification.setLatestEventInfo(context, "Bus alarm!", text, contentIntent);
 
 		NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-		nm.notify(PROXIMITY_NOTIFICATION_ID, notification);		
+		nm.notify(BusTimesActivity.ALERT_NOTIFICATION_ID, notification);		
 	}
 }
