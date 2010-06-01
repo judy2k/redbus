@@ -30,6 +30,8 @@ import java.util.List;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -67,6 +69,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	
 	private ProgressDialog busyDialog = null;
 	private int expectedRequestId = -1;
+	
+	public static final int ongoingAlertNotificationId = 1;
 
 	private static final SimpleDateFormat titleDateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
 	private static final SimpleDateFormat advanceDateFormat = new SimpleDateFormat("EEE dd MMM yyyy");
@@ -226,31 +230,43 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		}
 		b.setText(result);
 	}
-	
+
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		TextView clickedService = (TextView) v.findViewById(R.id.bustimes_service);
 		addTemporalAlert(clickedService.getText().toString());
 	}
-	
-	private void addOngoingNotification(Context context,String text)
+
+	private void addOngoingNotification(Context context)
 	{
-		/* FIXME - need a way to turn off notification before instating this!
-		 
-		Intent intent = new Intent(this,BusTimesActivity.class);
-		
-		PendingIntent cancelIntent = PendingIntent.getActivity(context, 0, intent, 0); 
-		
-		int ongoingNotificationID=0;
-		Notification notification = new Notification(R.drawable.tracker_24x24_masked, text, System.currentTimeMillis());
-		notification.defaults |= Notification.DEFAULT_ALL;
+		Intent i = new Intent(this, AlertNotificationPressedReceiver.class);		
+		PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, PendingIntent.FLAG_UPDATE_CURRENT); 
+
+		Notification notification = new Notification(R.drawable.tracker_24x24_masked, "Bus alarm active", System.currentTimeMillis());
+		notification.defaults = 0;
 		notification.flags |= Notification.FLAG_ONGOING_EVENT;
-		notification.setLatestEventInfo(context, "Bus alarm set", text, cancelIntent);
+		notification.setLatestEventInfo(context, "Bus alarm active", "Press to cancel", pi);
 
 		NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-		nm.notify(ongoingNotificationID, notification);
-		 * 
-		 */
+		nm.notify(ongoingAlertNotificationId, notification);
+	}
+
+	public static void cancelAlerts(Context ctx) {
+		// cancel any temporal alert
+		Intent i = new Intent(ctx, TemporalAlarmReceiver.class);
+		PendingIntent pi = PendingIntent.getBroadcast(ctx, 0, i, PendingIntent.FLAG_NO_CREATE);
+		if (pi != null) {
+			AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+			am.cancel(pi);
+		}
+
+		// cancel any proximity alert
+		i = new Intent(ctx, ProximityAlarmReceiver.class);
+		pi = PendingIntent.getBroadcast(ctx, 0, i, PendingIntent.FLAG_NO_CREATE);
+		if (pi != null) {
+			LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
+			lm.removeUpdates(pi);
+		}
 	}
 	
 	private void addTemporalAlert(String selectedService) {
@@ -313,6 +329,9 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			.setTitle("Set alarm")
 			.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
+					// cancel any current alerts
+					cancelAlerts(BusTimesActivity.this);
+					
 					// figure out list of services
 					ArrayList<String> selectedServicesList = new ArrayList<String>();
 					for(int i=0; i< services.length; i++) {
@@ -323,7 +342,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 					if (selectedServicesList.size() == 0)
 						return;
 
-					// create/update an intent
+					// create an intent
 					Intent i = new Intent(BusTimesActivity.this, TemporalAlarmReceiver.class);
 					i.putExtra("StopCode", stopCode);
 					i.putExtra("StopName", stopName);
@@ -334,10 +353,9 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 					// schedule it in 10 seconds
 					AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-					am.cancel(pi);
 					am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 10000, pi);
 	
-					addOngoingNotification(BusTimesActivity.this, stopName);
+					addOngoingNotification(BusTimesActivity.this);
 				
 					Toast.makeText(BusTimesActivity.this, "Alarm added!", Toast.LENGTH_SHORT).show();
 				}
@@ -368,24 +386,23 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			.setTitle("Set alarm")
 			.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
-					LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+					// cancel any current alerts
+					cancelAlerts(BusTimesActivity.this);
 
-					// clean up any existing proximity alert
+					// create an intent
 					Intent i = new Intent(BusTimesActivity.this, ProximityAlarmReceiver.class);
-					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_NO_CREATE);
-					if (pi != null)
-						lm.removeProximityAlert(pi);
-
-					// create a new alert
 					i.putExtra("StopCode", stopCode);
 					i.putExtra("StopName", stopName);
 					i.putExtra("X", busStop.getX());
 					i.putExtra("Y", busStop.getY());
 					i.putExtra("Distance", proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()]);
-					pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
-					lm.addProximityAlert(busStop.getX(), busStop.getY(), proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()], 60 * 60 * 1000, pi);
-	
-					addOngoingNotification(BusTimesActivity.this, stopName);
+					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+
+					// schedule it
+					LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+					lm.requestLocationUpdates("gps", 60 * 1000, 20, pi);
+
+					addOngoingNotification(BusTimesActivity.this);
 
 					Toast.makeText(BusTimesActivity.this, "Alarm added!", Toast.LENGTH_SHORT).show();
 				}
