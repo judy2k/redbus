@@ -207,7 +207,6 @@ public class StopMapActivity extends MapActivity {
 		myLocationOverlay = new MyLocationOverlay(this, mapView);
 
 		mapView.getOverlays().add(myLocationOverlay);
-		myLocationOverlay.enableCompass();
 
 		// Check to see if we've been passed data
 		
