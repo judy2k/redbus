@@ -401,7 +401,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 					i.putExtra("StopCode", stopCode);
 					i.putExtra("StopName", stopName);
 					i.putExtra("Location", location);
-					i.putExtra("Distance", (double) proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()]);
+					i.putExtra("Distance", proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()]);
 					i.putExtra("StartTime", System.currentTimeMillis());
 					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
 

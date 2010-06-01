@@ -20,7 +20,7 @@ public class ProximityAlarmReceiver extends BroadcastReceiver {
 			curLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		}
 		Location stopLocation = (Location) intent.getParcelableExtra("Location");
-		double distance = intent.getDoubleExtra("Distance", 0);
+		int distance = intent.getIntExtra("Distance", 0);
 		double curDistance = curLocation.distanceTo(stopLocation);
 		if (curDistance > distance)
 			return;
