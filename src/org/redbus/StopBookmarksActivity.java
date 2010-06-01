@@ -111,7 +111,8 @@ public class StopBookmarksActivity extends ListActivity
 			return true;
 
 		case R.id.stopbookmarks_item_menu_showonmap:
-			// FIXME: implement
+			PointTree.BusStopTreeNode busStop = PointTree.getPointTree(this).lookupStopByStopCode((int) bookmarkId);
+			StopMapActivity.showActivity(this, busStop.getX(), busStop.getY());
 			return true;
 
 		case R.id.stopbookmarks_item_menu_rename:
@@ -176,14 +177,7 @@ public class StopBookmarksActivity extends ListActivity
 
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_menu_nearby_stops:
-			new AlertDialog.Builder(this).
-				setMessage("This feature's user interface is under heavy development").
-				setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-	                public void onClick(DialogInterface dialog, int whichButton) {
-	                	StopMapActivity.showActivity(StopBookmarksActivity.this);
-	                }
-				}).
-	            show();
+        	StopMapActivity.showActivity(StopBookmarksActivity.this);
 			return true;
 
 		case R.id.stopbookmarks_menu_bustimes:

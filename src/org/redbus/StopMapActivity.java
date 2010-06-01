@@ -181,6 +181,15 @@ public class StopMapActivity extends MapActivity {
 		context.startActivity(i);
 	}
 	
+	public static void showActivity(Context context, 
+			double lat,
+			double lng) {
+		Intent i = new Intent(context, StopMapActivity.class);
+		i.putExtra("Lat", lat);
+		i.putExtra("Lng", lng);
+		context.startActivity(i);
+	}
+	
 	public static void showActivityForServiceMap(Context context, 
 			long serviceMap,
 			double lat,
