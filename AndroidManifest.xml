@@ -18,6 +18,7 @@
 	<receiver android:name=".TemporalAlarmReceiver"></receiver>
 	<receiver android:name=".ProximityAlarmReceiver"></receiver>
 
+<receiver android:name=".AlertNotificationPressedReceiver"></receiver>
 </application>
 
 
