@@ -443,48 +443,6 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			update();
 			return true;
 
-		case R.id.bustimes_menu_enterstopcode: {
-			final EditText input = new EditText(this);
-			input.setInputType(InputType.TYPE_CLASS_PHONE);
-			input.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
-
-			new AlertDialog.Builder(this)
-					.setTitle("Enter stopcode")
-					.setView(input)
-					.setPositiveButton(android.R.string.ok,
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int whichButton) {
-									long stopCode = -1;
-									try {
-										stopCode = Long.parseLong(input.getText().toString());
-									} catch (Exception ex) {
-										new AlertDialog.Builder(BusTimesActivity.this)
-												.setTitle("Error")
-												.setMessage("The stopcode was invalid; please try again using only numbers")
-												.setPositiveButton(android.R.string.ok, null)
-												.show();
-										return;
-									}
-									
-									PointTree.BusStopTreeNode busStop = PointTree.getPointTree(BusTimesActivity.this).lookupStopByStopCode((int) stopCode);
-									if (busStop != null) {
-										stopCode = busStop.getStopCode();
-										stopName = busStop.getStopName();
-										update();
-									} else {
-										new AlertDialog.Builder(BusTimesActivity.this)
-											.setTitle("Error")
-											.setMessage("The stopcode was invalid; please try again")
-											.setPositiveButton(android.R.string.ok, null)
-											.show();
-									}
-								}
-							})
-					.setNegativeButton(android.R.string.cancel, null)
-					.show();
-			return true;
-		}
-
 		case R.id.bustimes_menu_addbookmark:
 			if (stopCode != -1) {
 				LocalDBHelper db = new LocalDBHelper(this);
