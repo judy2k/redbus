@@ -38,12 +38,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
+import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.text.InputFilter;
-import android.text.InputType;
-import android.text.method.DigitsKeyListener;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -78,8 +76,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	private static final String[] temporalAlarmStrings = new String[] { "Due", "5 mins away", "10 mins away" };
 	private static final int[] temporalAlarmTimeouts = new int[] { 0, 5 * 60, 10 *  60};
 
-	private static final String[] proximityAlarmStrings = new String[] { "20 metres", "50  metres", "100 metres", "250 metres", "500 metres" };
-	private static final int[] proximityAlarmDistances= new int[] { 20, 50, 100, 200, 500};
+	private static final String[] proximityAlarmStrings = new String[] { "50  metres", "100 metres", "250 metres", "500 metres" };
+	private static final int[] proximityAlarmDistances= new int[] { 50, 100, 200, 500};
 
 	public static void showActivity(Context context, long stopCode) {
 		Intent i = new Intent(context, BusTimesActivity.class);
@@ -393,18 +391,23 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 					// cancel any current alerts
 					cancelAlerts(BusTimesActivity.this);
 
+					// stop location
+					Location location = new Location("");
+					location.setLatitude(busStop.getX());
+					location.setLongitude(busStop.getY());
+
 					// create an intent
 					Intent i = new Intent(BusTimesActivity.this, ProximityAlarmReceiver.class);
 					i.putExtra("StopCode", stopCode);
 					i.putExtra("StopName", stopName);
-					i.putExtra("X", busStop.getX());
-					i.putExtra("Y", busStop.getY());
-					i.putExtra("Distance", proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()]);
+					i.putExtra("Location", location);
+					i.putExtra("Distance", (double) proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()]);
+					i.putExtra("StartTime", System.currentTimeMillis());
 					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
 
 					// schedule it
 					LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-					lm.requestLocationUpdates("gps", 60 * 1000, 20, pi);
+					lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30 * 1000, 25, pi);
 
 					addOngoingNotification(BusTimesActivity.this);
 

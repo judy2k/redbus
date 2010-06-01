@@ -6,29 +6,35 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 import android.location.LocationManager;
 
 public class ProximityAlarmReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		// FIXME: need to check location
+		// are we close enough yet?
+		Location curLocation = (Location) intent.getParcelableExtra(LocationManager.KEY_LOCATION_CHANGED);	
+		if (curLocation == null) {
+			LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+			curLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		}
+		Location stopLocation = (Location) intent.getParcelableExtra("Location");
+		double distance = intent.getDoubleExtra("Distance", 0);
+		double curDistance = curLocation.distanceTo(stopLocation);
+		if (curDistance > distance)
+			return;
 		
-		LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-		PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_NO_CREATE);
-		if (pi != null)
-			lm.removeProximityAlert(pi);
+		// cancel all current alerts
+		BusTimesActivity.cancelAlerts(context);
 
+		// build text to show to user
 		String stopName = intent.getStringExtra("StopName");
 		if (stopName == null)
 			return;
-		int distance = intent.getIntExtra("Distance", -1);
-		if (distance == -1)
-			return;
-
 		StringBuffer text = new StringBuffer();
 		text.append("You are within ");
-		text.append(intent.getIntExtra("Distance", 0));
+		text.append(distance);
 		text.append(" metres of the bus stop \"");
 		text.append(intent.getStringExtra("StopName"));
 		text.append("\"!");
@@ -42,6 +48,6 @@ public class ProximityAlarmReceiver extends BroadcastReceiver {
 		notification.setLatestEventInfo(context, "Bus alarm!", text, contentIntent);
 
 		NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-		nm.notify(BusTimesActivity.ALERT_NOTIFICATION_ID, notification);		
+		nm.notify(BusTimesActivity.ALERT_NOTIFICATION_ID, notification);
 	}
 }
