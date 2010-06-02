@@ -256,7 +256,7 @@ public class StopMapActivity extends MapActivity {
 	public void onResume() {
 		myLocationOverlay.enableMyLocation();
 		super.onResume();
-		Toast.makeText(this, "Waiting for GPS...", Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, "Finding your location...", Toast.LENGTH_SHORT).show();
 	}
 	
 }
