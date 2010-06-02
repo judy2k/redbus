@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
+import android.widget.Toast;
 
 public class ProximityAlarmReceiver extends BroadcastReceiver {
 
@@ -19,7 +20,14 @@ public class ProximityAlarmReceiver extends BroadcastReceiver {
 			LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 			curLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		}
+		if (curLocation == null) {
+			Toast.makeText(context, "Bus alarm cancelled; please enable your GPS!", Toast.LENGTH_LONG).show();
+			BusTimesActivity.cancelAlerts(context);
+			return;
+		}
 		Location stopLocation = (Location) intent.getParcelableExtra("Location");
+		if (stopLocation == null)
+			return;
 		int distance = intent.getIntExtra("Distance", 0);
 		double curDistance = curLocation.distanceTo(stopLocation);
 		if (curDistance > distance)
