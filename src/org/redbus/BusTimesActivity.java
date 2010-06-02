@@ -256,6 +256,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		if (pi != null) {
 			AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
 			am.cancel(pi);
+			pi.cancel();
 		}
 
 		// cancel any proximity alert
@@ -264,6 +265,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		if (pi != null) {
 			LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
 			lm.removeUpdates(pi);
+			lm.removeProximityAlert(pi);
+			pi.cancel();
 		}
 		
 		// cancel any ongoing alerts
@@ -403,10 +406,11 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 					i.putExtra("Location", location);
 					i.putExtra("Distance", proximityAlarmDistances[distanceSpinner.getSelectedItemPosition()]);
 					i.putExtra("StartTime", System.currentTimeMillis());
-					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+					PendingIntent pi = PendingIntent.getBroadcast(BusTimesActivity.this, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 
-					// schedule it
+					// weird! Found I needed to add a proximity alert *first* otherwise the GPS on my phone doesn't get a lock with just the requestlocationupdates!?!
 					LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+					lm.addProximityAlert(busStop.getX(), busStop.getY(), 1, 0, pi);
 					lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30 * 1000, 25, pi);
 
 					addOngoingNotification(BusTimesActivity.this);

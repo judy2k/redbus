@@ -24,7 +24,7 @@ public class ProximityAlarmReceiver extends BroadcastReceiver {
 		double curDistance = curLocation.distanceTo(stopLocation);
 		if (curDistance > distance)
 			return;
-		
+
 		// cancel all current alerts
 		BusTimesActivity.cancelAlerts(context);
 
