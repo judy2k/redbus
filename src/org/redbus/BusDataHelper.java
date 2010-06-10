@@ -84,7 +84,8 @@ public class BusDataHelper {
 		result.append("&busStopTime=").append(time);
 		result.append("&busStopDestination=0");
 		result.append("&busStopCode=").append(stopCode);
-		
+		result.append("&randomThing=").append(new Date().getTime());
+
 		try {
 			return new URL(result.toString());
 		} catch (MalformedURLException e) {
