@@ -55,7 +55,6 @@ public class StopMapActivity extends MapActivity {
 		private Paint blackBrush;
 
 		private ArrayList<BusStopTreeNode> nodes;
-		private boolean showServiceLabels;
 
 		private double tlx, oldtlx;
 		private double tly, oldtly;
@@ -182,11 +181,11 @@ public class StopMapActivity extends MapActivity {
 				oldtlx = tlx; oldtly = tly; oldbrx = brx; oldbry = bry;
 
 				nodes = busStopLocations.findRect(tlx,tly,brx,bry);
-				
-				// Prevent zoomed out view looking like abstract art
-				// with too many labels drawn...				
-				showServiceLabels = view.getZoomLevel() > 16;				
 			}
+
+			// Prevent zoomed out view looking like abstract art
+			// with too many labels drawn...				
+			boolean showServiceLabels = view.getZoomLevel() > 16;				
 
 			// For each node, draw a circle and optionally service number list
 			Point stopCircle = new Point();
