@@ -51,6 +51,11 @@ import com.google.android.maps.Projection;
 
 public class StopMapActivity extends MapActivity {
 
+	private MapView mapView;
+	private MapController mapController;
+	private MyLocationOverlay myLocationOverlay;
+	private StopOverlay stopOverlay;
+
 	public class StopOverlay extends Overlay {
 
 		private static final int stopRadius = 5;
@@ -242,10 +247,6 @@ public class StopMapActivity extends MapActivity {
 			return super.onTouchEvent(e, mapView);
 		}
 	}
-
-	private MapView mapView;
-	private MapController mapController;
-	private MyLocationOverlay myLocationOverlay;
 	
 	public static void showActivity(Context context) {
 		Intent i = new Intent(context, StopMapActivity.class);
@@ -308,7 +309,8 @@ public class StopMapActivity extends MapActivity {
 			myLocationOverlay.disableMyLocation();
 		}
 		
-		mapView.getOverlays().add(new StopOverlay(mapView,stopFilter));
+		stopOverlay = new StopOverlay(mapView,stopFilter);
+		mapView.getOverlays().add(stopOverlay);
 		mapController.setCenter(new GeoPoint((int)(lat*1E6),(int)(lng*1E6)));
 	}
 
@@ -345,7 +347,7 @@ public class StopMapActivity extends MapActivity {
 			return true;
 
 		case R.id.stopmap_menu_showall:
-			// FIXME: implement
+			stopOverlay.serviceFilter = 0xffffffffffffffffL;
 			return true;
 
 		case R.id.stopmap_menu_filterservices:
