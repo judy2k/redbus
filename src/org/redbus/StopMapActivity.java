@@ -18,13 +18,7 @@
 
 package org.redbus;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.HashMap;
 
 import org.redbus.PointTree.BusStopTreeNode;
 
@@ -39,7 +33,11 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Bitmap.Config;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
@@ -77,8 +75,6 @@ public class StopMapActivity extends MapActivity {
 		
 		private Bitmap showMoreStopsBitmap;
 		private Bitmap showServicesBitmap;
-		
-		private HashMap<Integer, String> servicesLookup = new HashMap<Integer, String>();
 
 		private static final String showMoreStopsText = "Zoom in to see more stops";
 		private static final String showMoreServicesText = "Zoom in to see services";
@@ -231,6 +227,9 @@ public class StopMapActivity extends MapActivity {
 				return true; // handled
 			}
 
+            String uri = "google.streetview:cbll=" + lat + "," + lng + "&cbp=1,180,,0,2.0";
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(uri)));
+
 			return false; // Not handled
 		}
 		
@@ -330,4 +329,49 @@ public class StopMapActivity extends MapActivity {
 		super.onResume();
 		Toast.makeText(this, "Finding your location...", Toast.LENGTH_SHORT).show();
 	}	
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.stopmap_menu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.stopmap_menu_search:
+			// FIXME: implement
+			return true;
+
+		case R.id.stopmap_menu_showall:
+			// FIXME: implement
+			return true;
+
+		case R.id.stopmap_menu_filterservices:
+			// FIXME: implement
+			return true;
+
+		case R.id.stopmap_menu_satellite_or_map:
+			mapView.setSatellite(!mapView.isSatellite());
+			return true;
+			
+		case R.id.stopmap_menu_mylocation:
+			myLocationOverlay.enableMyLocation();
+			if (myLocationOverlay.getMyLocation() != null)
+				mapController.animateTo(myLocationOverlay.getMyLocation());
+			return true;
+		}
+		
+		return false;
+	}
+	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		if (mapView.isSatellite())
+			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Map View");
+		else
+			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Satellite View");		
+		return super.onPrepareOptionsMenu(menu);
+	}
 }
