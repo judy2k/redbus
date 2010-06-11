@@ -126,7 +126,7 @@ public class StopMapActivity extends MapActivity {
 		public void draw(Canvas canvas, MapView view, boolean shadow) {
 			super.draw(canvas, view,shadow);
 
-			if ((shadow == true) && (serviceFilter == 0xffffffffffffL))
+			if (shadow && (serviceFilter == 0xffffffffffffL))
 				return;
 
 			GeoPoint tl = projection.fromPixels(0,canvas.getHeight());
@@ -161,9 +161,9 @@ public class StopMapActivity extends MapActivity {
 						if (!shadow)
 							continue;
 						bmp = filteredStopBitmap;
-					}					
+					}
 					canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, nullPaint);
-				}  
+				}
 				
 				canvas.drawBitmap(showMoreStopsText, 0, 0, nullPaint);
 				return;
