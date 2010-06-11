@@ -28,6 +28,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Bitmap.Config;
 import android.location.Location;
@@ -68,8 +69,11 @@ public class StopMapActivity extends MapActivity {
 		private Paint filteredStopPaint;
 		private Paint nullPaint;
 		
-		private Bitmap showMoreStopsText;
-		private Bitmap showServicesText;
+		private Bitmap showMoreStopsBitmap;
+		private Bitmap showServicesBitmap;
+
+		private static final String showMoreStopsText = "Zoom in to see more stops";
+		private static final String showMoreServicesText = "Zoom in to see services";
 
 		
 		public StopOverlay(MapView view, long serviceFilter) {
@@ -98,15 +102,18 @@ public class StopMapActivity extends MapActivity {
 			stopCanvas = new Canvas(filteredStopBitmap);
 			stopCanvas.drawOval(new RectF(0, 0, stopRadius*2, stopRadius*2), filteredStopPaint);
 			
-			showMoreStopsText = Bitmap.createBitmap(170, 25, Config.ARGB_8888);
-			showMoreStopsText.eraseColor(blackBrush.getColor());
-			Canvas tmpCanvas = new Canvas(showMoreStopsText);
-			tmpCanvas.drawText("Zoom in to see more stops", 10, 15, normalStopPaint);
+			Rect bounds = new Rect();
+			normalStopPaint.getTextBounds(showMoreStopsText, 0, showMoreStopsText.length(), bounds);
+			showMoreStopsBitmap = Bitmap.createBitmap(bounds.right + 20, Math.abs(bounds.bottom) + Math.abs(bounds.top) + 20, Config.ARGB_8888);
+			showMoreStopsBitmap.eraseColor(blackBrush.getColor());
+			Canvas tmpCanvas = new Canvas(showMoreStopsBitmap);
+			tmpCanvas.drawText(showMoreStopsText, 10, Math.abs(bounds.top) + 10, normalStopPaint);
 			
-			showServicesText = Bitmap.createBitmap(150, 25, Config.ARGB_8888);
-			showServicesText.eraseColor(blackBrush.getColor());
-			tmpCanvas = new Canvas(showServicesText);
-			tmpCanvas.drawText("Zoom in to see services", 10, 15, normalStopPaint);
+			normalStopPaint.getTextBounds(showMoreServicesText, 0, showMoreServicesText.length(), bounds);
+			showServicesBitmap = Bitmap.createBitmap(bounds.right + 20, Math.abs(bounds.bottom) + Math.abs(bounds.top) + 20, Config.ARGB_8888);
+			showServicesBitmap.eraseColor(blackBrush.getColor());
+			tmpCanvas = new Canvas(showServicesBitmap);
+			tmpCanvas.drawText(showMoreServicesText, 10, Math.abs(bounds.top) + 10, normalStopPaint);
 			
 			nullPaint = new Paint();
 		}
@@ -165,7 +172,7 @@ public class StopMapActivity extends MapActivity {
 					canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, nullPaint);
 				}
 				
-				canvas.drawBitmap(showMoreStopsText, 0, 0, nullPaint);
+				canvas.drawBitmap(showMoreStopsBitmap, 0, 0, nullPaint);
 				return;
 			}
 
@@ -202,7 +209,7 @@ public class StopMapActivity extends MapActivity {
 
 			// draw service label info text last
 			if (!showServiceLabels)
-				canvas.drawBitmap(showServicesText, 0, 0, nullPaint);
+				canvas.drawBitmap(showServicesBitmap, 0, 0, nullPaint);
 		}
 		
 		
