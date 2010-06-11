@@ -27,6 +27,8 @@ import org.xmlpull.v1.XmlSerializer;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.text.InputFilter;
@@ -63,6 +65,25 @@ public class StopBookmarksActivity extends ListActivity
         setTitle("Bookmarks");
         setContentView(R.layout.stopbookmarks);
         registerForContextMenu(getListView());
+        
+        LocalDBHelper db = new LocalDBHelper(this);
+        try {
+        	PackageInfo pi = getPackageManager().getPackageInfo("org.redbus", 0);
+        	
+        	if (db.getGlobalSetting("PREVIOUSVERSIONCODE", "") != Integer.toString(pi.versionCode)) {
+        		new AlertDialog.Builder(this).
+        			setIcon(null).
+        			setTitle(pi.versionName + " changes").
+	    			setMessage(R.string.newversiontext).
+	    			setPositiveButton(android.R.string.ok, null).
+	    			show();        	
+        		db.setGlobalSetting("PREVIOUSVERSIONCODE", Integer.toString(pi.versionCode));
+        	}
+        } catch (Exception e) {
+        	// ignore
+        } finally {
+        	db.close();
+        }
 	}
 
 	@Override
