@@ -18,7 +18,14 @@
 
 package org.redbus;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+
 import org.redbus.PointTree.BusStopTreeNode;
 
 import android.content.Context;
@@ -70,6 +77,8 @@ public class StopMapActivity extends MapActivity {
 		
 		private Bitmap showMoreStopsBitmap;
 		private Bitmap showServicesBitmap;
+		
+		private HashMap<Integer, String> servicesLookup = new HashMap<Integer, String>();
 
 		private static final String showMoreStopsText = "Zoom in to see more stops";
 		private static final String showMoreServicesText = "Zoom in to see services";
@@ -115,18 +124,6 @@ public class StopMapActivity extends MapActivity {
 			tmpCanvas.drawText(showMoreServicesText, 10, Math.abs(bounds.top) + 10, normalStopPaint);
 			
 			nullPaint = new Paint();
-		}
-
-		private String getServicesForStop(PointTree.BusStopTreeNode node) {
-			ArrayList<String> services = busStopLocations.lookupServices(node.servicesMap);
-
-			// Where is string.join()?
-			StringBuilder sb = new StringBuilder();
-			for(String s: services) {
-				sb.append(s);
-				sb.append(" ");
-			}
-			return sb.toString();
 		}
 
 		public void draw(Canvas canvas, MapView view, boolean shadow) {
@@ -178,9 +175,8 @@ public class StopMapActivity extends MapActivity {
 			// For some reason, draw is called LOTS of times. Only requery the DB if
 			// the co-ords change.
 			if (tlx != oldtlx || tly != oldtly || brx != oldbrx || bry != oldbry) {
-				oldtlx = tlx; oldtly = tly; oldbrx = brx; oldbry = bry;
-
 				nodes = busStopLocations.findRect(tlx,tly,brx,bry);
+				oldtlx = tlx; oldtly = tly; oldbrx = brx; oldbry = bry;
 			}
 
 			// Prevent zoomed out view looking like abstract art
@@ -203,7 +199,7 @@ public class StopMapActivity extends MapActivity {
 
 				canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
 				if (showService)
-					canvas.drawText(getServicesForStop(node), stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
+					canvas.drawText(node.services, stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
 			}  
 
 			// draw service label info text last

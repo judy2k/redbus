@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,8 +72,9 @@ public class PointTree {
 		public int stopCode;
 		public String stopName;
 		public long servicesMap;
+		public String services;
 		
-		public BusStopTreeNode(int leftNode, int rightNode, double x, double y, int stopCode, String stopName, long servicesMap)
+		public BusStopTreeNode(int leftNode, int rightNode, double x, double y, int stopCode, String stopName, long servicesMap, String services)
 		{
 			this.leftNode = leftNode;
 			this.rightNode = rightNode;
@@ -80,6 +83,7 @@ public class PointTree {
 			this.stopCode = stopCode;		
 			this.stopName = stopName;
 			this.servicesMap = servicesMap;
+			this.services = services;
 		}
 	}
 	
@@ -102,24 +106,8 @@ public class PointTree {
 		this.nodes = new BusStopTreeNode[rootRecordNum+1];
 		this.nodeIdxByStopCode = new HashMap<Integer, Integer>();
 		
-		int off = 8;
-		for(int i = 0; i <= rootRecordNum; ++i)
-		{
-			int leftNode = readInt(b, off + 0);
-			int rightNode = readInt(b, off + 4);
-			double x = Double.longBitsToDouble(readLong(b, off + 8));
-			double y = Double.longBitsToDouble(readLong(b, off + 16));
-			int stopCode = readInt(b, off + 24);
-			String stopName = new String(b, off + 28, 16, "utf-8").trim();
-			long servicesMap = readLong(b, off + 44);
-
-			BusStopTreeNode node = new BusStopTreeNode(leftNode, rightNode, x, y, stopCode, stopName, servicesMap);
-			nodes[i] = node;
-			nodeIdxByStopCode.put(new Integer(node.stopCode), new Integer(i));
-			
-			off += 52;
-		}
-		
+		// read in the services first
+		int off = 8 + (52 * (rootRecordNum+1));
 		int servicesCount = readInt(b, off);
 		off += 4;
 		this.services = new String[servicesCount];
@@ -130,6 +118,60 @@ public class PointTree {
 			this.services[i] = new String(b, startoff, off - startoff, "utf-8");
 			off++;
 			startoff = off;
+		}
+		
+		off = 8;
+		final HashMap<String, Integer> baseServices = new HashMap<String, Integer>();
+		for(int i = 0; i <= rootRecordNum; ++i)
+		{
+			int leftNode = readInt(b, off + 0);
+			int rightNode = readInt(b, off + 4);
+			double x = Double.longBitsToDouble(readLong(b, off + 8));
+			double y = Double.longBitsToDouble(readLong(b, off + 16));
+			int stopCode = readInt(b, off + 24);
+			String stopName = new String(b, off + 28, 16, "utf-8").trim();
+			long servicesMap = readLong(b, off + 44);
+
+			ArrayList<String> services = lookupServices(servicesMap);
+			Collections.sort(services, new Comparator<String>() {
+				public int compare(String arg0, String arg1) {
+					Integer arg0BaseService;
+					if (baseServices.containsKey(arg0)) {
+						arg0BaseService = baseServices.get(arg0);
+					} else {
+						arg0BaseService = new Integer(Integer.parseInt(arg0.replaceAll("[^0-9]", "").trim()));
+						baseServices.put(arg0, arg0BaseService);
+					}
+					Integer arg1BaseService;
+					if (baseServices.containsKey(arg1)) {
+						arg1BaseService = baseServices.get(arg1);
+					} else {
+						arg1BaseService = new Integer(Integer.parseInt(arg1.replaceAll("[^0-9]", "").trim()));
+						baseServices.put(arg1, arg1BaseService);
+					}
+					
+					if (arg0BaseService.intValue() != arg1BaseService.intValue())
+						return arg0BaseService.intValue() - arg1BaseService.intValue();
+					return arg0.compareTo(arg1);
+				}
+			});
+			
+			// Where is string.join()?
+			StringBuilder sb = new StringBuilder();
+			for(int j = 0; j < services.size(); j++) {
+				if (j > 2) {
+					sb.append("...");
+					break;
+				}
+				sb.append(services.get(j));
+				sb.append(" ");
+			}	
+			
+			BusStopTreeNode node = new BusStopTreeNode(leftNode, rightNode, x, y, stopCode, stopName, servicesMap, sb.toString());
+			nodes[i] = node;
+			nodeIdxByStopCode.put(new Integer(node.stopCode), new Integer(i));
+			
+			off += 52;
 		}
 	}
 	
@@ -236,11 +278,6 @@ public class PointTree {
 			                                         int depth)
 	{
 		if (here==null) return stops;
-	
-		// Limit number of stops, otherwise the map gets slow
-//		if (stops.size() >= 200) return stops;
-		
-		//Log.println(Log.DEBUG, "visiting", here.getStopName());
 		
 		double topleft, bottomright, herepos, herex, herey;
 		
