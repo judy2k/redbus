@@ -112,7 +112,7 @@ public class StopMapActivity extends MapActivity {
 
 			if ((shadow == true) && (serviceFilter == 0xffffffffffffL))
 				return;
-			
+
 			GeoPoint tl = projection.fromPixels(0,canvas.getHeight());
 			GeoPoint br = projection.fromPixels(canvas.getWidth(),0);
 			tlx = tl.getLatitudeE6() / 1E6;
@@ -122,11 +122,11 @@ public class StopMapActivity extends MapActivity {
 
 			// if we're zoomed out too far, switch to just iterating all stops and skipping to preserve speed.
 			if (view.getZoomLevel() < 15) {
-				int skip = 1;
-				if (view.getZoomLevel() < 14)
-					skip = 2;
-				if (view.getZoomLevel() < 13)
+				int skip = 2;
+				if (view.getZoomLevel() == 13)
 					skip = 4;
+				if (view.getZoomLevel() == 12)
+					skip = 6;
 				if (view.getZoomLevel() < 12)
 					skip = 8;
 
@@ -153,7 +153,7 @@ public class StopMapActivity extends MapActivity {
 				canvas.drawText("Zoom in to see more stops", 10, 15, normalStopPaint);
 				return;
 			}
-			
+
 			// For some reason, draw is called LOTS of times. Only requery the DB if
 			// the co-ords change.
 			if (tlx != oldtlx || tly != oldtly || brx != oldbrx || bry != oldbry) {
@@ -163,8 +163,7 @@ public class StopMapActivity extends MapActivity {
 				
 				// Prevent zoomed out view looking like abstract art
 				// with too many labels drawn...				
-				showServiceLabels = view.getZoomLevel() > 16;
-				
+				showServiceLabels = view.getZoomLevel() > 16;				
 			}
 
 			// For each node, draw a circle and optionally service number list
@@ -173,7 +172,7 @@ public class StopMapActivity extends MapActivity {
 				projection.toPixels(new GeoPoint((int)(node.x * 1E6),(int)(node.y * 1E6)), stopCircle);
 
 				Bitmap bmp = normalStopBitmap;
-				boolean showService = true;
+				boolean showService = showServiceLabels;
 				if ((serviceFilter & node.servicesMap) == 0) {
 					if (!shadow)
 						continue;
@@ -288,7 +287,6 @@ public class StopMapActivity extends MapActivity {
 			myLocationOverlay.runOnFirstFix(new Runnable() {
 				public void run() {
 					mapController.animateTo(myLocationOverlay.getMyLocation());
-					
 				}
 			});
 			myLocationOverlay.enableMyLocation();
