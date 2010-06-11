@@ -107,7 +107,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		busStop = PointTree.getPointTree(this).lookupStopByStopCode((int) stopCode);
 
 		if (busStop != null) {
-			stopName = busStop.getStopName();
+			stopName = busStop.stopName;
 		}
 		else {
 			stopName = "";
@@ -282,7 +282,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			return;
 
 		// get the list of services for this stop
-		ArrayList<String> servicesList = pt.lookupServices(busStop.getServicesMap());
+		ArrayList<String> servicesList = pt.lookupServices(busStop.servicesMap);
 		final String[] services = servicesList.toArray(new String[servicesList.size()]);
 		final boolean[] selectedServices = new boolean[services.length];
 
@@ -396,8 +396,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 					// stop location
 					Location location = new Location("");
-					location.setLatitude(busStop.getX());
-					location.setLongitude(busStop.getY());
+					location.setLatitude(busStop.x);
+					location.setLongitude(busStop.y);
 
 					// create an intent
 					Intent i = new Intent(BusTimesActivity.this, ProximityAlarmReceiver.class);
@@ -410,7 +410,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 					// weird! Found I needed to add a proximity alert *first* otherwise the GPS on my phone doesn't get a lock with just the requestlocationupdates!?!
 					LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-					lm.addProximityAlert(busStop.getX(), busStop.getY(), 1, 0, pi);
+					lm.addProximityAlert(busStop.x, busStop.y, 1, 0, pi);
 					lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30 * 1000, 25, pi);
 
 					addOngoingNotification(BusTimesActivity.this);
@@ -510,7 +510,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 
 		case R.id.bustimes_menu_viewonmap:
-			StopMapActivity.showActivityForServiceMap(this, busStop.getServicesMap(), busStop.getX(), busStop.getY());
+			StopMapActivity.showActivityForServiceMap(this, busStop.servicesMap, busStop.x, busStop.y);
 			return true;
 
 

@@ -63,13 +63,13 @@ public class PointTree {
 	
 	// Represents a node in the tree
 	public class BusStopTreeNode {
-		private double x;
-		private double y;
+		public double x;
+		public double y;
 		private int leftNode;
 		private int rightNode;
-		private int stopCode;
-		private String stopName;
-		private long servicesMap;
+		public int stopCode;
+		public String stopName;
+		public long servicesMap;
 		
 		public BusStopTreeNode(int leftNode, int rightNode, double x, double y, int stopCode, String stopName, long servicesMap)
 		{
@@ -81,15 +81,9 @@ public class PointTree {
 			this.stopName = stopName;
 			this.servicesMap = servicesMap;
 		}
-		
-		public String getStopName() { return this.stopName; }
-		public int getStopCode() { return this.stopCode; }
-		public double getX() { return this.x; }
-		public double getY() { return this.y; }
-		public long getServicesMap() { return this.servicesMap; }
 	}
 	
-	private BusStopTreeNode[] nodes;
+	public BusStopTreeNode[] nodes;
 	private Map<Integer, Integer> nodeIdxByStopCode;
 	private String[] services;
 	private int rootRecordNum;
@@ -121,7 +115,7 @@ public class PointTree {
 
 			BusStopTreeNode node = new BusStopTreeNode(leftNode, rightNode, x, y, stopCode, stopName, servicesMap);
 			nodes[i] = node;
-			nodeIdxByStopCode.put(new Integer(node.getStopCode()), new Integer(i));
+			nodeIdxByStopCode.put(new Integer(node.stopCode), new Integer(i));
 			
 			off += 52;
 		}
@@ -164,7 +158,7 @@ public class PointTree {
 	
 	private double distance(BusStopTreeNode node, double x, double y)
 	{
-		return Math.sqrt(Math.pow(node.getX()-x,2) + Math.pow(node.getY()-y,2));
+		return Math.sqrt(Math.pow(node.x-x,2) + Math.pow(node.y-y,2));
 	}
 	
 	private BusStopTreeNode lookupNode(int number)
@@ -183,11 +177,11 @@ public class PointTree {
 		double herepos, wantedpos;
 		
 		if (depth % 2 == 0) {
-		    herepos = here.getX();
+		    herepos = here.x;
 		    wantedpos = x;
 		}
 		else {
-			herepos = here.getY();
+			herepos = here.y;
 			wantedpos = y;
 		}
 		
@@ -239,20 +233,19 @@ public class PointTree {
 			                                         double xbr, double ybr,
 			                                         BusStopTreeNode here,
 			                                         ArrayList<BusStopTreeNode> stops,
-			                                         int depth,
-			                                         long serviceFilter)
+			                                         int depth)
 	{
 		if (here==null) return stops;
 	
 		// Limit number of stops, otherwise the map gets slow
-		if (stops.size() >= 200) return stops;
+//		if (stops.size() >= 200) return stops;
 		
 		//Log.println(Log.DEBUG, "visiting", here.getStopName());
 		
 		double topleft, bottomright, herepos, herex, herey;
 		
-		herex=here.getX();
-		herey=here.getY();
+		herex=here.x;
+		herey=here.y;
 		
 		if (depth % 2 == 0) {
 		    herepos = herex;
@@ -270,18 +263,16 @@ public class PointTree {
 		}
 		
 		if (bottomright > herepos) {
-			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.rightNode),stops, depth+1,serviceFilter);
+			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.rightNode),stops, depth+1);
 		}
 		
 		if (topleft < herepos) {
-			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.leftNode),stops, depth+1,serviceFilter);
+			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.leftNode),stops, depth+1);
 		}
 		
 		// If this node falls within range, add it
 		if (xtl <= herex && xbr >= herex && ytl <= herey && ybr >= herey) {
-			if ((here.servicesMap & serviceFilter) != 0) {
-				stops.add(here);
-			}
+			stops.add(here);
 		}
 		
 		return stops;
@@ -289,20 +280,18 @@ public class PointTree {
 	
 	// Return nodes within a certain rectangle - top-left/bottom-right
 	public ArrayList<BusStopTreeNode> findRect(double xtl, double ytl,
-	                                             double xbr, double ybr,
-	                                             long serviceFilter)
+	                                             double xbr, double ybr)
 	{
 		ArrayList<BusStopTreeNode> stops = new ArrayList<BusStopTreeNode>();
 		
 		//Log.println(Log.DEBUG, "redbus", "tl: "+ Double.toString(xtl) + "," + Double.toString(ytl));
 		//Log.println(Log.DEBUG, "redbus", "br: "+ Double.toString(xbr) + "," + Double.toString(ybr));
 		
-		return searchRect(xtl,ytl,xbr,ybr,this.getRoot(),stops,0,serviceFilter);
+		return searchRect(xtl,ytl,xbr,ybr,this.getRoot(),stops,0);
 	}
 	
 	// Return nodes within a certain radius
-	public ArrayList<BusStopTreeNode> findRadius(double xcentre, double ycentre, double radiusMetres,
-			long serviceFilter)
+	public ArrayList<BusStopTreeNode> findRadius(double xcentre, double ycentre, double radiusMetres)
 	{
 		// Convert radius in metres to approximate decimal degrees.
 		// http://en.wikipedia.org/wiki/Decimal_degrees
@@ -319,8 +308,7 @@ public class PointTree {
 		return findRect(xcentre-radiusDegrees,
 				          ycentre-radiusDegrees,
 				          xcentre+radiusDegrees,
-				          ycentre+radiusDegrees,
-				          serviceFilter);
+				          ycentre+radiusDegrees);
 	}
 	
 	public BusStopTreeNode lookupStopByStopCode(int stopCode)
