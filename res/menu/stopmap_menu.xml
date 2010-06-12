@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:title="Search" android:id="@+id/stopmap_menu_search"></item>
-	<item android:id="@+id/stopmap_menu_filter" android:title="Service Filter">
+	<item android:title="Search" android:id="@+id/stopmap_menu_search" android:enabled="false" ></item>
+	<item android:id="@+id/stopmap_menu_filter" android:title="Service Filter" android:enabled="false">
 		<menu>
 			<item android:id="@+id/stopmap_menu_showall" android:title="Show all services"></item>
 			<item android:title="Filter bus services..." android:id="@+id/stopmap_menu_filterservices"></item>
