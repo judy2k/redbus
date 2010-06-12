@@ -282,7 +282,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			return;
 
 		// get the list of services for this stop
-		ArrayList<String> servicesList = pt.lookupServices(busStop.servicesMap);
+		ArrayList<String> servicesList = pt.lookupServices(busStop.servicesMap, true);
 		final String[] services = servicesList.toArray(new String[servicesList.size()]);
 		final boolean[] selectedServices = new boolean[services.length];
 

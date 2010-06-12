@@ -19,11 +19,13 @@
 package org.redbus;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.redbus.PointTree.BusStopTreeNode;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -43,6 +45,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -79,8 +82,6 @@ public class StopMapActivity extends MapActivity {
 		private long serviceFilter;
 		private Bitmap normalStopBitmap;
 		private Paint normalStopPaint;
-		private Bitmap filteredStopBitmap;
-		private Paint filteredStopPaint;
 		private Paint nullPaint;
 		
 		private Bitmap showMoreStopsBitmap;
@@ -107,14 +108,6 @@ public class StopMapActivity extends MapActivity {
 			normalStopBitmap.eraseColor(Color.TRANSPARENT);
 			Canvas stopCanvas = new Canvas(normalStopBitmap);
 			stopCanvas.drawOval(new RectF(0,0,stopRadius*2,stopRadius*2), normalStopPaint);
-
-			filteredStopPaint = new Paint();
-			filteredStopPaint.setARGB(250, 195, 195, 195);
-			filteredStopPaint.setAntiAlias(true);
-			filteredStopBitmap = Bitmap.createBitmap(stopRadius*2, stopRadius*2, Config.ARGB_4444);
-			filteredStopBitmap.eraseColor(Color.TRANSPARENT);
-			stopCanvas = new Canvas(filteredStopBitmap);
-			stopCanvas.drawOval(new RectF(0, 0, stopRadius*2, stopRadius*2), filteredStopPaint);
 			
 			Rect bounds = new Rect();
 			normalStopPaint.getTextBounds(showMoreStopsText, 0, showMoreStopsText.length(), bounds);
@@ -158,20 +151,15 @@ public class StopMapActivity extends MapActivity {
 				Point stopCircle = new Point();
 				int idx = 0;
 				for (BusStopTreeNode node: busStopLocations.nodes) {
+					if ((serviceFilter & node.servicesMap) == 0)
+						continue;
 					if ((idx++ % skip) != 0)
 						continue;
 					if ((node.x < tlx) || (node.y < tly) || (node.x > brx) || (node.y > bry))
 						continue;
 
 					projection.toPixels(new GeoPoint((int)(node.x * 1E6),(int)(node.y * 1E6)), stopCircle);
-
-					Bitmap bmp = normalStopBitmap;
-					if ((serviceFilter & node.servicesMap) == 0) {
-						if (!shadow)
-							continue;
-						bmp = filteredStopBitmap;
-					}
-					canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, nullPaint);
+					canvas.drawBitmap(normalStopBitmap, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, nullPaint);
 				}
 				
 				canvas.drawBitmap(showMoreStopsBitmap, 0, 0, nullPaint);
@@ -192,19 +180,12 @@ public class StopMapActivity extends MapActivity {
 			// For each node, draw a circle and optionally service number list
 			Point stopCircle = new Point();
 			for (BusStopTreeNode node: nodes) {
+				if ((serviceFilter & node.servicesMap) == 0)
+					continue;
+
 				projection.toPixels(new GeoPoint((int)(node.x * 1E6),(int)(node.y * 1E6)), stopCircle);
-
-				Bitmap bmp = normalStopBitmap;
-				boolean showService = showServiceLabels;
-				if ((serviceFilter & node.servicesMap) == 0) {
-					if (!shadow)
-						continue;
-					bmp = filteredStopBitmap;
-					showService = false;
-				}
-
-				canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
-				if (showService)
+				canvas.drawBitmap(normalStopBitmap, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
+				if (showServiceLabels)
 					canvas.drawText(node.services, stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
 			}  
 
@@ -234,6 +215,12 @@ public class StopMapActivity extends MapActivity {
 			// Use distance of 50metres - ignore out of range touches
 			if (touchLoc.distanceTo(stopLoc) < 50) {
 				View v = StopMapActivity.this.getLayoutInflater().inflate(R.layout.stoppopup, null);
+				
+				final AlertDialog d = new AlertDialog.Builder(StopMapActivity.this).
+	    			setTitle(node.stopName + " (" + node.stopCode + ")").
+	    			setView(v).
+	    			create();
+				
 				((TextView) v.findViewById(R.id.stoppopup_services)).setText("Services from this stop:\n" + PointTree.getPointTree(StopMapActivity.this).formatServices(node.servicesMap, -1));
 				((Button) v.findViewById(R.id.stoppopup_streetview)).setOnClickListener(new OnClickListener() {
 					public void onClick(View v) {
@@ -242,7 +229,9 @@ public class StopMapActivity extends MapActivity {
 				});
 				((Button) v.findViewById(R.id.stoppopup_filter)).setOnClickListener(new OnClickListener() {
 					public void onClick(View v) {
-						// FIXME: implement
+						stopOverlay.serviceFilter = node.servicesMap;
+						d.dismiss();
+						StopMapActivity.this.mapView.invalidate();
 					}
 				});
 				((Button) v.findViewById(R.id.stoppopup_viewtimes)).setOnClickListener(new OnClickListener() {
@@ -250,10 +239,12 @@ public class StopMapActivity extends MapActivity {
 						BusTimesActivity.showActivity(StopMapActivity.this, node.stopCode);
 					}
 				});
-        		new AlertDialog.Builder(StopMapActivity.this).
-	    			setTitle(node.stopName + " (" + node.stopCode + ")").
-	    			setView(v).
-	    			show();
+				((Button) v.findViewById(R.id.stoppopup_cancel)).setOnClickListener(new OnClickListener() {
+					public void onClick(View v) {
+						d.dismiss();
+					}
+				});
+				d.show();
 				return true;
 			}
 			return false;
@@ -364,15 +355,67 @@ public class StopMapActivity extends MapActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.stopmap_menu_search:
-			// FIXME: implement
-			return true;
+			final EditText input = new EditText(this);
+			new AlertDialog.Builder(this)
+				.setTitle("Enter a location or postcode")
+				.setView(input)
+				.setPositiveButton(android.R.string.ok,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int whichButton) {
+								// FIXME: implement this!
+							}
+						})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+			return true;				
 
 		case R.id.stopmap_menu_showall:
-			stopOverlay.serviceFilter = 0xffffffffffffffffL;
+			stopOverlay.serviceFilter = -1;
+			StopMapActivity.this.mapView.invalidate();
+			return true;
+
+		case R.id.stopmap_menu_shownone:
+			stopOverlay.serviceFilter = 0;
+			StopMapActivity.this.mapView.invalidate();
 			return true;
 
 		case R.id.stopmap_menu_filterservices:
-			// FIXME: implement
+			ArrayList<String> sortedServicesList = PointTree.getPointTree(this).lookupServices(-1, true);
+			ArrayList<String> unsortedServicesList = PointTree.getPointTree(this).lookupServices(-1, false);
+			final HashMap<String, Integer> bitByService = new HashMap<String, Integer>();
+			final String[] sortedServices = sortedServicesList.toArray(new String[sortedServicesList.size()]);
+			final boolean[] selectedServices = new boolean[sortedServices.length];
+			
+			for(int bit=0; bit < unsortedServicesList.size(); bit++)
+				bitByService.put(unsortedServicesList.get(bit), new Integer(bit));
+
+			// preselect the enabled services based on current bitfield
+			for(int i=0; i< sortedServices.length; i++) {
+				int bit = bitByService.get(sortedServices[i]).intValue();
+				if ((stopOverlay.serviceFilter & (1L << bit)) != 0)
+					selectedServices[i] = true;
+			}
+			
+			new AlertDialog.Builder(this)
+	  	       .setMultiChoiceItems( sortedServices, selectedServices, new DialogInterface.OnMultiChoiceClickListener() {
+						public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+							selectedServices[which] = isChecked;							
+						}
+	  	       })
+	  	       .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							long serviceFilter = 0;
+							for(int i=0; i< sortedServices.length; i++) {
+								if (selectedServices[i]) {
+									int bit = bitByService.get(sortedServices[i]);
+									serviceFilter |= 1L << bit;
+								}
+							}
+							stopOverlay.serviceFilter = serviceFilter;
+							StopMapActivity.this.mapView.invalidate();
+						}
+	  	       })
+	  	       .show();
 			return true;
 
 		case R.id.stopmap_menu_satellite_or_map:

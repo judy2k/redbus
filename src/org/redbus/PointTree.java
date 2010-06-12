@@ -323,19 +323,17 @@ public class PointTree {
 		return nodes[node.intValue()];
 	}
 	
-	public ArrayList<String> lookupServices(long servicesMap)
+	public ArrayList<String> lookupServices(long servicesMap, boolean ordered)
 	{
 		ArrayList<String> result = new ArrayList<String>();
 		for(int i=0; i< 64; i++)
 			if ((servicesMap & (1L << i)) != 0)
 				result.add(services[i]);
-		return result;
-	}
+
+		if (!ordered)
+			return result;
 	
-	public String formatServices(long servicesMap, int maxServices)
-	{
-		ArrayList<String> services = lookupServices(servicesMap);
-		Collections.sort(services, new Comparator<String>() {
+		Collections.sort(result, new Comparator<String>() {
 			public int compare(String arg0, String arg1) {
 				Integer arg0BaseService;
 				if (baseServices.containsKey(arg0)) {
@@ -357,6 +355,12 @@ public class PointTree {
 				return arg0.compareTo(arg1);
 			}
 		});
+		return result;
+	}
+	
+	public String formatServices(long servicesMap, int maxServices)
+	{
+		ArrayList<String> services = lookupServices(servicesMap, true);
 		
 		// Where is string.join()?
 		StringBuilder sb = new StringBuilder();
