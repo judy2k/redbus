@@ -3,5 +3,12 @@
 
 	<string name="app_name">Edinburgh Bus Tracker</string>
 	<string name="bookmarkhelp">&quot;No bookmarks\n\nPress menu then 'Nearby Stops map' to view a map, or 'Enter stop code' to enter a code displayed at a bus stop.\n\nFrom the map view touch a stop on the map to display times, and then press menu to add a bookmark.&quot;</string>
-	<string name="newversiontext"></string>
+	<string name="newversiontext">* Massive optimisation of map view\n
+* All map zoom levels now show stops.\n
+* Sort + truncate lists of services on map.\n
+* Disable "my location" on map drag, and add button to enable it.\n
+* Street view support.\n
+* Satellite/map view switch.\n
+* Refresh issue confirmed fixed.\n
+</string>
 </resources>
