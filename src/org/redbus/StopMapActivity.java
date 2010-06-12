@@ -174,7 +174,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			// For some reason, draw is called LOTS of times. Only requery the DB if
 			// the co-ords change.
 			if (tlx != oldtlx || tly != oldtly || brx != oldbrx || bry != oldbry) {
-				nodes = pointTree.getPointTree(StopMapActivity.this).findRect(tlx,tly,brx,bry);
+				nodes = pointTree.findRect(tlx,tly,brx,bry);
 				oldtlx = tlx; oldtly = tly; oldbrx = brx; oldbry = bry;
 			}
 
