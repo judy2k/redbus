@@ -28,7 +28,6 @@ import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.text.InputFilter;
@@ -66,14 +65,14 @@ public class StopBookmarksActivity extends ListActivity
         setContentView(R.layout.stopbookmarks);
         registerForContextMenu(getListView());
         
+        // display changes popup
         LocalDBHelper db = new LocalDBHelper(this);
         try {
         	PackageInfo pi = getPackageManager().getPackageInfo("org.redbus", 0);
-        	
-        	if (db.getGlobalSetting("PREVIOUSVERSIONCODE", "") != Integer.toString(pi.versionCode)) {
+        	if (!db.getGlobalSetting("PREVIOUSVERSIONCODE", "").equals(Integer.toString(pi.versionCode))) {
         		new AlertDialog.Builder(this).
         			setIcon(null).
-        			setTitle(pi.versionName + " changes").
+        			setTitle("v" + pi.versionName + " changes").
 	    			setMessage(R.string.newversiontext).
 	    			setPositiveButton(android.R.string.ok, null).
 	    			show();        	

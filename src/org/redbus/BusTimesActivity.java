@@ -510,7 +510,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 
 		case R.id.bustimes_menu_viewonmap:
-			StopMapActivity.showActivityForServiceMap(this, busStop.servicesMap, busStop.x, busStop.y);
+			StopMapActivity.showActivity(this, busStop.x, busStop.y);
 			return true;
 
 

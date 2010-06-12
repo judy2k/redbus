@@ -91,6 +91,7 @@ public class PointTree {
 	private Map<Integer, Integer> nodeIdxByStopCode;
 	private String[] services;
 	private int rootRecordNum;
+	final HashMap<String, Integer> baseServices = new HashMap<String, Integer>();
 
 	// Read Data from the Android resource 'stops.dat' into memory
 	
@@ -121,7 +122,6 @@ public class PointTree {
 		}
 		
 		off = 8;
-		final HashMap<String, Integer> baseServices = new HashMap<String, Integer>();
 		for(int i = 0; i <= rootRecordNum; ++i)
 		{
 			int leftNode = readInt(b, off + 0);
@@ -131,43 +131,8 @@ public class PointTree {
 			int stopCode = readInt(b, off + 24);
 			String stopName = new String(b, off + 28, 16, "utf-8").trim();
 			long servicesMap = readLong(b, off + 44);
-
-			ArrayList<String> services = lookupServices(servicesMap);
-			Collections.sort(services, new Comparator<String>() {
-				public int compare(String arg0, String arg1) {
-					Integer arg0BaseService;
-					if (baseServices.containsKey(arg0)) {
-						arg0BaseService = baseServices.get(arg0);
-					} else {
-						arg0BaseService = new Integer(Integer.parseInt(arg0.replaceAll("[^0-9]", "").trim()));
-						baseServices.put(arg0, arg0BaseService);
-					}
-					Integer arg1BaseService;
-					if (baseServices.containsKey(arg1)) {
-						arg1BaseService = baseServices.get(arg1);
-					} else {
-						arg1BaseService = new Integer(Integer.parseInt(arg1.replaceAll("[^0-9]", "").trim()));
-						baseServices.put(arg1, arg1BaseService);
-					}
-					
-					if (arg0BaseService.intValue() != arg1BaseService.intValue())
-						return arg0BaseService.intValue() - arg1BaseService.intValue();
-					return arg0.compareTo(arg1);
-				}
-			});
 			
-			// Where is string.join()?
-			StringBuilder sb = new StringBuilder();
-			for(int j = 0; j < services.size(); j++) {
-				if (j > 2) {
-					sb.append("...");
-					break;
-				}
-				sb.append(services.get(j));
-				sb.append(" ");
-			}	
-			
-			BusStopTreeNode node = new BusStopTreeNode(leftNode, rightNode, x, y, stopCode, stopName, servicesMap, sb.toString());
+			BusStopTreeNode node = new BusStopTreeNode(leftNode, rightNode, x, y, stopCode, stopName, servicesMap, formatServices(servicesMap, 2));
 			nodes[i] = node;
 			nodeIdxByStopCode.put(new Integer(node.stopCode), new Integer(i));
 			
@@ -365,5 +330,45 @@ public class PointTree {
 			if ((servicesMap & (1L << i)) != 0)
 				result.add(services[i]);
 		return result;
+	}
+	
+	public String formatServices(long servicesMap, int maxServices)
+	{
+		ArrayList<String> services = lookupServices(servicesMap);
+		Collections.sort(services, new Comparator<String>() {
+			public int compare(String arg0, String arg1) {
+				Integer arg0BaseService;
+				if (baseServices.containsKey(arg0)) {
+					arg0BaseService = baseServices.get(arg0);
+				} else {
+					arg0BaseService = new Integer(Integer.parseInt(arg0.replaceAll("[^0-9]", "").trim()));
+					baseServices.put(arg0, arg0BaseService);
+				}
+				Integer arg1BaseService;
+				if (baseServices.containsKey(arg1)) {
+					arg1BaseService = baseServices.get(arg1);
+				} else {
+					arg1BaseService = new Integer(Integer.parseInt(arg1.replaceAll("[^0-9]", "").trim()));
+					baseServices.put(arg1, arg1BaseService);
+				}
+				
+				if (arg0BaseService.intValue() != arg1BaseService.intValue())
+					return arg0BaseService.intValue() - arg1BaseService.intValue();
+				return arg0.compareTo(arg1);
+			}
+		});
+		
+		// Where is string.join()?
+		StringBuilder sb = new StringBuilder();
+		for(int j = 0; j < services.size(); j++) {
+			if ((maxServices != -1) && (j > maxServices)) {
+				sb.append("...");
+				break;
+			}
+			sb.append(services.get(j));
+			sb.append(" ");
+		}	
+		
+		return sb.toString();
 	}
 }

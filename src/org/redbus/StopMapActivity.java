@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 import org.redbus.PointTree.BusStopTreeNode;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -39,6 +40,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -212,10 +217,10 @@ public class StopMapActivity extends MapActivity {
 		@Override
 		public boolean onTap(GeoPoint point, MapView mapView)
 		{
-			double lat = point.getLatitudeE6()/1E6;
-			double lng = point.getLongitudeE6()/1E6;
+			final double lat = point.getLatitudeE6()/1E6;
+			final double lng = point.getLongitudeE6()/1E6;
 			
-			PointTree.BusStopTreeNode node = busStopLocations.findNearest(lat,lng);
+			final PointTree.BusStopTreeNode node = busStopLocations.findNearest(lat,lng);
 
 			// Yuk - there must be a better way to convert GeoPoint->Point than this?			
 			Location touchLoc = new Location("");
@@ -228,14 +233,30 @@ public class StopMapActivity extends MapActivity {
 
 			// Use distance of 50metres - ignore out of range touches
 			if (touchLoc.distanceTo(stopLoc) < 50) {
-				BusTimesActivity.showActivity(StopMapActivity.this, node.stopCode);
-				return true; // handled
+				View v = StopMapActivity.this.getLayoutInflater().inflate(R.layout.stoppopup, null);
+				((TextView) v.findViewById(R.id.stoppopup_services)).setText("Services from this stop:\n" + PointTree.getPointTree(StopMapActivity.this).formatServices(node.servicesMap, -1));
+				((Button) v.findViewById(R.id.stoppopup_streetview)).setOnClickListener(new OnClickListener() {
+					public void onClick(View v) {
+			            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("google.streetview:cbll=" + node.x + "," + node.y + "&cbp=1,180,,0,2.0")));
+					}
+				});
+				((Button) v.findViewById(R.id.stoppopup_filter)).setOnClickListener(new OnClickListener() {
+					public void onClick(View v) {
+						// FIXME: implement
+					}
+				});
+				((Button) v.findViewById(R.id.stoppopup_viewtimes)).setOnClickListener(new OnClickListener() {
+					public void onClick(View v) {
+						BusTimesActivity.showActivity(StopMapActivity.this, node.stopCode);
+					}
+				});
+        		new AlertDialog.Builder(StopMapActivity.this).
+	    			setTitle(node.stopName + " (" + node.stopCode + ")").
+	    			setView(v).
+	    			show();
+				return true;
 			}
-
-            String uri = "google.streetview:cbll=" + lat + "," + lng + "&cbp=1,180,,0,2.0";
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(uri)));
-
-			return false; // Not handled
+			return false;
 		}
 		
 		@Override
