@@ -11,7 +11,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:clickable="true"
-        android:apiKey="MAPSAPIKEY"
+        android:apiKey="0aiwQcXJ0Z3LlmfYCS3KmBnaQzUYDH2U2DEUpMA"
     />
     
 </RelativeLayout>
