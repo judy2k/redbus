@@ -6,7 +6,7 @@
 	<string name="newversiontext">* Massive optimisation of map view\n
 * All map zoom levels now show stops.\n
 * Sort + truncate lists of services on map.\n
-* Disable "my location" on map drag, and add button to enable it.\n
+* Disable "my location" on map drag, and add button to reenable it.\n
 * Street view support.\n
 * Satellite/map view switch.\n
 * Refresh issue confirmed fixed.\n
