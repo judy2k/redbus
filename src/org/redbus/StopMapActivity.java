@@ -75,7 +75,6 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		private static final int stopRadius = 5;
 
 		private Projection projection;
-		private PointTree busStopLocations;
 		private Paint blackBrush;
 
 		private ArrayList<BusStopTreeNode> nodes;
@@ -97,7 +96,6 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		private static final String showMoreServicesText = "Zoom in to see services";
 
 		public StopOverlay(MapView view, long serviceFilter) {
-			this.busStopLocations = PointTree.getPointTree(StopMapActivity.this);
 			this.serviceFilter = serviceFilter;
 			this.projection = view.getProjection();
 
@@ -135,6 +133,8 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 			if (shadow && (serviceFilter == 0xffffffffffffL))
 				return;
+			
+			PointTree pointTree = PointTree.getPointTree(StopMapActivity.this);
 
 			GeoPoint tl = projection.fromPixels(0,canvas.getHeight());
 			GeoPoint br = projection.fromPixels(canvas.getWidth(),0);
@@ -155,7 +155,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 				Point stopCircle = new Point();
 				int idx = 0;
-				for (BusStopTreeNode node: busStopLocations.nodes) {
+				for (BusStopTreeNode node: pointTree.nodes) {
 					if ((serviceFilter & node.servicesMap) == 0)
 						continue;
 					if ((idx++ % skip) != 0)
@@ -174,7 +174,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			// For some reason, draw is called LOTS of times. Only requery the DB if
 			// the co-ords change.
 			if (tlx != oldtlx || tly != oldtly || brx != oldbrx || bry != oldbry) {
-				nodes = busStopLocations.findRect(tlx,tly,brx,bry);
+				nodes = pointTree.getPointTree(StopMapActivity.this).findRect(tlx,tly,brx,bry);
 				oldtlx = tlx; oldtly = tly; oldbrx = brx; oldbry = bry;
 			}
 
@@ -206,7 +206,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			final double lat = point.getLatitudeE6()/1E6;
 			final double lng = point.getLongitudeE6()/1E6;
 			
-			final PointTree.BusStopTreeNode node = busStopLocations.findNearest(lat,lng);
+			final PointTree.BusStopTreeNode node = PointTree.getPointTree(StopMapActivity.this).findNearest(lat,lng);
 
 			// Yuk - there must be a better way to convert GeoPoint->Point than this?			
 			Location touchLoc = new Location("");
