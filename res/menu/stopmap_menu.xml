@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:title="Search" android:id="@+id/stopmap_menu_search" android:enabled="false" ></item>
+	<item android:title="Search" android:id="@+id/stopmap_menu_search" ></item>
 	<item android:id="@+id/stopmap_menu_filter" android:title="Bus Service Filter">
 		<menu>
 			<item android:title="Filter by service..." android:id="@+id/stopmap_menu_filterservices"></item>

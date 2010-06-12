@@ -24,9 +24,11 @@ import java.util.HashMap;
 import org.redbus.PointTree.BusStopTreeNode;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnCancelListener;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -35,6 +37,7 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Bitmap.Config;
+import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -57,12 +60,15 @@ import com.google.android.maps.MyLocationOverlay;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.Projection;
 
-public class StopMapActivity extends MapActivity {
+public class StopMapActivity extends MapActivity implements GeocodingResponseListener  {
 
 	private MapView mapView;
 	private MapController mapController;
 	private MyLocationOverlay myLocationOverlay;
 	private StopOverlay stopOverlay;
+
+	private ProgressDialog busyDialog = null;
+	private int expectedRequestId = -1;
 
 	public class StopOverlay extends Overlay {
 
@@ -90,7 +96,6 @@ public class StopMapActivity extends MapActivity {
 		private static final String showMoreStopsText = "Zoom in to see more stops";
 		private static final String showMoreServicesText = "Zoom in to see services";
 
-		
 		public StopOverlay(MapView view, long serviceFilter) {
 			this.busStopLocations = PointTree.getPointTree(StopMapActivity.this);
 			this.serviceFilter = serviceFilter;
@@ -362,7 +367,13 @@ public class StopMapActivity extends MapActivity {
 				.setPositiveButton(android.R.string.ok,
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int whichButton) {
-								// FIXME: implement this!
+								displayBusy("Finding location...");
+								
+								String location = input.getText().toString();
+								if (!location.toLowerCase().contains("edinburgh"))
+									location += " Edinburgh";
+								
+								StopMapActivity.this.expectedRequestId = GeocodingHelper.geocode(StopMapActivity.this, location, StopMapActivity.this);
 							}
 						})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -433,11 +444,59 @@ public class StopMapActivity extends MapActivity {
 	}
 	
 	@Override
+	protected void onDestroy() {
+		busyDialog = null;
+		super.onDestroy();
+	}
+
+	private void displayBusy(String reason) {
+		dismissBusy();
+
+		busyDialog = ProgressDialog.show(this, "", reason, true, true, new OnCancelListener() {
+			public void onCancel(DialogInterface dialog) {
+				StopMapActivity.this.expectedRequestId = -1;
+			}
+		});
+	}
+
+	private void dismissBusy() {
+		if (busyDialog != null) {
+			try {
+				busyDialog.dismiss();
+			} catch (Throwable t) {
+			}
+			busyDialog = null;
+		}
+	}
+
+	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		if (mapView.isSatellite())
 			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Map View");
 		else
 			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Satellite View");		
 		return super.onPrepareOptionsMenu(menu);
+	}
+
+	public void geocodeResponseError(int requestId, String message) {
+		if (requestId != expectedRequestId)
+			return;
+		
+		dismissBusy();
+		
+		new AlertDialog.Builder(this).setTitle("Error").
+			setMessage("Unable to find location: " + message).
+			setPositiveButton(android.R.string.ok, null).
+			show();
+	}
+
+	public void geocodeResponseSucccess(int requestId, Address address) {
+		if (requestId != expectedRequestId)
+			return;
+		
+		dismissBusy();
+		
+		GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
+		mapController.animateTo(gp);
 	}
 }
