@@ -191,8 +191,8 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				projection.toPixels(new GeoPoint((int)(node.x * 1E6),(int)(node.y * 1E6)), stopCircle);
 				canvas.drawBitmap(normalStopBitmap, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
 				if (showServiceLabels)
-					canvas.drawText(node.services, stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
-			}  
+					canvas.drawText(pointTree.formatServices(node.servicesMap & serviceFilter, 3), stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
+			}
 
 			// draw service label info text last
 			if (!showServiceLabels)
@@ -391,16 +391,17 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			return true;
 
 		case R.id.stopmap_menu_filterservices:
-			ArrayList<String> sortedServicesList = PointTree.getPointTree(this).lookupServices(-1, true);
-			ArrayList<String> unsortedServicesList = PointTree.getPointTree(this).lookupServices(-1, false);
-			final HashMap<String, Integer> bitByService = new HashMap<String, Integer>();
-			final String[] sortedServices = sortedServicesList.toArray(new String[sortedServicesList.size()]);
-			final boolean[] selectedServices = new boolean[sortedServices.length];
+			PointTree pointTree = PointTree.getPointTree(this);
 			
-			for(int bit=0; bit < unsortedServicesList.size(); bit++)
-				bitByService.put(unsortedServicesList.get(bit), new Integer(bit));
+			ArrayList<String> sortedServicesList = pointTree.lookupServices(-1);
+			final String[] sortedServices = sortedServicesList.toArray(new String[sortedServicesList.size()]);
+			
+			final HashMap<String, Integer> bitByService = new HashMap<String, Integer>();
+			for(int bit=0; bit < pointTree.serviceBitToServiceName.length; bit++)
+				bitByService.put(pointTree.serviceBitToServiceName[bit], new Integer(bit));
 
 			// preselect the enabled services based on current bitfield
+			final boolean[] selectedServices = new boolean[sortedServices.length];
 			for(int i=0; i< sortedServices.length; i++) {
 				int bit = bitByService.get(sortedServices[i]).intValue();
 				if ((stopOverlay.serviceFilter & (1L << bit)) != 0)

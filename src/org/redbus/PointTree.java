@@ -72,9 +72,8 @@ public class PointTree {
 		public int stopCode;
 		public String stopName;
 		public long servicesMap;
-		public String services;
 		
-		public BusStopTreeNode(int leftNode, int rightNode, double x, double y, int stopCode, String stopName, long servicesMap, String services)
+		public BusStopTreeNode(int leftNode, int rightNode, double x, double y, int stopCode, String stopName, long servicesMap)
 		{
 			this.leftNode = leftNode;
 			this.rightNode = rightNode;
@@ -83,15 +82,14 @@ public class PointTree {
 			this.stopCode = stopCode;		
 			this.stopName = stopName;
 			this.servicesMap = servicesMap;
-			this.services = services;
 		}
 	}
 	
 	public BusStopTreeNode[] nodes;
 	private Map<Integer, Integer> nodeIdxByStopCode;
-	private String[] services;
+	public String[] serviceBitToServiceName;
 	private int rootRecordNum;
-	final HashMap<String, Integer> baseServices = new HashMap<String, Integer>();
+	final HashMap<Integer, Integer> serviceBitToSortIndex = new HashMap<Integer, Integer>();
 
 	// Read Data from the Android resource 'stops.dat' into memory
 	
@@ -107,21 +105,8 @@ public class PointTree {
 		this.nodes = new BusStopTreeNode[rootRecordNum+1];
 		this.nodeIdxByStopCode = new HashMap<Integer, Integer>();
 		
-		// read in the services first
-		int off = 8 + (52 * (rootRecordNum+1));
-		int servicesCount = readInt(b, off);
-		off += 4;
-		this.services = new String[servicesCount];
-		int startoff = off;
-		for(int i =0; i< servicesCount; i++) {
-			while(b[off] != 0)
-				off++;
-			this.services[i] = new String(b, startoff, off - startoff, "utf-8");
-			off++;
-			startoff = off;
-		}
-		
-		off = 8;
+		// read in the nodes
+		int off = 8;
 		for(int i = 0; i <= rootRecordNum; ++i)
 		{
 			int leftNode = readInt(b, off + 0);
@@ -132,12 +117,58 @@ public class PointTree {
 			String stopName = new String(b, off + 28, 16, "utf-8").trim();
 			long servicesMap = readLong(b, off + 44);
 			
-			BusStopTreeNode node = new BusStopTreeNode(leftNode, rightNode, x, y, stopCode, stopName, servicesMap, formatServices(servicesMap, 2));
+			BusStopTreeNode node = new BusStopTreeNode(leftNode, rightNode, x, y, stopCode, stopName, servicesMap);
 			nodes[i] = node;
 			nodeIdxByStopCode.put(new Integer(node.stopCode), new Integer(i));
 			
 			off += 52;
 		}
+
+		// read in the services
+		int servicesCount = readInt(b, off);
+		off += 4;
+		this.serviceBitToServiceName = new String[servicesCount];
+		int startoff = off;
+		ArrayList<String> sortedServices = new ArrayList<String>();
+		HashMap<String, Integer> serviceNameToServiceBit = new HashMap<String, Integer>();
+		for(int i =0; i< servicesCount; i++) {
+			while(b[off] != 0)
+				off++;
+			this.serviceBitToServiceName[i] = new String(b, startoff, off - startoff, "utf-8");
+			sortedServices.add(this.serviceBitToServiceName[i]);
+			serviceNameToServiceBit.put(this.serviceBitToServiceName[i], new Integer(i));
+			off++;
+			startoff = off;
+		}
+
+		// now sort the services
+		final HashMap<String, Integer> baseServices = new HashMap<String, Integer>();
+		Collections.sort(sortedServices, new Comparator<String>() {
+			public int compare(String arg0, String arg1) {
+				Integer arg0BaseService;
+				if (baseServices.containsKey(arg0)) {
+					arg0BaseService = baseServices.get(arg0);
+				} else {
+					arg0BaseService = new Integer(Integer.parseInt(arg0.replaceAll("[^0-9]", "").trim()));
+					baseServices.put(arg0, arg0BaseService);
+				}
+				Integer arg1BaseService;
+				if (baseServices.containsKey(arg1)) {
+					arg1BaseService = baseServices.get(arg1);
+				} else {
+					arg1BaseService = new Integer(Integer.parseInt(arg1.replaceAll("[^0-9]", "").trim()));
+					baseServices.put(arg1, arg1BaseService);
+				}
+				
+				if (arg0BaseService.intValue() != arg1BaseService.intValue())
+					return arg0BaseService.intValue() - arg1BaseService.intValue();
+				return arg0.compareTo(arg1);
+			}
+		});
+		
+		// now, generate the servicebit -> idx lookup table
+		for(int idx=0; idx < sortedServices.size(); idx++)
+			serviceBitToSortIndex.put(serviceNameToServiceBit.get(sortedServices.get(idx)), new Integer(idx));
 	}
 	
 	private int readInt(byte[] b, int off)
@@ -323,49 +354,28 @@ public class PointTree {
 		return nodes[node.intValue()];
 	}
 	
-	public ArrayList<String> lookupServices(long servicesMap, boolean ordered)
+	public ArrayList<String> lookupServices(long servicesMap)
 	{
-		ArrayList<String> result = new ArrayList<String>();
+		String[] tmp = new String[64];
 		for(int i=0; i< 64; i++)
 			if ((servicesMap & (1L << i)) != 0)
-				result.add(services[i]);
-
-		if (!ordered)
-			return result;
-	
-		Collections.sort(result, new Comparator<String>() {
-			public int compare(String arg0, String arg1) {
-				Integer arg0BaseService;
-				if (baseServices.containsKey(arg0)) {
-					arg0BaseService = baseServices.get(arg0);
-				} else {
-					arg0BaseService = new Integer(Integer.parseInt(arg0.replaceAll("[^0-9]", "").trim()));
-					baseServices.put(arg0, arg0BaseService);
-				}
-				Integer arg1BaseService;
-				if (baseServices.containsKey(arg1)) {
-					arg1BaseService = baseServices.get(arg1);
-				} else {
-					arg1BaseService = new Integer(Integer.parseInt(arg1.replaceAll("[^0-9]", "").trim()));
-					baseServices.put(arg1, arg1BaseService);
-				}
-				
-				if (arg0BaseService.intValue() != arg1BaseService.intValue())
-					return arg0BaseService.intValue() - arg1BaseService.intValue();
-				return arg0.compareTo(arg1);
-			}
-		});
+				tmp[serviceBitToSortIndex.get(i)] = serviceBitToServiceName[i];
+		
+		ArrayList<String> result = new ArrayList<String>();
+		for(String cur: tmp)
+			if (cur != null)
+				result.add(cur);
 		return result;
 	}
 	
 	public String formatServices(long servicesMap, int maxServices)
 	{
-		ArrayList<String> services = lookupServices(servicesMap, true);
-		
+		ArrayList<String> services = lookupServices(servicesMap);
+
 		// Where is string.join()?
 		StringBuilder sb = new StringBuilder();
 		for(int j = 0; j < services.size(); j++) {
-			if ((maxServices != -1) && (j > maxServices)) {
+			if ((maxServices != -1) && (j >= maxServices)) {
 				sb.append("...");
 				break;
 			}
