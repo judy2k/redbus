@@ -19,7 +19,6 @@
 package org.redbus;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.redbus.PointTree.BusStopTreeNode;
 
@@ -87,6 +86,8 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		private long serviceFilter;
 		private Bitmap normalStopBitmap;
 		private Paint normalStopPaint;
+		private Bitmap filteredStopBitmap;
+		private Paint filteredStopPaint;
 		private Paint nullPaint;
 		
 		private Bitmap showMoreStopsBitmap;
@@ -112,6 +113,14 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			Canvas stopCanvas = new Canvas(normalStopBitmap);
 			stopCanvas.drawOval(new RectF(0,0,stopRadius*2,stopRadius*2), normalStopPaint);
 			
+			filteredStopPaint = new Paint();
+			filteredStopPaint.setARGB(250, 195, 195, 195);
+			filteredStopPaint.setAntiAlias(true);
+			filteredStopBitmap = Bitmap.createBitmap(stopRadius*2, stopRadius*2, Config.ARGB_4444);
+			filteredStopBitmap.eraseColor(Color.TRANSPARENT);
+			stopCanvas = new Canvas(filteredStopBitmap);
+			stopCanvas.drawOval(new RectF(0, 0, stopRadius*2, stopRadius*2), filteredStopPaint);
+
 			Rect bounds = new Rect();
 			normalStopPaint.getTextBounds(showMoreStopsText, 0, showMoreStopsText.length(), bounds);
 			showMoreStopsBitmap = Bitmap.createBitmap(bounds.right + 20, Math.abs(bounds.bottom) + Math.abs(bounds.top) + 20, Config.ARGB_8888);
@@ -156,15 +165,19 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				Point stopCircle = new Point();
 				int idx = 0;
 				for (BusStopTreeNode node: pointTree.nodes) {
-					if ((serviceFilter & node.servicesMap) == 0)
-						continue;
 					if ((idx++ % skip) != 0)
 						continue;
 					if ((node.x < tlx) || (node.y < tly) || (node.x > brx) || (node.y > bry))
 						continue;
 
 					projection.toPixels(new GeoPoint((int)(node.x * 1E6),(int)(node.y * 1E6)), stopCircle);
-					canvas.drawBitmap(normalStopBitmap, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, nullPaint);
+					Bitmap bmp = normalStopBitmap;
+					if ((serviceFilter & node.servicesMap) == 0) {
+						if (!shadow)
+							continue;
+						bmp = filteredStopBitmap;
+					}
+					canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, nullPaint);
 				}
 				
 				canvas.drawBitmap(showMoreStopsBitmap, 0, 0, nullPaint);
@@ -185,12 +198,19 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			// For each node, draw a circle and optionally service number list
 			Point stopCircle = new Point();
 			for (BusStopTreeNode node: nodes) {
-				if ((serviceFilter & node.servicesMap) == 0)
-					continue;
-
 				projection.toPixels(new GeoPoint((int)(node.x * 1E6),(int)(node.y * 1E6)), stopCircle);
-				canvas.drawBitmap(normalStopBitmap, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
-				if (showServiceLabels)
+				
+				Bitmap bmp = normalStopBitmap;
+				boolean showService = showServiceLabels;
+				if ((serviceFilter & node.servicesMap) == 0) {
+					if (!shadow)
+						continue;
+					bmp = filteredStopBitmap;
+					showService = false;
+				}
+				
+				canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
+				if (showService)
 					canvas.drawText(pointTree.formatServices(node.servicesMap & serviceFilter, 3), stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
 			}
 
@@ -357,9 +377,24 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 	}
 
 	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		if (mapView.isSatellite())
+			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Map View");
+		else
+			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Satellite View");		
+		
+		if (stopOverlay.serviceFilter == -1)
+			menu.findItem(R.id.stopmap_menu_showall).setEnabled(false);
+		else
+			menu.findItem(R.id.stopmap_menu_showall).setEnabled(true);
+		
+		return super.onPrepareOptionsMenu(menu);
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.stopmap_menu_search:
+		case R.id.stopmap_menu_search: {
 			final EditText input = new EditText(this);
 			new AlertDialog.Builder(this)
 				.setTitle("Enter a location or postcode")
@@ -379,56 +414,36 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
 			return true;				
+		}
 
 		case R.id.stopmap_menu_showall:
 			stopOverlay.serviceFilter = -1;
 			StopMapActivity.this.mapView.invalidate();
 			return true;
 
-		case R.id.stopmap_menu_shownone:
-			stopOverlay.serviceFilter = 0;
-			StopMapActivity.this.mapView.invalidate();
-			return true;
-
-		case R.id.stopmap_menu_filterservices:
-			PointTree pointTree = PointTree.getPointTree(this);
-			
-			ArrayList<String> sortedServicesList = pointTree.lookupServices(-1);
-			final String[] sortedServices = sortedServicesList.toArray(new String[sortedServicesList.size()]);
-			
-			final HashMap<String, Integer> bitByService = new HashMap<String, Integer>();
-			for(int bit=0; bit < pointTree.serviceBitToServiceName.length; bit++)
-				bitByService.put(pointTree.serviceBitToServiceName[bit], new Integer(bit));
-
-			// preselect the enabled services based on current bitfield
-			final boolean[] selectedServices = new boolean[sortedServices.length];
-			for(int i=0; i< sortedServices.length; i++) {
-				int bit = bitByService.get(sortedServices[i]).intValue();
-				if ((stopOverlay.serviceFilter & (1L << bit)) != 0)
-					selectedServices[i] = true;
-			}
+		case R.id.stopmap_menu_filterservices: {
+			final EditText input = new EditText(this);
 			
 			new AlertDialog.Builder(this)
-	  	       .setMultiChoiceItems( sortedServices, selectedServices, new DialogInterface.OnMultiChoiceClickListener() {
-						public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-							selectedServices[which] = isChecked;							
-						}
-	  	       })
-	  	       .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+				.setTitle("Enter services separated by spaces")
+				.setView(input)
+				.setPositiveButton(android.R.string.ok, 
+					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
 							long serviceFilter = 0;
-							for(int i=0; i< sortedServices.length; i++) {
-								if (selectedServices[i]) {
-									int bit = bitByService.get(sortedServices[i]);
-									serviceFilter |= 1L << bit;
-								}
+							PointTree pt = PointTree.getPointTree(StopMapActivity.this);
+							for(String serviceStr: input.getText().toString().split("[ ]+")) {
+								if (pt.serviceNameToServiceBit.containsKey(serviceStr.toUpperCase()))
+									serviceFilter |= 1L << pt.serviceNameToServiceBit.get(serviceStr.toUpperCase()).longValue();
 							}
 							stopOverlay.serviceFilter = serviceFilter;
 							StopMapActivity.this.mapView.invalidate();
 						}
-	  	       })
-	  	       .show();
+					})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
 			return true;
+		}
 
 		case R.id.stopmap_menu_satellite_or_map:
 			mapView.setSatellite(!mapView.isSatellite());
@@ -468,15 +483,6 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			}
 			busyDialog = null;
 		}
-	}
-
-	@Override
-	public boolean onPrepareOptionsMenu(Menu menu) {
-		if (mapView.isSatellite())
-			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Map View");
-		else
-			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Satellite View");		
-		return super.onPrepareOptionsMenu(menu);
 	}
 
 	public void geocodeResponseError(int requestId, String message) {

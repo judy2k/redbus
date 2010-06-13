@@ -90,6 +90,7 @@ public class PointTree {
 	public String[] serviceBitToServiceName;
 	private int rootRecordNum;
 	final HashMap<Integer, Integer> serviceBitToSortIndex = new HashMap<Integer, Integer>();
+	public HashMap<String, Integer> serviceNameToServiceBit = new HashMap<String, Integer>();
 
 	// Read Data from the Android resource 'stops.dat' into memory
 	
@@ -130,13 +131,14 @@ public class PointTree {
 		this.serviceBitToServiceName = new String[servicesCount];
 		int startoff = off;
 		ArrayList<String> sortedServices = new ArrayList<String>();
-		HashMap<String, Integer> serviceNameToServiceBit = new HashMap<String, Integer>();
 		for(int i =0; i< servicesCount; i++) {
 			while(b[off] != 0)
 				off++;
-			this.serviceBitToServiceName[i] = new String(b, startoff, off - startoff, "utf-8");
-			sortedServices.add(this.serviceBitToServiceName[i]);
-			serviceNameToServiceBit.put(this.serviceBitToServiceName[i], new Integer(i));
+
+			String serviceName = new String(b, startoff, off - startoff, "utf-8").toUpperCase();
+			this.serviceBitToServiceName[i] = serviceName;
+			this.serviceNameToServiceBit.put(serviceName, new Integer(i));
+			sortedServices.add(serviceName);
 			off++;
 			startoff = off;
 		}
