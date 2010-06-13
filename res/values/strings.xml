@@ -3,11 +3,6 @@
 
 	<string name="app_name">Edinburgh Bus Tracker</string>
 	<string name="bookmarkhelp">&quot;No bookmarks\n\nPress menu then 'Nearby Stops map' to view a map, or 'Enter stop code' to enter a code displayed at a bus stop.\n\nFrom the map view touch a stop on the map to display times, and then press menu to add a bookmark.&quot;</string>
-	<string name="newversiontext">Implement simple route finding/filtering/searching on map. Example:\n
-1. Search for waverley station.\n
-2. Press a stop near there and choose "Show only services from this stop".\n
-3. Zoom out.\n
-4. Click "My location".\n
-5. View services near you that go past Waverley.\n
+	<string name="newversiontext">Lots of work on the search/filtering features.
 </string>
 </resources>
