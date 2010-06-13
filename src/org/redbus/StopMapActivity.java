@@ -403,12 +403,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int whichButton) {
 								displayBusy("Finding location...");
-								
-								String location = input.getText().toString();
-								if (!location.toLowerCase().contains("edinburgh"))
-									location += " Edinburgh";
-								
-								StopMapActivity.this.expectedRequestId = GeocodingHelper.geocode(StopMapActivity.this, location, StopMapActivity.this);
+								StopMapActivity.this.expectedRequestId = GeocodingHelper.geocode(StopMapActivity.this, input.getText().toString(), StopMapActivity.this);
 							}
 						})
 				.setNegativeButton(android.R.string.cancel, null)

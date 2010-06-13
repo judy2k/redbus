@@ -30,6 +30,12 @@ import android.util.Log;
 public class GeocodingHelper {
 
 	private static Integer RequestId = new Integer(0);
+	
+	// rough bounding box round all stops in edinburgh
+	private static final double lowerLeftLatitude =  55.773854;
+	private static final double lowerLeftLongitude =  -3.506999;
+	private static final double upperRightLatitude =   56.028412;
+	private static final double upperRightLongitude =   -2.834847;
 
 	public static int geocode(Context ctx, String location, GeocodingResponseListener callback)
 	{
@@ -48,7 +54,7 @@ public class GeocodingHelper {
 			
 			try {
 				Geocoder geocoder = new Geocoder(gr.ctx, Locale.UK);
-				List<Address> result = geocoder.getFromLocationName(gr.location, 1);
+				List<Address> result = geocoder.getFromLocationName(gr.location, 1, lowerLeftLatitude, lowerLeftLongitude, upperRightLatitude, upperRightLongitude);
 				if (result.size() > 0)
 					gr.address = result.get(0);
 			} catch (Throwable t) {
