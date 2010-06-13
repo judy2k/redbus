@@ -19,6 +19,7 @@
 package org.redbus;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.redbus.PointTree.BusStopTreeNode;
 
@@ -492,12 +493,14 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			show();
 	}
 
-	public void geocodeResponseSucccess(int requestId, Address address) {
+	public void geocodeResponseSucccess(int requestId, List<Address> addresses) {
 		if (requestId != expectedRequestId)
 			return;
 		
 		dismissBusy();
 		
+		// FIXME: show a popup and let the user choose
+		Address address = addresses.get(0);
 		GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
 		mapController.animateTo(gp);
 	}

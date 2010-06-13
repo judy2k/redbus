@@ -18,9 +18,11 @@
 
 package org.redbus;
 
+import java.util.List;
+
 import android.location.Address;
 
 public interface GeocodingResponseListener {
 	public void geocodeResponseError(int requestId, String message);
-	public void geocodeResponseSucccess(int requestId, Address address);
+	public void geocodeResponseSucccess(int requestId, List<Address> addresses);
 }

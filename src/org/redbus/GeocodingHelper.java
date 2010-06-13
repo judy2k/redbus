@@ -50,13 +50,11 @@ public class GeocodingHelper {
 		
 		protected GeocodingRequest doInBackground(GeocodingRequest... params) {
 			GeocodingRequest gr = params[0];
-			gr.address = null;
+			gr.addresses = null;
 			
 			try {
 				Geocoder geocoder = new Geocoder(gr.ctx, Locale.UK);
-				List<Address> result = geocoder.getFromLocationName(gr.location, 1, lowerLeftLatitude, lowerLeftLongitude, upperRightLatitude, upperRightLongitude);
-				if (result.size() > 0)
-					gr.address = result.get(0);
+				gr.addresses = geocoder.getFromLocationName(gr.location, 10, lowerLeftLatitude, lowerLeftLongitude, upperRightLatitude, upperRightLongitude);
 			} catch (Throwable t) {
 				Log.e("AsyncHttpRequestTask.doInBackGround", "Throwable", t);
 			}
@@ -65,10 +63,10 @@ public class GeocodingHelper {
 		}
 
 		protected void onPostExecute(GeocodingRequest request) {
-			if (request.address == null) {
+			if ((request.addresses == null) || (request.addresses.size() == 0)) {
 				request.callback.geocodeResponseError(request.requestId, "Could not find address...");
 			} else {
-				request.callback.geocodeResponseSucccess(request.requestId, request.address);
+				request.callback.geocodeResponseSucccess(request.requestId, request.addresses);
 			}
 		}
 	}
@@ -87,6 +85,6 @@ public class GeocodingHelper {
 		public Context ctx;
 		public String location;
 		public GeocodingResponseListener callback;
-		public Address address = null;
+		public List<Address> addresses = null;
 	}
 }
