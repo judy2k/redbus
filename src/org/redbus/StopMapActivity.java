@@ -164,16 +164,19 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 					skip = 8;
 
 				Point stopCircle = new Point();
-				int idx = 0;
+				int redIdx = 0;
+				int greyIdx = 0;
+				int redSkip = skip;
+				if (serviceFilter != -1)
+					redSkip /= 2;
+				int greySkip = skip;
 				for (BusStopTreeNode node: pointTree.nodes) {
-					if (serviceFilter == -1) {
-						if ((idx++ % skip) != 0)
-							continue;						
+					if ((serviceFilter & node.servicesMap) == 0) {
+						if ((greyIdx++ % greySkip) != 0)
+							continue;
 					} else {
-						if ((serviceFilter & node.servicesMap) == 0) {
-							if ((idx++ % skip) != 0)
-								continue;
-						}
+						if ((redIdx++ % redSkip) != 0)
+							continue;
 					}
 					if ((node.x < tlx) || (node.y < tly) || (node.x > brx) || (node.y > bry))
 						continue;
