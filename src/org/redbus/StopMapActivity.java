@@ -420,7 +420,6 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 		case R.id.stopmap_menu_filterservices: {
 			final EditText input = new EditText(this);
-			input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT);
 
 			new AlertDialog.Builder(this)
 				.setTitle("Enter services separated by spaces")
