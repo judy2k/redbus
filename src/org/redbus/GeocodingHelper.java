@@ -54,7 +54,7 @@ public class GeocodingHelper {
 			
 			try {
 				Geocoder geocoder = new Geocoder(gr.ctx, Locale.UK);
-				gr.addresses = geocoder.getFromLocationName(gr.location, 10, lowerLeftLatitude, lowerLeftLongitude, upperRightLatitude, upperRightLongitude);
+				gr.addresses = geocoder.getFromLocationName(gr.location, 5, lowerLeftLatitude, lowerLeftLongitude, upperRightLatitude, upperRightLongitude);
 			} catch (Throwable t) {
 				Log.e("AsyncHttpRequestTask.doInBackGround", "Throwable", t);
 			}

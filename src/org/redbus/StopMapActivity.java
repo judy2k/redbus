@@ -29,6 +29,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
+import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -46,9 +47,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -493,15 +496,36 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			show();
 	}
 
-	public void geocodeResponseSucccess(int requestId, List<Address> addresses) {
+	public void geocodeResponseSucccess(int requestId, List<Address> addresses_) {
 		if (requestId != expectedRequestId)
 			return;
 		
 		dismissBusy();
 		
-		// FIXME: show a popup and let the user choose
-		Address address = addresses.get(0);
-		GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
-		mapController.animateTo(gp);
+		final List<Address> addresses = addresses_;
+		ArrayList<String> addressNames = new ArrayList<String>();
+		for(Address a: addresses) {
+			StringBuilder strb = new StringBuilder();
+			for(int i =0; i< a.getMaxAddressLineIndex(); i++) {
+				if (i > 0)
+					strb.append(", ");
+				strb.append(a.getAddressLine(i));
+			}
+			addressNames.add(strb.toString());
+		}
+
+		new AlertDialog.Builder(this)
+  	       .setSingleChoiceItems(addressNames.toArray(new String[addressNames.size()]), -1, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					if (which < 0)
+						return;
+					
+					Address address = addresses.get(which);
+					GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
+					mapController.animateTo(gp);
+					dialog.dismiss();
+				}
+  	       })
+  	       .show();
 	}
 }
