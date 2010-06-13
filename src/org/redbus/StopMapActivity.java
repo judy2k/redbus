@@ -264,6 +264,8 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 					public void onClick(View v) {
 						stopOverlay.serviceFilter = node.servicesMap;
 						d.dismiss();
+						// Zoom out map to show a larger part of the city
+						mapController.setZoom(12);
 						StopMapActivity.this.mapView.invalidate();
 					}
 				});
