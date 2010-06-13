@@ -498,6 +498,12 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			return;
 		
 		dismissBusy();
+		if (addresses_.size() == 1) {
+			Address address = addresses_.get(0);
+			GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
+			mapController.animateTo(gp);			
+			return;
+		}
 		
 		final List<Address> addresses = addresses_;
 		ArrayList<String> addressNames = new ArrayList<String>();
