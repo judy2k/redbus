@@ -41,6 +41,7 @@ import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -419,7 +420,8 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 		case R.id.stopmap_menu_filterservices: {
 			final EditText input = new EditText(this);
-			
+			input.setInputType(InputType.TYPE_CLASS_NUMBER);
+
 			new AlertDialog.Builder(this)
 				.setTitle("Enter services separated by spaces")
 				.setView(input)
