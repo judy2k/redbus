@@ -41,7 +41,6 @@ import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
