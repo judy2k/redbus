@@ -54,7 +54,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 public class BusTimesActivity extends ListActivity implements BusDataResponseListener {
@@ -79,6 +78,9 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	private static final String[] proximityAlarmStrings = new String[] { "50  metres", "100 metres", "250 metres", "500 metres" };
 	private static final int[] proximityAlarmDistances= new int[] { 50, 100, 200, 500};
 
+	private static final String[] hourStrings = new String[] { "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23" };
+	private static final String[] minStrings = new String[] { "00", "15", "30", "45" };
+	
 	public static void showActivity(Context context, long stopCode) {
 		Intent i = new Intent(context, BusTimesActivity.class);
 		i.putExtra("StopCode", stopCode);
@@ -519,21 +521,26 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			View v = vi.inflate(R.layout.futuredepartures, null);
 
 			final GregorianCalendar calendar = new GregorianCalendar();
-			final TimePicker timePicker = (TimePicker) v.findViewById(R.id.futuredepartures_time);
-			timePicker.setCurrentHour(calendar.get(Calendar.HOUR_OF_DAY));
-			timePicker.setCurrentMinute(calendar.get(Calendar.MINUTE));
-			timePicker.setIs24HourView(true);
-
 			final Spinner datePicker = (Spinner) v.findViewById(R.id.futuredepartures_date);
 			String[] dates = new String[4];
 			for(int i=0; i < 4; i++) {
 				dates[i] = advanceDateFormat.format(calendar.getTime());
 				calendar.add(Calendar.DAY_OF_MONTH, 1);
 			}
-			calendar.add(Calendar.DAY_OF_MONTH, -4);
 			ArrayAdapter<String> dateAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, dates);
 			dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 			datePicker.setAdapter(dateAdapter);
+			calendar.add(Calendar.DAY_OF_MONTH, -4);
+			
+			final Spinner hourPicker = (Spinner) v.findViewById(R.id.futuredepartures_time_hour);
+			ArrayAdapter<String> hourAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, hourStrings);
+			hourAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			hourPicker.setAdapter(hourAdapter);
+			
+			final Spinner minPicker = (Spinner) v.findViewById(R.id.futuredepartures_time_min);
+			ArrayAdapter<String> minAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, minStrings);
+			minAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			minPicker.setAdapter(minAdapter);
 
 			new AlertDialog.Builder(this)
 				.setTitle("Choose the desired date/time")
@@ -542,8 +549,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int whichButton) {
 								calendar.add(Calendar.DAY_OF_MONTH, datePicker.getSelectedItemPosition());
-								calendar.set(Calendar.HOUR_OF_DAY, timePicker.getCurrentHour());
-								calendar.set(Calendar.MINUTE, timePicker.getCurrentMinute());
+								calendar.set(Calendar.HOUR_OF_DAY, hourPicker.getSelectedItemPosition());
+								calendar.set(Calendar.MINUTE, minPicker.getSelectedItemPosition() * 15);
 								update(datePicker.getSelectedItemPosition(), calendar.getTime());
 							}
 						})

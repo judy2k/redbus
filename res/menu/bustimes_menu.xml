@@ -24,6 +24,6 @@
 		</menu>
 	</item>
 
-	<item android:id="@+id/bustimes_menu_futuredepartures" android:title="Show future departures"></item>
+	<item android:id="@+id/bustimes_menu_futuredepartures" android:title="Future departures..."></item>
 	
 </menu>
