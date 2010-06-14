@@ -536,6 +536,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			ArrayAdapter<String> hourAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, hourStrings);
 			hourAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 			hourPicker.setAdapter(hourAdapter);
+			hourPicker.setSelection(12);
 			
 			final Spinner minPicker = (Spinner) v.findViewById(R.id.futuredepartures_time_min);
 			ArrayAdapter<String> minAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, minStrings);
