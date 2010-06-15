@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 # Copyright 2010 Andrew De Quincey -  adq@lidskialf.net
 # This file is part of rEdBus.
@@ -26,6 +27,8 @@ from xml import xpath
 import psycopg2
 import time
 
+debug = false
+
 nowdate = datetime.datetime.today()
 
 browser = mechanize.Browser()
@@ -39,14 +42,17 @@ service_select = soup.find("select", {"name":"serviceService"})
 for option in service_select.findAll("option"):
     serviceName = option["value"].split('|')[0].strip();
     services[serviceName] = { 'ServiceName': serviceName }
-print >>sys.stderr, "Found %i services" % len(services)
+
+if debug:
+    print >>sys.stderr, "Found %i services" % len(services)
 
 # Now grab the stop details for each
 stops = {}
 count = 0
 for service in services:
     count += 1
-    print >>sys.stderr, "Processing service \"%s\" (%i/%i)" % (service, count, len(services))
+    if debug:
+        print >>sys.stderr, "Processing service \"%s\" (%i/%i)" % (service, count, len(services))
     servicedom = parseString(browser.open('http://www.mybustracker.co.uk/getServicePoints.php?serviceMnemo=%s' % service).read())
     
     for stop in xpath.Evaluate('//busStop', servicedom.documentElement):
