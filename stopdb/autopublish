@@ -23,4 +23,4 @@ INSTDIR=/usr/local/redbus
 
 # Generate new stops database
 $INSTDIR/makestopsdat.py $INSTDIR/stopdata/bus1.dat || exit 1
-svn commit $INSTDIR/stopdata
+/usr/bin/svn commit $INSTDIR/stopdata
