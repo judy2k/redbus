@@ -79,9 +79,6 @@ for service in services:
                                 'Y': y,
                                 'Services': servicesAtThisStop }  
 
-    print >>sys.stderr, "Sleeping for 10 seconds to avoid hammering..."
-    time.sleep(10);
-
 # Connect to database
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
 dbcur = db.cursor()

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 # Copyright 2010 Colin Paton - cozzarp@googlemail.com
 # Copyright 2010 Andrew De Quincey -  adq@lidskialf.net
@@ -49,7 +50,7 @@ if len(servicesList) > 64:
 
 # Get the list of stops from the database
 stops=[]
-curs.execute("SELECT stop_id, stop_code, stop_name, x, y FROM stops WHERE created_date = %s", (latestdate, ))
+curs.execute("SELECT stop_id, stop_code, stop_name, x, y FROM stops WHERE created_date = %s order by stop_code desc", (latestdate, ))
 for row in curs:
     # stop data
     dbstopid = row[0]
@@ -76,7 +77,7 @@ def recordnumgenerator():
 
 # Header - 8 bytes - 'bus1', integer root pos
 
-f=file("stops.dat","wb")
+f=file("bus1.dat","wb")
 f.seek(8,os.SEEK_SET)
 recordnumgen=recordnumgenerator()
 rootpos=tree.write(f,recordnumgen)
@@ -87,7 +88,5 @@ for service in servicesList:
     f.write("\0")
 
 f.seek(0,os.SEEK_SET)
-print rootpos ," root"
 f.write(struct.pack('>4si','bus1',rootpos))
-
 f.close()
