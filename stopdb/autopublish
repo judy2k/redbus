@@ -23,4 +23,4 @@ INSTDIR=/usr/local/redbus
 
 # Generate new stops database
 $INSTDIR/makestopsdat $INSTDIR/stopdata/bus1.dat || exit 1
-/usr/bin/svn commit $INSTDIR/stopdata
+/usr/bin/svn commit --username adqadq --message "" $INSTDIR/stopdata
