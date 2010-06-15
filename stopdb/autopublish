@@ -19,8 +19,9 @@
 INSTDIR=/usr/local/redbus
 
 # Download stops from the website
-# $INSTDIR/getstops || exit 1
+$INSTDIR/getstops || exit 1
 
 # Generate new stops database
 $INSTDIR/makestopsdat $INSTDIR/stopdata/bus1.dat || exit 1
+/bin/gzip -9 $INSTDIR/stopdata/bus1.dat
 /usr/bin/svn commit --username adqadq --message "" $INSTDIR/stopdata
