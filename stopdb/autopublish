@@ -19,8 +19,8 @@
 INSTDIR=/usr/local/redbus
 
 # Download stops from the website
-# $INSTDIR/getstops.py || exit 1
+# $INSTDIR/getstops || exit 1
 
 # Generate new stops database
-$INSTDIR/makestopsdat.py $INSTDIR/stopdata/bus1.dat || exit 1
+$INSTDIR/makestopsdat $INSTDIR/stopdata/bus1.dat || exit 1
 /usr/bin/svn commit $INSTDIR/stopdata
