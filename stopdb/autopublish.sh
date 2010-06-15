@@ -24,17 +24,16 @@
 newsum=`md5sum bus1.dat | cut -f1 -d ' '` || exit 1
 
 # Deal with old database
-if [ ! -f bus1.dat.old ]; then
+if [ ! -f stopdata/bus1.dat ]; then
 	echo "Old data file was missing!"
 	exit 1
 fi
 
 # Get the sum of the old file and copy ourselves for next time
-oldsum=`md5sum bus1.dat.old | cut -f1 -d ' '` || exit 1
-rm -f bus1.dat.old
-cp -f bus1.dat bus1.dat.old
+oldsum=`md5sum stopdata/bus1.dat | cut -f1 -d ' '` || exit 1
 
 # Publish if something has changed!
 if [ x$oldsum != x$newsum ]; then
+	cp -f bus1.dat stopdata/bus1.dat
 	echo "Would have published!"
 fi
