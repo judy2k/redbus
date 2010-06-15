@@ -21,6 +21,11 @@
 import psycopg2
 from kdtree import *
 import struct,os
+import sys
+
+if len(sys.argv) != 2:
+  print >>sys.stderr, "Syntax: makestopsdat <destination file>"
+  sys.exit(1)
 
 # Connect to database
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
@@ -77,7 +82,7 @@ def recordnumgenerator():
 
 # Header - 8 bytes - 'bus1', integer root pos
 
-f=file("bus1.dat","wb")
+f=file(sys.argv[1], "wb")
 f.seek(8,os.SEEK_SET)
 recordnumgen=recordnumgenerator()
 rootpos=tree.write(f,recordnumgen)
