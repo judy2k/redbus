@@ -23,5 +23,5 @@ $INSTDIR/getstops || exit 1
 
 # Generate new stops database
 $INSTDIR/makestopsdat $INSTDIR/stopdata/bus1.dat || exit 1
-/bin/gzip -9 $INSTDIR/stopdata/bus1.dat
-/usr/bin/svn commit --username adqadq --message "" $INSTDIR/stopdata
+/bin/gzip -n -f -9 $INSTDIR/stopdata/bus1.dat || exit 1
+/usr/bin/svn commit --username adqadq --message "" $INSTDIR/stopdata || exit 1
