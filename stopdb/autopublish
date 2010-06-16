@@ -26,7 +26,7 @@ $INSTDIR/getstops || exit 1
 # Generate new stops database
 $INSTDIR/makestopsdat $INSTDIR/bus1.dat || exit 1
 /bin/gzip -n -f -9 $INSTDIR/bus1.dat || exit 1
-newsum=`/usr/bin/md5sum bus1.dat.gz | cut -f1 -d ' '` || exit 1
+newsum=`/usr/bin/md5sum $INSTDIR/bus1.dat.gz | cut -f1 -d ' '` || exit 1
 
 # handle old data
 if [ ! -f $INSTDIR/bus1.dat.gz.old ]; then
