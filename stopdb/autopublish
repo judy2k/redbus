@@ -16,12 +16,31 @@
 #  You should have received a copy of the GNU General Public License
 #  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
 
+. /etc/redbus.conf
+
 INSTDIR=/usr/local/redbus
 
 # Download stops from the website
 $INSTDIR/getstops || exit 1
 
 # Generate new stops database
-$INSTDIR/makestopsdat $INSTDIR/stopdata/bus1.dat || exit 1
-/bin/gzip -n -f -9 $INSTDIR/stopdata/bus1.dat || exit 1
-/usr/bin/svn commit --username adqadq --message "" $INSTDIR/stopdata || exit 1
+$INSTDIR/makestopsdat $INSTDIR/bus1.dat || exit 1
+/bin/gzip -n -f -9 $INSTDIR/bus1.dat || exit 1
+newsum=`/usr/bin/md5sum bus1.dat.gz | cut -f1 -d ' '` || exit 1
+
+# handle old data
+if [ ! -f $INSTDIR/bus1.dat.gz.old ]; then
+	echo "Old data file is missing!"
+	exit 1
+fi
+oldsum=`/usr/bin/md5sum $INSTDIR/bus1.dat.gz.old | cut -f1 -d ' '` || exit 1
+rm -f $INSTDIR/bus1.dat.gz.old
+cp -f $INSTDIR/bus1.dat.gz $INSTDIR/bus1.dat.gz.old
+
+# Publish if something has changed!
+if [ x$oldsum != x$newsum ]; then
+	OUTFILE=$INSTDIR/bus1.dat-`date +%s`.gz
+	mv $INSTDIR/bus1.dat.gz $OUTFILE
+	$INSTDIR/googlecode_upload.py -s "new bus data for `date`" -p redbus -u $GCODE_USER -w $GCODE_PASS $OUTFILE || exit 1
+	rm -f $OUTFILE
+fi
