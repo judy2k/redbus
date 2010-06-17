@@ -248,22 +248,23 @@ public class PointTree {
 		if (here == -1) return best;
 		if (best == -1) best = here;
 		
-		int herepos, wantedpos;
+		double herepos, wantedpos;
 		
 		if (depth % 2 == 0) {
-		    herepos = lat[here];
-		    wantedpos = x;
+		    herepos = lat[here] / 1E6;
+		    wantedpos = x / 1E6;
 		}
 		else {
-			herepos = lon[here];
-			wantedpos = y;
+			herepos = lon[here] / 1E6;
+			wantedpos = y / 1E6;
 		}
 		
 		// Which is closer?
 		double disthere = distance(here,x,y);
 		double distbest = distance(best,x,y);
 		
-		if (disthere < distbest) best = here;
+		if (disthere < distbest) 
+			best = here;
 		
 		// Which branch is nearer?
 		int nearest, furthest;
