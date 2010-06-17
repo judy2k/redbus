@@ -49,8 +49,8 @@ for row in curs:
               };             
     servicesById[dbserviceid] = service
     servicesList.append(service);
-if len(servicesList) > 64:
-    print >>sys.stderr, "Error: more than 64 services found - need to fix file format!"
+if len(servicesList) > 128:
+    print >>sys.stderr, "Error: more than 128 services found - need to fix file format!"
     sys.exit(1)
 
 # Get the list of stops from the database
