@@ -24,7 +24,7 @@ import struct,os
 import sys
 
 if len(sys.argv) != 2:
-  print >>sys.stderr, "Syntax: makestopsdat <destination file>"
+  print >>sys.stderr, "Syntax: makestopsdat <destination file prefix>"
   sys.exit(1)
 
 # Connect to database
@@ -70,7 +70,10 @@ for row in curs:
         service = servicesById[maprow[0]]
         stopmap |= 1 << service['ServiceIdx']
 
-    stops.append(((x,y),code,name,stopmap))
+    stops.append(((x,y),code,name,0,stopmap))
+if len(stops) > 32767:
+    print >>sys.stderr, "Error: more than 32767 stops found - need to fix file format!"
+    sys.exit(1)
 
 tree=kdtree(stops)
 
@@ -80,18 +83,27 @@ def recordnumgenerator():
         yield num
         num+=1
 
-# Header - 8 bytes - 'bus1', integer root pos
+# Header - 8 bytes - 'bus2', integer root pos
+treeFile = file(sys.argv[1] + ".kdt", "wb")
+treeFile.write(struct.pack(">4s", 'bus2'))
+treeFile.seek(8,os.SEEK_SET)
 
-f=file(sys.argv[1], "wb")
-f.seek(8,os.SEEK_SET)
+metadataFile = file(sys.argv[1] + ".met", "wb")
+
+# Write the tree
 recordnumgen=recordnumgenerator()
-rootpos=tree.write(f,recordnumgen)
+rootpos=tree.write(treeFile,metadataFile,recordnumgen)
 
-f.write(struct.pack('>i', len(servicesList)));
+# output file headers and close 'em
+treeFile.seek(4,os.SEEK_SET)
+treeFile.write(struct.pack('>i',rootpos))
+treeFile.close()
+metadataFile.close()
+
+# output the services - 'bus2', integer number of services
+servicesFile = file(sys.argv[1] + ".srv", "wb")
+servicesFile.write(struct.pack('>i', len(servicesList)));
 for service in servicesList:
-    f.write(service['ServiceName'])
-    f.write("\0")
-
-f.seek(0,os.SEEK_SET)
-f.write(struct.pack('>4si','bus1',rootpos))
-f.close()
+    servicesFile.write(service['ServiceName'])
+    servicesFile.write("\0")
+servicesFile.close();

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2010 Colin Paton - cozzarp@googlemail.com
 # This file is part of rEdBus.
 #
@@ -32,23 +33,26 @@ class Node:
 	if self.rightChild:
 	    self.rightChild.dump(maxdepth,depth+1)
 
-    def write(self,file,recordnumgen):
+    def write(self,treeFile,metadataFile,recordnumgen):
         leftfilepos=-1
         rightfilepos=-1
 
         if self.leftChild:
-            leftfilepos=self.leftChild.write(file,recordnumgen)
+            leftfilepos=self.leftChild.write(treeFile,metadataFile,recordnumgen)
         if self.rightChild:
-            rightfilepos=self.rightChild.write(file,recordnumgen)
-        
-        bin=struct.pack(">iiddI16sQ",leftfilepos,rightfilepos,
-                                      self.location[0][0],      # axis 0
-                                      self.location[0][1],      # axis 1
-                                      self.location[1],         # stop code
-                                      (self.location[2]+u"                ").encode('utf-8'),    # stop name
-                                      self.location[3]          # stopmap
-                        )
-        file.write(bin)
+            rightfilepos=self.rightChild.write(treeFile,metadataFile,recordnumgen)
+
+        treeBin=struct.pack(">hhdd",leftfilepos,rightfilepos,
+					self.location[0][0],      # axis 0
+					self.location[0][1],      # axis 1
+			   )
+        metadataBin=struct.pack(">I16sQQ", self.location[1],         # stop code
+					   (self.location[2]+u"                ").encode('utf-8'),    # stop name
+					   self.location[3],          # stopmap_hi
+					   self.location[4]          # stopmap_lo
+				)
+        treeFile.write(treeBin)
+        metadataFile.write(metadataBin)
         return recordnumgen.next()
 
  

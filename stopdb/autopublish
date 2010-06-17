@@ -24,23 +24,24 @@ INSTDIR=/usr/local/redbus
 $INSTDIR/getstops || exit 1
 
 # Generate new stops database
-$INSTDIR/makestopsdat $INSTDIR/bus1.dat || exit 1
-/bin/gzip -n -f -9 $INSTDIR/bus1.dat || exit 1
-newsum=`/usr/bin/md5sum $INSTDIR/bus1.dat.gz | cut -f1 -d ' '` || exit 1
+$INSTDIR/makestopsdat $INSTDIR/bus2 || exit 1
+cat $INSTDIR/bus2.kdt $INSTDIR/bus2.met $INSTDIR/bus2.srv > $INSTDIR/bus2.dat
+/bin/gzip -n -f -9 $INSTDIR/bus2.dat || exit 1
+newsum=`/usr/bin/md5sum $INSTDIR/bus2.dat.gz | cut -f1 -d ' '` || exit 1
 
 # handle old data
-if [ ! -f $INSTDIR/bus1.dat.gz.old ]; then
+if [ ! -f $INSTDIR/bus2.dat.gz.old ]; then
 	echo "Old data file is missing!"
 	exit 1
 fi
-oldsum=`/usr/bin/md5sum $INSTDIR/bus1.dat.gz.old | cut -f1 -d ' '` || exit 1
-rm -f $INSTDIR/bus1.dat.gz.old
-cp -f $INSTDIR/bus1.dat.gz $INSTDIR/bus1.dat.gz.old
+oldsum=`/usr/bin/md5sum $INSTDIR/bus2.dat.gz.old | cut -f1 -d ' '` || exit 1
+rm -f $INSTDIR/bus2.dat.gz.old
+cp -f $INSTDIR/bus2.dat.gz $INSTDIR/bus2.dat.gz.old
 
 # Publish if something has changed!
 if [ x$oldsum != x$newsum ]; then
-	OUTFILE=$INSTDIR/bus1.dat-`date +%s`.gz
-	mv $INSTDIR/bus1.dat.gz $OUTFILE
+	OUTFILE=$INSTDIR/bus2.dat-`date +%s`.gz
+	mv $INSTDIR/bus2.dat.gz $OUTFILE
 	$INSTDIR/googlecode_upload.py -s "new bus data for `date`" -p redbus -u $GCODE_USER -w $GCODE_PASS $OUTFILE || exit 1
 	rm -f $OUTFILE
 fi
