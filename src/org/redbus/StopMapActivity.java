@@ -78,10 +78,10 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		private PointTree cachedPt = null;
 		private ArrayList<Integer> cachedStopNodeIdxs;
 
-		private double tlx, oldtlx;
-		private double tly, oldtly;
-		private double brx, oldbrx;
-		private double bry, oldbry;
+		private int tlx, oldtlx;
+		private int tly, oldtly;
+		private int brx, oldbrx;
+		private int bry, oldbry;
 
 		private BusServiceMap serviceFilter = new BusServiceMap();
 		private Bitmap normalStopBitmap;
@@ -146,10 +146,10 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 			GeoPoint tl = projection.fromPixels(0,canvas.getHeight());
 			GeoPoint br = projection.fromPixels(canvas.getWidth(),0);
-			tlx = tl.getLatitudeE6() / 1E6;
-			tly = tl.getLongitudeE6() / 1E6;
-			brx = br.getLatitudeE6() / 1E6;
-			bry = br.getLongitudeE6() / 1E6;
+			tlx = tl.getLatitudeE6();
+			tly = tl.getLongitudeE6();
+			brx = br.getLatitudeE6();
+			bry = br.getLongitudeE6();
 
 			// if we're zoomed out too far, switch to just iterating all stops and skipping to preserve speed.
 			if (view.getZoomLevel() < 15) {
@@ -170,24 +170,24 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				int greySkip = skip;
 				final int stopCount = pt.lat.length;
 				for(int stopNodeIdx = 0; stopNodeIdx < stopCount; stopNodeIdx++) {
-					BusServiceMap nodeServiceMap = pt.lookupServiceMapByStopNodeIdx(stopNodeIdx);
-					boolean noValidServices = !serviceFilter.areSomeSet(nodeServiceMap);
-					if (noValidServices) {
-						if ((greyIdx++ % greySkip) != 0)
+					boolean validServices = ((pt.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
+											((pt.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
+					if (validServices) {
+						if ((redIdx++ % redSkip) != 0)
 							continue;
 					} else {
-						if ((redIdx++ % redSkip) != 0)
+						if ((greyIdx++ % greySkip) != 0)
 							continue;
 					}
 					
-					double lat = pt.lat[stopNodeIdx];
-					double lon = pt.lon[stopNodeIdx];
+					int lat = pt.lat[stopNodeIdx];
+					int lon = pt.lon[stopNodeIdx];
 					if ((lat < tlx) || (lon < tly) || (lat > brx) || (lon > bry))
 						continue;
 
-					projection.toPixels(new GeoPoint((int)(lat * 1E6),(int)(lon * 1E6)), stopCircle);
+					projection.toPixels(new GeoPoint(lat, lon), stopCircle);
 					Bitmap bmp = normalStopBitmap;
-					if (noValidServices) {
+					if (!validServices) {
 						if (!shadow)
 							continue;
 						bmp = filteredStopBitmap;
@@ -214,22 +214,25 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			// For each node, draw a circle and optionally service number list
 			Point stopCircle = new Point();
 			for (int stopNodeIdx: cachedStopNodeIdxs) {
-				projection.toPixels(new GeoPoint((int)(pt.lat[stopNodeIdx] * 1E6),(int)(pt.lon[stopNodeIdx] * 1E6)), stopCircle);
+				projection.toPixels(new GeoPoint(pt.lat[stopNodeIdx],pt.lon[stopNodeIdx]), stopCircle);
 				
 				Bitmap bmp = normalStopBitmap;
 				boolean showService = showServiceLabels;
-				BusServiceMap nodeServiceMap = pt.lookupServiceMapByStopNodeIdx(stopNodeIdx);
+				boolean validServices = ((pt.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
+										((pt.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
 
-				if (!serviceFilter.areSomeSet(nodeServiceMap)) {
+				if (!validServices) {
 					if (!shadow)
 						continue;
 					bmp = filteredStopBitmap;
 					showService = false;
 				}
-				
+
 				canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
-				if (showService)
+				if (showService) {
+					BusServiceMap nodeServiceMap = pt.lookupServiceMapByStopNodeIdx(stopNodeIdx);
 					canvas.drawText(formatServices(pt, nodeServiceMap.andWith(serviceFilter), 3), stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
+				}
 			}
 
 			// draw service label info text last
@@ -241,20 +244,17 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		@Override
 		public boolean onTap(GeoPoint point, MapView mapView)
 		{
-			final double touchLat = point.getLatitudeE6()/1E6;
-			final double touchLon = point.getLongitudeE6()/1E6;
-			
 			PointTree pt = PointTree.getPointTree(StopMapActivity.this);
-			final int nearestStopNodeIdx = pt.findNearest(touchLat,touchLon);
+			final int nearestStopNodeIdx = pt.findNearest(point.getLatitudeE6(), point.getLongitudeE6());
 			final int stopCode = pt.lookupStopCodeByStopNodeIdx(nearestStopNodeIdx);
-			final double stopLat = pt.lat[nearestStopNodeIdx];
-			final double stopLon = pt.lon[nearestStopNodeIdx];
+			final double stopLat = pt.lat[nearestStopNodeIdx] / 1E6;
+			final double stopLon = pt.lon[nearestStopNodeIdx] / 1E6;
 			final BusServiceMap nodeServiceMap = pt.lookupServiceMapByStopNodeIdx(nearestStopNodeIdx);
 
 			// Yuk - there must be a better way to convert GeoPoint->Point than this?			
 			Location touchLoc = new Location("");
-			touchLoc.setLatitude(stopLat);
-			touchLoc.setLongitude(stopLon);
+			touchLoc.setLatitude(point.getLatitudeE6() / 1E6);
+			touchLoc.setLongitude(point.getLongitudeE6() / 1E6);
 
 			Location stopLoc = new Location("");
 			stopLoc.setLatitude(stopLat);
@@ -334,20 +334,9 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 	}
 	
 	public static void showActivity(Context context, 
-			double lat,
-			double lng) {
+			int lat,
+			int lng) {
 		Intent i = new Intent(context, StopMapActivity.class);
-		i.putExtra("Lat", lat);
-		i.putExtra("Lng", lng);
-		context.startActivity(i);
-	}
-	
-	public static void showActivityForServiceMap(Context context, 
-			long serviceMap,
-			double lat,
-			double lng) {
-		Intent i = new Intent(context, StopMapActivity.class);
-		i.putExtra("StopFilter", serviceMap);
 		i.putExtra("Lat", lat);
 		i.putExtra("Lng", lng);
 		context.startActivity(i);
@@ -369,14 +358,14 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		mapView.getOverlays().add(myLocationOverlay);
 
 		// Check to see if we've been passed data
-		double lat = getIntent().getDoubleExtra("Lat", -1);
-		double lng = getIntent().getDoubleExtra("Lng", -1);
+		int lat = getIntent().getIntExtra("Lat", -1);
+		int lng = getIntent().getIntExtra("Lng", -1);
 		
 		// Not been passed a location, so use GPS and default to centre
 		if (lat == -1 && lng == -1) {
 			// Default map to centre of Edinburgh
-			lat = 55.946052;
-			lng = -3.188879;
+			lat = 55946052;
+			lng = -3188879;
 			
 			myLocationOverlay.runOnFirstFix(new Runnable() {
 				public void run() {
@@ -390,7 +379,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 		stopOverlay = new StopOverlay(mapView);
 		mapView.getOverlays().add(stopOverlay);
-		mapController.setCenter(new GeoPoint((int)(lat*1E6),(int)(lng*1E6)));
+		mapController.setCenter(new GeoPoint(lat, lng));
 	}
 
 	@Override
@@ -544,7 +533,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		if (addresses_.size() == 1) {
 			Address address = addresses_.get(0);
 			GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
-			mapController.animateTo(gp);			
+			mapController.animateTo(gp);
 			return;
 		}
 		

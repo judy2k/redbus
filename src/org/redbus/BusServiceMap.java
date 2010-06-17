@@ -20,8 +20,8 @@ package org.redbus;
 
 public class BusServiceMap {
 
-	private long bits0;
-	private long bits1;
+	public long bits0;
+	public long bits1;
 	public boolean areAllSet;
 	
 	public BusServiceMap(long bits0, long bits1) {
