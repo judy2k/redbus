@@ -21,8 +21,6 @@ package org.redbus;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.redbus.PointTree.BusStopTreeNode;
-
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -77,14 +75,15 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		private Projection projection;
 		private Paint blackBrush;
 
-		private ArrayList<BusStopTreeNode> nodes;
+		private PointTree cachedPt = null;
+		private ArrayList<Integer> cachedStopNodeIdxs;
 
 		private double tlx, oldtlx;
 		private double tly, oldtly;
 		private double brx, oldbrx;
 		private double bry, oldbry;
 
-		private long serviceFilter;
+		private BusServiceMap serviceFilter = new BusServiceMap();
 		private Bitmap normalStopBitmap;
 		private Paint normalStopPaint;
 		private Bitmap filteredStopBitmap;
@@ -97,8 +96,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		private static final String showMoreStopsText = "Zoom in to see more stops";
 		private static final String showMoreServicesText = "Zoom in to see services";
 
-		public StopOverlay(MapView view, long serviceFilter) {
-			this.serviceFilter = serviceFilter;
+		public StopOverlay(MapView view) {
 			this.projection = view.getProjection();
 
 			oldtlx = oldtly = oldbrx = oldbry = -1;
@@ -141,10 +139,10 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		public void draw(Canvas canvas, MapView view, boolean shadow) {
 			super.draw(canvas, view,shadow);
 
-			if (shadow && (serviceFilter == 0xffffffffffffL))
+			if (shadow && serviceFilter.areAllSet)
 				return;
 			
-			PointTree pointTree = PointTree.getPointTree(StopMapActivity.this);
+			PointTree pt = PointTree.getPointTree(StopMapActivity.this);
 
 			GeoPoint tl = projection.fromPixels(0,canvas.getHeight());
 			GeoPoint br = projection.fromPixels(canvas.getWidth(),0);
@@ -167,23 +165,29 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				int redIdx = 0;
 				int greyIdx = 0;
 				int redSkip = skip;
-				if (serviceFilter != -1)
+				if (!serviceFilter.areAllSet)
 					redSkip /= 2;
 				int greySkip = skip;
-				for (BusStopTreeNode node: pointTree.nodes) {
-					if ((serviceFilter & node.servicesMap) == 0) {
+				final int stopCount = pt.lat.length;
+				for(int stopNodeIdx = 0; stopNodeIdx < stopCount; stopNodeIdx++) {
+					BusServiceMap nodeServiceMap = pt.lookupServiceMapByStopNodeIdx(stopNodeIdx);
+					boolean noValidServices = !serviceFilter.areSomeSet(nodeServiceMap);
+					if (noValidServices) {
 						if ((greyIdx++ % greySkip) != 0)
 							continue;
 					} else {
 						if ((redIdx++ % redSkip) != 0)
 							continue;
 					}
-					if ((node.x < tlx) || (node.y < tly) || (node.x > brx) || (node.y > bry))
+					
+					double lat = pt.lat[stopNodeIdx];
+					double lon = pt.lon[stopNodeIdx];
+					if ((lat < tlx) || (lon < tly) || (lat > brx) || (lon > bry))
 						continue;
 
-					projection.toPixels(new GeoPoint((int)(node.x * 1E6),(int)(node.y * 1E6)), stopCircle);
+					projection.toPixels(new GeoPoint((int)(lat * 1E6),(int)(lon * 1E6)), stopCircle);
 					Bitmap bmp = normalStopBitmap;
-					if ((serviceFilter & node.servicesMap) == 0) {
+					if (noValidServices) {
 						if (!shadow)
 							continue;
 						bmp = filteredStopBitmap;
@@ -196,9 +200,10 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			}
 
 			// For some reason, draw is called LOTS of times. Only requery the DB if
-			// the co-ords change.
-			if (tlx != oldtlx || tly != oldtly || brx != oldbrx || bry != oldbry) {
-				nodes = pointTree.findRect(tlx,tly,brx,bry);
+			// the co-ords change, OR if the point tree itself has changed
+			if ((pt != cachedPt) || (tlx != oldtlx) || (tly != oldtly) || (brx != oldbrx) || (bry != oldbry)) {
+				cachedStopNodeIdxs = pt.findRect(tlx,tly,brx,bry);
+				cachedPt = pt;
 				oldtlx = tlx; oldtly = tly; oldbrx = brx; oldbry = bry;
 			}
 
@@ -208,12 +213,14 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 			// For each node, draw a circle and optionally service number list
 			Point stopCircle = new Point();
-			for (BusStopTreeNode node: nodes) {
-				projection.toPixels(new GeoPoint((int)(node.x * 1E6),(int)(node.y * 1E6)), stopCircle);
+			for (int stopNodeIdx: cachedStopNodeIdxs) {
+				projection.toPixels(new GeoPoint((int)(pt.lat[stopNodeIdx] * 1E6),(int)(pt.lon[stopNodeIdx] * 1E6)), stopCircle);
 				
 				Bitmap bmp = normalStopBitmap;
 				boolean showService = showServiceLabels;
-				if ((serviceFilter & node.servicesMap) == 0) {
+				BusServiceMap nodeServiceMap = pt.lookupServiceMapByStopNodeIdx(stopNodeIdx);
+
+				if (!serviceFilter.areSomeSet(nodeServiceMap)) {
 					if (!shadow)
 						continue;
 					bmp = filteredStopBitmap;
@@ -222,7 +229,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				
 				canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
 				if (showService)
-					canvas.drawText(pointTree.formatServices(node.servicesMap & serviceFilter, 3), stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
+					canvas.drawText(formatServices(pt, nodeServiceMap.andWith(serviceFilter), 3), stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
 			}
 
 			// draw service label info text last
@@ -234,38 +241,43 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		@Override
 		public boolean onTap(GeoPoint point, MapView mapView)
 		{
-			final double lat = point.getLatitudeE6()/1E6;
-			final double lng = point.getLongitudeE6()/1E6;
+			final double touchLat = point.getLatitudeE6()/1E6;
+			final double touchLon = point.getLongitudeE6()/1E6;
 			
-			final PointTree.BusStopTreeNode node = PointTree.getPointTree(StopMapActivity.this).findNearest(lat,lng);
+			PointTree pt = PointTree.getPointTree(StopMapActivity.this);
+			final int nearestStopNodeIdx = pt.findNearest(touchLat,touchLon);
+			final int stopCode = pt.lookupStopCodeByStopNodeIdx(nearestStopNodeIdx);
+			final double stopLat = pt.lat[nearestStopNodeIdx];
+			final double stopLon = pt.lon[nearestStopNodeIdx];
+			final BusServiceMap nodeServiceMap = pt.lookupServiceMapByStopNodeIdx(nearestStopNodeIdx);
 
 			// Yuk - there must be a better way to convert GeoPoint->Point than this?			
 			Location touchLoc = new Location("");
-			touchLoc.setLatitude(lat);
-			touchLoc.setLongitude(lng);
+			touchLoc.setLatitude(stopLat);
+			touchLoc.setLongitude(stopLon);
 
 			Location stopLoc = new Location("");
-			stopLoc.setLatitude(node.x);
-			stopLoc.setLongitude(node.y);
+			stopLoc.setLatitude(stopLat);
+			stopLoc.setLongitude(stopLon);
 
 			// Use distance of 50metres - ignore out of range touches
 			if (touchLoc.distanceTo(stopLoc) < 50) {
 				View v = StopMapActivity.this.getLayoutInflater().inflate(R.layout.stoppopup, null);
 				
 				final AlertDialog d = new AlertDialog.Builder(StopMapActivity.this).
-	    			setTitle(node.stopName + " (" + node.stopCode + ")").
+	    			setTitle(pt.lookupStopNameByStopNodeIdx(nearestStopNodeIdx) + " (" + stopCode + ")").
 	    			setView(v).
 	    			create();
-				
-				((TextView) v.findViewById(R.id.stoppopup_services)).setText("Services from this stop:\n" + PointTree.getPointTree(StopMapActivity.this).formatServices(node.servicesMap, -1));
+	
+				((TextView) v.findViewById(R.id.stoppopup_services)).setText("Services from this stop:\n" + formatServices(pt, nodeServiceMap, -1));
 				((Button) v.findViewById(R.id.stoppopup_streetview)).setOnClickListener(new OnClickListener() {
 					public void onClick(View v) {
-			            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("google.streetview:cbll=" + node.x + "," + node.y + "&cbp=1,180,,0,2.0")));
+			            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("google.streetview:cbll=" + stopLat + "," + stopLon + "&cbp=1,180,,0,2.0")));
 					}
 				});
 				((Button) v.findViewById(R.id.stoppopup_filter)).setOnClickListener(new OnClickListener() {
 					public void onClick(View v) {
-						stopOverlay.serviceFilter = node.servicesMap;
+						stopOverlay.serviceFilter.setTo(nodeServiceMap);
 						d.dismiss();
 						// Zoom out map to show a larger part of the city
 						mapController.setZoom(12);
@@ -274,7 +286,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				});
 				((Button) v.findViewById(R.id.stoppopup_viewtimes)).setOnClickListener(new OnClickListener() {
 					public void onClick(View v) {
-						BusTimesActivity.showActivity(StopMapActivity.this, node.stopCode);
+						BusTimesActivity.showActivity(StopMapActivity.this, stopCode);
 					}
 				});
 				((Button) v.findViewById(R.id.stoppopup_cancel)).setOnClickListener(new OnClickListener() {
@@ -296,6 +308,24 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				
 			return super.onTouchEvent(e, mapView);
 		}
+	}
+	
+	public String formatServices(PointTree pt, BusServiceMap servicesMap, int maxServices)
+	{
+		ArrayList<String> services = pt.getServiceNames(servicesMap);
+
+		// Where is string.join()?
+		StringBuilder sb = new StringBuilder();
+		for(int j = 0; j < services.size(); j++) {
+			if ((maxServices != -1) && (j >= maxServices)) {
+				sb.append("...");
+				break;
+			}
+			sb.append(services.get(j));
+			sb.append(" ");
+		}	
+		
+		return sb.toString();
 	}
 	
 	public static void showActivity(Context context) {
@@ -339,7 +369,6 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		mapView.getOverlays().add(myLocationOverlay);
 
 		// Check to see if we've been passed data
-		long stopFilter = getIntent().getLongExtra("StopFilter", 0xffffffff);
 		double lat = getIntent().getDoubleExtra("Lat", -1);
 		double lng = getIntent().getDoubleExtra("Lng", -1);
 		
@@ -358,8 +387,8 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		} else {
 			myLocationOverlay.disableMyLocation();
 		}
-		
-		stopOverlay = new StopOverlay(mapView,stopFilter);
+
+		stopOverlay = new StopOverlay(mapView);
 		mapView.getOverlays().add(stopOverlay);
 		mapController.setCenter(new GeoPoint((int)(lat*1E6),(int)(lng*1E6)));
 	}
@@ -396,7 +425,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		else
 			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Satellite View");		
 		
-		if (stopOverlay.serviceFilter == -1)
+		if (stopOverlay.serviceFilter.areAllSet)
 			menu.findItem(R.id.stopmap_menu_showall).setEnabled(false);
 		else
 			menu.findItem(R.id.stopmap_menu_showall).setEnabled(true);
@@ -425,7 +454,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		}
 
 		case R.id.stopmap_menu_showall:
-			stopOverlay.serviceFilter = -1;
+			stopOverlay.serviceFilter.setAll();
 			StopMapActivity.this.mapView.invalidate();
 			return true;
 
@@ -438,13 +467,13 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				.setPositiveButton(android.R.string.ok, 
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
-							long serviceFilter = 0;
+							BusServiceMap serviceFilter = new BusServiceMap().clearAll();
 							PointTree pt = PointTree.getPointTree(StopMapActivity.this);
 							for(String serviceStr: input.getText().toString().split("[ ]+")) {
 								if (pt.serviceNameToServiceBit.containsKey(serviceStr.toUpperCase()))
-									serviceFilter |= 1L << pt.serviceNameToServiceBit.get(serviceStr.toUpperCase()).longValue();
+									serviceFilter.setBit(pt.serviceNameToServiceBit.get(serviceStr.toUpperCase()));
 							}
-							stopOverlay.serviceFilter = serviceFilter;
+							stopOverlay.serviceFilter.setTo(serviceFilter);
 							// Zoom out map to show a larger part of the city
 							mapController.setZoom(12);
 							StopMapActivity.this.mapView.invalidate();

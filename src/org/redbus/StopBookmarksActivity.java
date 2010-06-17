@@ -131,8 +131,10 @@ public class StopBookmarksActivity extends ListActivity
 			return true;
 
 		case R.id.stopbookmarks_item_menu_showonmap:
-			PointTree.BusStopTreeNode busStop = PointTree.getPointTree(this).lookupStopByStopCode((int) bookmarkId);
-			StopMapActivity.showActivity(this, busStop.x, busStop.y);
+			PointTree pt = PointTree.getPointTree(this);
+			int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) bookmarkId);
+			if (stopNodeIdx != -1)
+				StopMapActivity.showActivity(this, pt.lat[stopNodeIdx], pt.lon[stopNodeIdx]);
 			return true;
 
 		case R.id.stopbookmarks_item_menu_rename:
@@ -218,10 +220,10 @@ public class StopBookmarksActivity extends ListActivity
 											.show();
 									return;
 								}
-								
-								PointTree.BusStopTreeNode busStop = PointTree.getPointTree(StopBookmarksActivity.this).lookupStopByStopCode((int) stopCode);
-								if (busStop != null) {
-									BusTimesActivity.showActivity(StopBookmarksActivity.this, (int) busStop.stopCode);
+								PointTree pt = PointTree.getPointTree(StopBookmarksActivity.this);
+								int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
+								if (stopNodeIdx != -1) {
+									BusTimesActivity.showActivity(StopBookmarksActivity.this, (int) stopCode);
 								} else {
 									new AlertDialog.Builder(StopBookmarksActivity.this)
 										.setTitle("Error")

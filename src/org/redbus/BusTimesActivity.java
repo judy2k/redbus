@@ -61,9 +61,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	private long stopCode = -1;
 	private String stopName = "";	
 	private String sorting = "";
-	
-	private PointTree.BusStopTreeNode busStop;
-	
+
 	private ProgressDialog busyDialog = null;
 	private int expectedRequestId = -1;
 	
@@ -106,12 +104,11 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			db.close();
 		}
 		
-		busStop = PointTree.getPointTree(this).lookupStopByStopCode((int) stopCode);
-
-		if (busStop != null) {
-			stopName = busStop.stopName;
-		}
-		else {
+		PointTree pt = PointTree.getPointTree(this);
+		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
+		if (stopNodeIdx != -1) {
+			stopName = pt.lookupStopNameByStopNodeIdx(stopNodeIdx);
+		} else {
 			stopName = "";
 		}
 		
@@ -277,14 +274,14 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	}
 	
 	private void addTemporalAlert(String selectedService) {
-		// get the bus stop details
-		PointTree pt = PointTree.getPointTree(this);
-		PointTree.BusStopTreeNode busStop = pt.lookupStopByStopCode((int) stopCode);
-		if (busStop == null)
-			return;
-
 		// get the list of services for this stop
-		ArrayList<String> servicesList = pt.lookupServices(busStop.servicesMap);
+		PointTree pt = PointTree.getPointTree(this);
+		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
+		if (stopNodeIdx == -1)
+			return;
+		BusServiceMap serviceMap = pt.lookupServiceMapByStopNodeIdx(stopNodeIdx);
+		
+		ArrayList<String> servicesList = pt.getServiceNames(serviceMap);
 		final String[] services = servicesList.toArray(new String[servicesList.size()]);
 		final boolean[] selectedServices = new boolean[services.length];
 
@@ -372,12 +369,6 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	}
 
 	private void addProximityAlert() {
-		// get the bus stop details
-		PointTree pt = PointTree.getPointTree(this);
-		final PointTree.BusStopTreeNode busStop = pt.lookupStopByStopCode((int) stopCode);
-		if (busStop == null)
-			return;
-
 		// load the view
 		View dialogView = getLayoutInflater().inflate(R.layout.addproximityalert, null);		
 
@@ -393,13 +384,18 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			.setTitle("Set alarm")
 			.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
+					PointTree pt = PointTree.getPointTree(BusTimesActivity.this);
+					int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
+					if (stopNodeIdx == -1)
+						return;
+
 					// cancel any current alerts
 					cancelAlerts(BusTimesActivity.this);
 
 					// stop location
 					Location location = new Location("");
-					location.setLatitude(busStop.x);
-					location.setLongitude(busStop.y);
+					location.setLatitude(pt.lat[stopNodeIdx]);
+					location.setLongitude(pt.lon[stopNodeIdx]);
 
 					// create an intent
 					Intent i = new Intent(BusTimesActivity.this, ProximityAlarmReceiver.class);
@@ -412,7 +408,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 					// weird! Found I needed to add a proximity alert *first* otherwise the GPS on my phone doesn't get a lock with just the requestlocationupdates!?!
 					LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-					lm.addProximityAlert(busStop.x, busStop.y, 1, 0, pi);
+					lm.addProximityAlert(pt.lat[stopNodeIdx], pt.lon[stopNodeIdx], 1, 0, pi);
 					lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30 * 1000, 25, pi);
 
 					addOngoingNotification(BusTimesActivity.this);
@@ -512,7 +508,10 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 
 		case R.id.bustimes_menu_viewonmap:
-			StopMapActivity.showActivity(this, busStop.x, busStop.y);
+			PointTree pt = PointTree.getPointTree(BusTimesActivity.this);
+			int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
+			if (stopNodeIdx != -1)
+				StopMapActivity.showActivity(this, pt.lat[stopNodeIdx], pt.lon[stopNodeIdx]);
 			return true;
 
 

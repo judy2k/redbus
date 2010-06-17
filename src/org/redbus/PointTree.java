@@ -24,8 +24,12 @@
 
 package org.redbus;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,17 +48,46 @@ public class PointTree {
 	public static PointTree getPointTree(Context ctx)
 	{
 		if (pointTree == null) {
-	        InputStream stopsFile = null;
+			InputStream stopsStream = null;
+			OutputStream outStream = null;
+			File file = new File("/data/data/org.redbus/files/stops.dat");
 			try {
-		        stopsFile = ctx.getResources().openRawResource(R.raw.stops);
-				pointTree = new PointTree(stopsFile);
+				// first of all, if the file doesn't exist on disk, extract it from our resources and save it out to there
+				if (!file.exists()) {
+					stopsStream = ctx.getResources().openRawResource(R.raw.stops);
+					outStream = new FileOutputStream(file);
+					byte b[] = new byte[4096];
+					int len = 0;
+					while((len = stopsStream.read(b)) != -1) {
+						if (len != 0)
+							outStream.write(b, 0, len);
+					}
+					outStream.close();
+					outStream = null;
+					stopsStream.close();
+					stopsStream = null;
+				}
+				
+				// now, load the on-disk file
+				stopsStream = new FileInputStream(file);
+				pointTree = new PointTree(stopsStream, (int) file.length());
+
 			} catch (IOException e) {
 				Log.println(Log.ERROR,"redbus","Error reading stops");
 				e.printStackTrace();
 			} finally {
 				try {
-					if (stopsFile != null)
-						stopsFile.close();
+					if (stopsStream != null)
+						stopsStream.close();
+				} catch (Throwable t) {
+				}
+				try {
+					if (outStream != null)
+						outStream.close();
+				} catch (Throwable t) {
+				}
+				try {
+					file.delete();
 				} catch (Throwable t) {
 				}
 			}
@@ -63,66 +96,61 @@ public class PointTree {
 		return pointTree;
 	}
 	
-	// Represents a node in the tree
-	public class BusStopTreeNode {
-		public double x;
-		public double y;
-		private int leftNode;
-		private int rightNode;
-		public int stopCode;
-		public String stopName;
-		public long servicesMap;
-		
-		public BusStopTreeNode(int leftNode, int rightNode, double x, double y, int stopCode, String stopName, long servicesMap)
-		{
-			this.leftNode = leftNode;
-			this.rightNode = rightNode;
-			this.x = x;
-			this.y = y;
-			this.stopCode = stopCode;		
-			this.stopName = stopName;
-			this.servicesMap = servicesMap;
-		}
-	}
+	public static final int SERVICE_MAP_LONG_COUNT = 2;
+	public static final int KDTREE_RECORD_SIZE = 20;
+	public static final int METADATA_RECORD_SIZE = 36;
 	
-	public BusStopTreeNode[] nodes;
-	private Map<Integer, Integer> nodeIdxByStopCode;
-	public String[] serviceBitToServiceName;
+	private byte[] stopMetadata;
+	public short[] left;
+	public short[] right;
+	public double[] lat;
+	public double[] lon;
 	private int rootRecordNum;
+	private Map<Integer, Integer> nodeIdxByStopCode;
 	final HashMap<Integer, Integer> serviceBitToSortIndex = new HashMap<Integer, Integer>();
 	public HashMap<String, Integer> serviceNameToServiceBit = new HashMap<String, Integer>();
-
-	// Read Data from the Android resource 'stops.dat' into memory
+	private String[] serviceBitToServiceName;
 	
-	private PointTree(InputStream is) throws IOException
+	private PointTree(InputStream is, int length) throws IOException
 	{
-		// read entire file into temp buffer
-		byte[] b = new byte[200*1024];
-		if (is.read(b) == b.length)
-			throw new RuntimeException("PointTree temp buffer was too small");
-		this.rootRecordNum = readInt(b, 4);
+		// read the entire stream into a memory buffer
+		byte[] b = new byte[length];
+		is.read(b);
 
-		// Root is always the last record in the file
-		this.nodes = new BusStopTreeNode[rootRecordNum+1];
+		// get the root record number
+		rootRecordNum = readInt(b, 4);
+
+		// setup the lookup arrays
+		this.left = new short[rootRecordNum+1];
+		this.right = new short[rootRecordNum+1];
+		this.lat = new double[rootRecordNum+1];
+		this.lon = new double[rootRecordNum+1];
+		this.stopMetadata = new byte[(rootRecordNum+1) * METADATA_RECORD_SIZE];
 		this.nodeIdxByStopCode = new HashMap<Integer, Integer>();
 		
-		// read in the nodes
+		// read in the kdtree
 		int off = 8;
 		for(int i = 0; i <= rootRecordNum; ++i)
 		{
-			int leftNode = readInt(b, off + 0);
-			int rightNode = readInt(b, off + 4);
-			double x = Double.longBitsToDouble(readLong(b, off + 8));
-			double y = Double.longBitsToDouble(readLong(b, off + 16));
-			int stopCode = readInt(b, off + 24);
-			String stopName = new String(b, off + 28, 16, "utf-8").trim();
-			long servicesMap = readLong(b, off + 44);
+			short leftNode = readShort(b, off + 0);
+			short rightNode = readShort(b, off + 2);
+			double x = Double.longBitsToDouble(readLong(b, off + 4));
+			double y = Double.longBitsToDouble(readLong(b, off + 12));
 			
-			BusStopTreeNode node = new BusStopTreeNode(leftNode, rightNode, x, y, stopCode, stopName, servicesMap);
-			nodes[i] = node;
-			nodeIdxByStopCode.put(new Integer(node.stopCode), new Integer(i));
+			left[i] = leftNode;
+			right[i] = rightNode;
+			lat[i] = x;
+			lon[i] = y;
 			
-			off += 52;
+			off += KDTREE_RECORD_SIZE;
+		}
+		
+		// read in the service metadata
+		System.arraycopy(b, off, stopMetadata, 0, stopMetadata.length);
+		for(int i=0; i<= rootRecordNum; i++) {
+			int stopCode = readInt(b, off + 0);
+			nodeIdxByStopCode.put(new Integer(stopCode), new Integer(i));
+			off += METADATA_RECORD_SIZE;
 		}
 
 		// read in the services
@@ -173,6 +201,11 @@ public class PointTree {
 			serviceBitToSortIndex.put(serviceNameToServiceBit.get(sortedServices.get(idx)), new Integer(idx));
 	}
 	
+	private short readShort(byte[] b, int off)
+	{
+		return (short) (((((int) b[off+0]) & 0xff) <<  8) | (((int) b[off+1]) & 0xff));
+	}
+	
 	private int readInt(byte[] b, int off)
 	{
 		return ((((int) b[off+0]) & 0xff) << 24) |
@@ -196,32 +229,25 @@ public class PointTree {
 	// Could use Android location class to do this, but kept in here from prototype.
 	// sqrt isn't technically needed, but in here to possibly do distance conversions later.
 	
-	private double distance(BusStopTreeNode node, double x, double y)
+	private double distance(int stopIdx, double x, double y)
 	{
-		return Math.sqrt(Math.pow(node.x-x,2) + Math.pow(node.y-y,2));
-	}
-	
-	private BusStopTreeNode lookupNode(int number)
-	{
-		if (number == -1) return null; // Child is a leaf
-		
-		return this.nodes[number];
+		return Math.sqrt(Math.pow(lat[stopIdx]-x,2) + Math.pow(lon[stopIdx]-y,2));
 	}
 	
 	// Recursive search - use 'findNearest' to start
-	private BusStopTreeNode searchNearest(BusStopTreeNode here, BusStopTreeNode best, double x, double y, int depth)
+	private int searchNearest(int here, int best, double x, double y, int depth)
 	{
-		if (here == null) return best;
-		if (best == null) best = here;
+		if (here == -1) return best;
+		if (best == -1) best = here;
 		
 		double herepos, wantedpos;
 		
 		if (depth % 2 == 0) {
-		    herepos = here.x;
+		    herepos = lat[here];
 		    wantedpos = x;
 		}
 		else {
-			herepos = here.y;
+			herepos = lon[here];
 			wantedpos = y;
 		}
 		
@@ -232,15 +258,15 @@ public class PointTree {
 		if (disthere < distbest) best = here;
 		
 		// Which branch is nearer?
-		BusStopTreeNode nearest, furthest;
+		int nearest, furthest;
 		
 		if (wantedpos < herepos) {
-			nearest = lookupNode(here.leftNode);
-			furthest = lookupNode(here.rightNode);
+			nearest = left[here];
+			furthest = right[here];
 		}
 		else{
-			furthest = lookupNode(here.leftNode);
-			nearest = lookupNode(here.rightNode);
+			furthest = left[here];
+			nearest = right[here];
 		}
 		
 		best = searchNearest(nearest,best,x,y,depth+1);
@@ -256,31 +282,26 @@ public class PointTree {
 		return best;
 	}
 	
-	private BusStopTreeNode getRoot()
-	{
-		return this.nodes[this.rootRecordNum];
-	}
-	
 	// Public interface to this class - finds the node nearest to the supplied
 	// co-ords
 	
-	public BusStopTreeNode findNearest(double x, double y)
+	public int findNearest(double x, double y)
 	{	
-		return this.searchNearest(this.getRoot(),null,x,y,0);
+		return this.searchNearest(rootRecordNum,-1,x,y,0);
 	}
 	
-	private ArrayList<BusStopTreeNode> searchRect(double xtl, double ytl,
-			                                         double xbr, double ybr,
-			                                         BusStopTreeNode here,
-			                                         ArrayList<BusStopTreeNode> stops,
-			                                         int depth)
+	private ArrayList<Integer> searchRect(double xtl, double ytl,
+                                     double xbr, double ybr,
+                                     int here,
+                                     ArrayList<Integer> stops,
+                                     int depth)
 	{
-		if (here==null) return stops;
+		if (here==-1) return stops;
 		
 		double topleft, bottomright, herepos, herex, herey;
 		
-		herex=here.x;
-		herey=here.y;
+		herex=lat[here];
+		herey=lon[here];
 		
 		if (depth % 2 == 0) {
 		    herepos = herex;
@@ -298,11 +319,11 @@ public class PointTree {
 		}
 		
 		if (bottomright > herepos) {
-			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.rightNode),stops, depth+1);
+			stops = searchRect(xtl,ytl,xbr,ybr,right[here],stops, depth+1);
 		}
 		
 		if (topleft < herepos) {
-			stops = searchRect(xtl,ytl,xbr,ybr,lookupNode(here.leftNode),stops, depth+1);
+			stops = searchRect(xtl,ytl,xbr,ybr,left[here],stops, depth+1);
 		}
 		
 		// If this node falls within range, add it
@@ -312,79 +333,68 @@ public class PointTree {
 		
 		return stops;
 	}
-	
+
 	// Return nodes within a certain rectangle - top-left/bottom-right
-	public ArrayList<BusStopTreeNode> findRect(double xtl, double ytl,
+	public ArrayList<Integer> findRect(double xtl, double ytl,
 	                                             double xbr, double ybr)
 	{
-		ArrayList<BusStopTreeNode> stops = new ArrayList<BusStopTreeNode>();
-		
-		//Log.println(Log.DEBUG, "redbus", "tl: "+ Double.toString(xtl) + "," + Double.toString(ytl));
-		//Log.println(Log.DEBUG, "redbus", "br: "+ Double.toString(xbr) + "," + Double.toString(ybr));
-		
-		return searchRect(xtl,ytl,xbr,ybr,this.getRoot(),stops,0);
+		ArrayList<Integer> stops = new ArrayList<Integer>();		
+		return searchRect(xtl,ytl,xbr,ybr,rootRecordNum,stops,0);
 	}
 	
-	// Return nodes within a certain radius
-	public ArrayList<BusStopTreeNode> findRadius(double xcentre, double ycentre, double radiusMetres)
-	{
-		// Convert radius in metres to approximate decimal degrees.
-		// http://en.wikipedia.org/wiki/Decimal_degrees
-		//
-		// 111,319.9 metres = roughly 1 degree
-		
-		double radiusDegrees = radiusMetres / 111319.9;
-		
-	    // A rectangle is *nearly* a circle, right...
-		// Rectangle searching of the tree is easier than radius searching. We should
-		// filter out finds outside the circle, but we're only interested in an approximate
-		// search right now.
-		
-		return findRect(xcentre-radiusDegrees,
-				          ycentre-radiusDegrees,
-				          xcentre+radiusDegrees,
-				          ycentre+radiusDegrees);
-	}
-	
-	public BusStopTreeNode lookupStopByStopCode(int stopCode)
+	public int lookupStopNodeIdxByStopCode(int stopCode)
 	{
 		Integer node = nodeIdxByStopCode.get(new Integer(stopCode));
 		if (node == null)
-			return null;
-		if (node.intValue() >= nodes.length)
-			return null;
-		return nodes[node.intValue()];
+			return -1;
+		if (node.intValue() >= lat.length)
+			return -1;
+		return node.intValue();
 	}
 	
-	public ArrayList<String> lookupServices(long servicesMap)
+	public String lookupStopNameByStopNodeIdx(int stopNodeIdx)
 	{
-		String[] tmp = new String[64];
-		for(int i=0; i< 64; i++)
-			if ((servicesMap & (1L << i)) != 0)
+		int off = stopNodeIdx * METADATA_RECORD_SIZE;
+		try {
+			return new String(stopMetadata, off + 4, 16, "utf-8").trim();
+		} catch (Throwable t) {
+			return "???";
+		}
+	}
+	
+	public int lookupStopCodeByStopNodeIdx(int stopNodeIdx) 
+	{
+		int off = stopNodeIdx * METADATA_RECORD_SIZE;
+		return readInt(stopMetadata, off);
+	}
+	
+	public BusServiceMap lookupServiceMapByStopNodeIdx(int stopNodeIdx)
+	{
+		long[] bits = new long[SERVICE_MAP_LONG_COUNT];
+
+		int off = (stopNodeIdx * METADATA_RECORD_SIZE) + 20;
+		for(int i=0; i< SERVICE_MAP_LONG_COUNT; i++) {
+			bits[i] = readLong(stopMetadata, off);
+			off += 8;
+		}
+		
+		return new BusServiceMap(bits[1], bits[0]); // reversed 'cos we read them in reversed
+	}
+
+	public ArrayList<String> getServiceNames(BusServiceMap serviceMap)
+	{
+		int maxEntries = serviceBitToServiceName.length;
+		String[] tmp = new String[maxEntries];
+		for(int i=0; i< maxEntries; i++)
+			if (serviceMap.isBitSet(i))
 				tmp[serviceBitToSortIndex.get(i)] = serviceBitToServiceName[i];
 		
 		ArrayList<String> result = new ArrayList<String>();
-		for(String cur: tmp)
-			if (cur != null)
-				result.add(cur);
+		for(String cur: tmp) {
+			if (cur == null)
+				continue;
+			result.add(cur);
+		}
 		return result;
-	}
-	
-	public String formatServices(long servicesMap, int maxServices)
-	{
-		ArrayList<String> services = lookupServices(servicesMap);
-
-		// Where is string.join()?
-		StringBuilder sb = new StringBuilder();
-		for(int j = 0; j < services.size(); j++) {
-			if ((maxServices != -1) && (j >= maxServices)) {
-				sb.append("...");
-				break;
-			}
-			sb.append(services.get(j));
-			sb.append(" ");
-		}	
-		
-		return sb.toString();
 	}
 }
