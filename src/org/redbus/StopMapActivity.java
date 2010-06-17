@@ -172,12 +172,22 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				for(int stopNodeIdx = 0; stopNodeIdx < stopCount; stopNodeIdx++) {
 					boolean validServices = ((pt.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
 											((pt.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
+
+					Bitmap bmp = normalStopBitmap;
 					if (validServices) {
+						if (shadow)
+							continue;
+
 						if ((redIdx++ % redSkip) != 0)
 							continue;
 					} else {
+						if (!shadow)
+							continue;
+
 						if ((greyIdx++ % greySkip) != 0)
 							continue;
+
+						bmp = filteredStopBitmap;
 					}
 					
 					int lat = pt.lat[stopNodeIdx];
@@ -186,16 +196,11 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 						continue;
 
 					projection.toPixels(new GeoPoint(lat, lon), stopCircle);
-					Bitmap bmp = normalStopBitmap;
-					if (!validServices) {
-						if (!shadow)
-							continue;
-						bmp = filteredStopBitmap;
-					}
-					canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, nullPaint);
+					canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
 				}
 				
-				canvas.drawBitmap(showMoreStopsBitmap, 0, 0, nullPaint);
+				if (!shadow)
+					canvas.drawBitmap(showMoreStopsBitmap, 0, 0, nullPaint);
 				return;
 			}
 
@@ -214,20 +219,23 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			// For each node, draw a circle and optionally service number list
 			Point stopCircle = new Point();
 			for (int stopNodeIdx: cachedStopNodeIdxs) {
-				projection.toPixels(new GeoPoint(pt.lat[stopNodeIdx],pt.lon[stopNodeIdx]), stopCircle);
+				boolean validServices = ((pt.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
+										((pt.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
 				
 				Bitmap bmp = normalStopBitmap;
 				boolean showService = showServiceLabels;
-				boolean validServices = ((pt.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
-										((pt.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
-
-				if (!validServices) {
+				if (validServices) {
+					if (shadow)
+						continue;
+				} else {
 					if (!shadow)
 						continue;
+
 					bmp = filteredStopBitmap;
 					showService = false;
 				}
 
+				projection.toPixels(new GeoPoint(pt.lat[stopNodeIdx],pt.lon[stopNodeIdx]), stopCircle);				
 				canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
 				if (showService) {
 					BusServiceMap nodeServiceMap = pt.lookupServiceMapByStopNodeIdx(stopNodeIdx);
@@ -236,7 +244,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			}
 
 			// draw service label info text last
-			if (!showServiceLabels)
+			if ((!showServiceLabels) && (!shadow))
 				canvas.drawBitmap(showServicesBitmap, 0, 0, nullPaint);
 		}
 		
