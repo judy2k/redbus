@@ -138,7 +138,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 		public void draw(Canvas canvas, MapView view, boolean shadow) {
 			super.draw(canvas, view,shadow);
-
+			
 			if (shadow && serviceFilter.areAllSet)
 				return;
 			
@@ -165,8 +165,6 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				int redIdx = 0;
 				int greyIdx = 0;
 				int redSkip = skip;
-				if (!serviceFilter.areAllSet)
-					redSkip /= 2;
 				int greySkip = skip;
 				final int stopCount = pt.lat.length;
 				for(int stopNodeIdx = 0; stopNodeIdx < stopCount; stopNodeIdx++) {
