@@ -115,6 +115,11 @@ public class PointTree {
 	public HashMap<String, Integer> serviceNameToServiceBit = new HashMap<String, Integer>();
 	private String[] serviceBitToServiceName;
 	
+	public int lowerLeftLat;
+	public int lowerLeftLon;
+	public int upperRightLat;
+	public int upperRightLon;
+
 	private PointTree(InputStream is, int length) throws IOException
 	{
 		// read the entire stream into a memory buffer
@@ -137,6 +142,10 @@ public class PointTree {
 		this.serviceMap1 = new long[rootRecordNum+1];
 		this.stopMetadata = new byte[(rootRecordNum+1) * METADATA_RECORD_SIZE];
 		this.nodeIdxByStopCode = new HashMap<Integer, Integer>();
+		this.lowerLeftLat = Integer.MAX_VALUE;
+		this.lowerLeftLon = Integer.MAX_VALUE;
+		this.upperRightLat = Integer.MIN_VALUE;
+		this.upperRightLon = Integer.MIN_VALUE;
 		
 		// read in the kdtree
 		int off = 8;
@@ -148,6 +157,15 @@ public class PointTree {
 			lon[i] = readInt(b, off + 8);
 			serviceMap1[i] = readLong(b, off + 12);
 			serviceMap0[i] = readLong(b, off + 20);
+
+			if (lat[i] < this.lowerLeftLat)
+				this.lowerLeftLat = lat[i];
+			if (lon[i] < this.lowerLeftLon)
+				this.lowerLeftLon = lon[i];
+			if (lat[i] > this.upperRightLat)
+				this.upperRightLat = lat[i];
+			if (lon[i] > this.upperRightLon)
+				this.upperRightLon = lon[i];
 
 			off += KDTREE_RECORD_SIZE;
 		}
