@@ -40,8 +40,11 @@ cp -f $INSTDIR/bus2.dat.gz $INSTDIR/bus2.dat.gz.old
 
 # Publish if something has changed!
 if [ x$oldsum != x$newsum ]; then
-	OUTFILE=$INSTDIR/bus2.dat-`date +%s`.gz
-	mv $INSTDIR/bus2.dat.gz $OUTFILE
-	$INSTDIR/googlecode_upload.py -s "new bus data for `date`" -p redbus -u $GCODE_USER -w $GCODE_PASS $OUTFILE || exit 1
+	OUTFILE=bus2.dat-`date +%s`.gz
+	mv $INSTDIR/bus2.dat.gz $INSTDIR/$OUTFILE
+	$INSTDIR/googlecode_upload.py -s "new bus data for `date`" -p redbus -u $GCODE_USER -w $GCODE_PASS $INSTDIR/$OUTFILE || exit 1
 	rm -f $OUTFILE
+	
+	# Weird! We have to download the file at least once for http HEAD requests to work
+	curl -o /dev/null http://redbus.googlecode.com/files/$OUTFILE
 fi
