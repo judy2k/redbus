@@ -39,6 +39,7 @@ import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -72,35 +73,41 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 		private static final int stopRadius = 5;
 
+		// state remembered from previous draw() calls
+		GeoPoint oldtl;
+		GeoPoint oldbr;
+		GeoPoint oldbl;
+		GeoPoint oldtr;		
+		private float oldProjectionCheck = -1;
+		
+		// used during recursive drawStops() to control stack allocation size
+		private boolean drawGray;
+		private boolean showServiceLabels;
+		private Canvas bitmapCanvas;
 		private Projection projection;
-		private Paint blackBrush;
-
-		private PointTree cachedPt = null;
-		private ArrayList<Integer> cachedStopNodeIdxs;
-
-		private int tlx, oldtlx;
-		private int tly, oldtly;
-		private int brx, oldbrx;
-		private int bry, oldbry;
+		private PointTree pointTree;
+		private Point stopCircle = new Point();
 
 		private BusServiceMap serviceFilter = new BusServiceMap();
+		
+		private Paint blackBrush;
 		private Bitmap normalStopBitmap;
 		private Paint normalStopPaint;
 		private Bitmap filteredStopBitmap;
 		private Paint filteredStopPaint;
-		private Paint nullPaint;
 		
 		private Bitmap showMoreStopsBitmap;
 		private Bitmap showServicesBitmap;
+		
+		// the double buffering buffers
+		private Bitmap bitmapBuffer1;
+		private Bitmap bitmapBuffer2;
+		private Bitmap oldBitmapBuffer;
 
 		private static final String showMoreStopsText = "Zoom in to see more stops";
 		private static final String showMoreServicesText = "Zoom in to see services";
 
 		public StopOverlay(MapView view) {
-			this.projection = view.getProjection();
-
-			oldtlx = oldtly = oldbrx = oldbry = -1;
-
 			blackBrush = new Paint();
 			blackBrush.setARGB(180,0,0,0);
 
@@ -132,24 +139,152 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			showServicesBitmap.eraseColor(blackBrush.getColor());
 			tmpCanvas = new Canvas(showServicesBitmap);
 			tmpCanvas.drawText(showMoreServicesText, 10, Math.abs(bounds.top) + 10, normalStopPaint);
-			
-			nullPaint = new Paint();
 		}
 
 		public void draw(Canvas canvas, MapView view, boolean shadow) {
 			super.draw(canvas, view,shadow);
-			
-			if (shadow && serviceFilter.areAllSet)
-				return;
-			
-			PointTree pt = PointTree.getPointTree(StopMapActivity.this);
 
-			GeoPoint tl = projection.fromPixels(0,canvas.getHeight());
-			GeoPoint br = projection.fromPixels(canvas.getWidth(),0);
-			tlx = tl.getLatitudeE6();
-			tly = tl.getLongitudeE6();
-			brx = br.getLatitudeE6();
-			bry = br.getLongitudeE6();
+			if (shadow)
+				return;
+
+			// create the bitmaps now we know the size of what we're drawing into!
+			if (bitmapBuffer1 == null) {
+				bitmapBuffer1 = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Config.ARGB_8888);
+				bitmapBuffer2 = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Config.ARGB_8888);
+			}
+
+			// get other necessaries
+			this.pointTree = PointTree.getPointTree(StopMapActivity.this);
+			this.projection = view.getProjection();
+			this.showServiceLabels = view.getZoomLevel() > 16;				
+			boolean hasSomeGrey = !serviceFilter.areAllSet;
+			int canvasWidth = canvas.getWidth();
+			int canvasHeight = canvas.getHeight();
+			GeoPoint tl = projection.fromPixels(0, canvasHeight);
+			GeoPoint br = projection.fromPixels(canvasWidth, 0);
+			GeoPoint bl = projection.fromPixels(0,0);
+
+			// figure out which is the current buffer
+			Bitmap curBitmapBuffer = bitmapBuffer1;
+			if (oldBitmapBuffer == bitmapBuffer1)
+				curBitmapBuffer = bitmapBuffer2;			
+			this.bitmapCanvas = new Canvas(curBitmapBuffer);
+			curBitmapBuffer.eraseColor(Color.TRANSPARENT);
+
+			// check if the projection has radically changed
+			float projectionCheck = projection.metersToEquatorPixels(20);
+			if (projectionCheck != oldProjectionCheck)
+				oldBitmapBuffer = null;
+			oldProjectionCheck = projectionCheck;
+			
+			// if we're showing service labels, just draw directly onto the supplied canvas
+			if (showServiceLabels) {
+				this.bitmapCanvas = canvas;
+				
+				if (hasSomeGrey) {
+					drawGray = true;
+					drawStops(tl.getLatitudeE6(), tl.getLongitudeE6(), br.getLatitudeE6(), br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+				}
+				drawGray = false;
+				drawStops(tl.getLatitudeE6(), tl.getLongitudeE6(), br.getLatitudeE6(), br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+				return;
+			}
+
+			// draw the old bitmap onto the new one in the right place
+			if (oldBitmapBuffer != null) {
+				Point oldBlPix = projection.toPixels(oldbl, null);
+				this.bitmapCanvas.drawBitmap(oldBitmapBuffer, oldBlPix.x, oldBlPix.y, null);
+			}
+			
+			// draw!
+			if (oldBitmapBuffer == null) {
+				if (hasSomeGrey) {
+					drawGray = true;
+					drawStops(tl.getLatitudeE6(), tl.getLongitudeE6(), br.getLatitudeE6(), br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+				}
+				drawGray = false;
+				drawStops(tl.getLatitudeE6(), tl.getLongitudeE6(), br.getLatitudeE6(), br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+			} else {
+				Point oldTlPix = projection.toPixels(oldtl, null);
+				Point oldBrPix = projection.toPixels(oldbr, null);
+				
+				// handle latitude changes
+				if (oldTlPix.x > 0) { // moving to the left
+					int x = oldTlPix.x;
+					if (x > canvasWidth)
+						x = canvasWidth;
+					x += stopRadius;
+
+					GeoPoint _tl = projection.fromPixels(-stopRadius, canvasHeight);
+					GeoPoint _br = projection.fromPixels(x, 0);
+					
+					if (hasSomeGrey) {
+						drawGray = true;
+						drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+					}
+					drawGray = false;
+					drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+				} else if (oldBrPix.x < canvasWidth) { // moving to the right
+					int x = oldBrPix.x;
+					if (x < 0)
+						x = 0;
+					x -= stopRadius;
+
+					GeoPoint _tl = projection.fromPixels(x, canvasHeight);
+					GeoPoint _br = projection.fromPixels(canvasWidth + stopRadius, 0);
+					if (hasSomeGrey) {
+						drawGray = true;
+						drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+					}
+					drawGray = false;
+					drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+				}
+
+				// FIXME: can also skip drawing the overlapped X area!
+				
+				// handle longitude changes
+				if (oldBrPix.y > 0) { // moving down
+					int y = oldBrPix.y;
+					if (y > canvasHeight)
+						y = canvasHeight;
+					y += stopRadius;
+
+					GeoPoint _tl = projection.fromPixels(0, y);
+					GeoPoint _br = projection.fromPixels(canvasWidth + stopRadius, 0);
+					if (hasSomeGrey) {
+						drawGray = true;
+						drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+					}
+					drawGray = false;
+					drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+				} else if (oldTlPix.y < canvasHeight) { // moving up
+					int y = oldTlPix.y;
+					if (y < 0)
+						y = 0;
+					y -= stopRadius;
+
+					GeoPoint _tl = projection.fromPixels(-stopRadius, canvasHeight);
+					GeoPoint _br = projection.fromPixels(canvasWidth, y);
+
+					if (hasSomeGrey) {
+						drawGray = true;
+						drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+					}
+					drawGray = false;
+					drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+				}
+			}
+
+			// blit the final bitmap onto the destination canvas
+			canvas.drawBitmap(curBitmapBuffer, 0, 0, null);
+			oldBitmapBuffer = curBitmapBuffer;
+			oldtl = tl;
+			oldbr = br;
+			oldbl = bl;
+			
+			
+			
+			/*
 
 			// if we're zoomed out too far, switch to just iterating all stops and skipping to preserve speed.
 			if (view.getZoomLevel() < 15) {
@@ -212,7 +347,6 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 			// Prevent zoomed out view looking like abstract art
 			// with too many labels drawn...				
-			boolean showServiceLabels = view.getZoomLevel() > 16;				
 
 			// For each node, draw a circle and optionally service number list
 			Point stopCircle = new Point();
@@ -243,9 +377,66 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 			// draw service label info text last
 			if ((!showServiceLabels) && (!shadow))
-				canvas.drawBitmap(showServicesBitmap, 0, 0, nullPaint);
+				canvas.drawBitmap(showServicesBitmap, 0, 0, null);
+			*/
 		}
 		
+		private void drawStops(int xtl, int ytl, int xbr, int ybr, int here, int depth) {
+			if (here==-1) 
+				return;
+			
+			int topleft, bottomright, herepos, herex, herey;
+			
+			herex=pointTree.lat[here];
+			herey=pointTree.lon[here];
+			
+			if (depth % 2 == 0) {
+				herepos = herex;
+				topleft = xtl;
+				bottomright = xbr;
+			}
+			else {
+				herepos = herey;
+				topleft = ytl;
+				bottomright = ybr;
+			}
+			
+			if (topleft > bottomright) {
+				Log.println(Log.ERROR,"redbus", "co-ord error!");
+			}
+			
+			if (bottomright > herepos)
+				drawStops(xtl,ytl,xbr,ybr,pointTree.right[here],depth+1);
+			
+			if (topleft < herepos)
+				drawStops(xtl,ytl,xbr,ybr,pointTree.left[here],depth+1);
+			
+			// If this node falls within range, add it
+			if (xtl <= herex && xbr >= herex && ytl <= herey && ybr >= herey) {
+				boolean validServices = ((pointTree.serviceMap0[here] & serviceFilter.bits0) != 0) ||
+										((pointTree.serviceMap1[here] & serviceFilter.bits1) != 0);
+				
+				Bitmap bmp = normalStopBitmap;
+				boolean showService = showServiceLabels;
+				if (validServices) {
+					if (drawGray)
+						return;
+				} else {
+					if (!drawGray)
+						return;
+				
+					bmp = filteredStopBitmap;
+					showService = false;
+				}
+				
+				projection.toPixels(new GeoPoint(pointTree.lat[here],pointTree.lon[here]), stopCircle);				
+				bitmapCanvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
+				if (showService) {
+					BusServiceMap nodeServiceMap = pointTree.lookupServiceMapByStopNodeIdx(here);
+					bitmapCanvas.drawText(formatServices(pointTree, nodeServiceMap.andWith(serviceFilter), 3), stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
+				}
+			}
+		}
 		
 		@Override
 		public boolean onTap(GeoPoint point, MapView mapView)
@@ -287,7 +478,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 						d.dismiss();
 						// Zoom out map to show a larger part of the city
 						mapController.setZoom(12);
-						StopMapActivity.this.mapView.invalidate();
+						StopMapActivity.this.invalidate();
 					}
 				});
 				((Button) v.findViewById(R.id.stoppopup_viewtimes)).setOnClickListener(new OnClickListener() {
@@ -387,6 +578,12 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		mapView.getOverlays().add(stopOverlay);
 		mapController.setCenter(new GeoPoint(lat, lng));
 	}
+	
+	public void invalidate()
+	{
+		this.stopOverlay.oldBitmapBuffer = null;
+		this.mapView.invalidate();
+	}
 
 	@Override
 	protected boolean isRouteDisplayed() {
@@ -450,7 +647,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 		case R.id.stopmap_menu_showall:
 			stopOverlay.serviceFilter.setAll();
-			StopMapActivity.this.mapView.invalidate();
+			StopMapActivity.this.invalidate();
 			return true;
 
 		case R.id.stopmap_menu_filterservices: {
@@ -471,7 +668,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 							stopOverlay.serviceFilter.setTo(serviceFilter);
 							// Zoom out map to show a larger part of the city
 							mapController.setZoom(12);
-							StopMapActivity.this.mapView.invalidate();
+							StopMapActivity.this.invalidate();
 						}
 					})
 				.setNegativeButton(android.R.string.cancel, null)

@@ -109,7 +109,7 @@ public class PointTree {
 	public int[] lon;
 	public long[] serviceMap0;
 	public long[] serviceMap1;
-	private int rootRecordNum;
+	public int rootRecordNum;
 	private Map<Integer, Integer> nodeIdxByStopCode;
 	final HashMap<Integer, Integer> serviceBitToSortIndex = new HashMap<Integer, Integer>();
 	public HashMap<String, Integer> serviceNameToServiceBit = new HashMap<String, Integer>();
