@@ -114,7 +114,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			normalStopPaint = new Paint();
 			normalStopPaint.setARGB(250, 187, 39, 66); // rEdB[r]us[h] ;-)
 			normalStopPaint.setAntiAlias(true);
-			normalStopBitmap = Bitmap.createBitmap(stopRadius * 2, stopRadius * 2, Config.ARGB_4444);
+			normalStopBitmap = Bitmap.createBitmap(stopRadius * 2, stopRadius * 2, Config.ARGB_8888);
 			normalStopBitmap.eraseColor(Color.TRANSPARENT);
 			Canvas stopCanvas = new Canvas(normalStopBitmap);
 			stopCanvas.drawOval(new RectF(0,0,stopRadius*2,stopRadius*2), normalStopPaint);
@@ -122,7 +122,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			filteredStopPaint = new Paint();
 			filteredStopPaint.setARGB(250, 195, 195, 195);
 			filteredStopPaint.setAntiAlias(true);
-			filteredStopBitmap = Bitmap.createBitmap(stopRadius*2, stopRadius*2, Config.ARGB_4444);
+			filteredStopBitmap = Bitmap.createBitmap(stopRadius*2, stopRadius*2, Config.ARGB_8888);
 			filteredStopBitmap.eraseColor(Color.TRANSPARENT);
 			stopCanvas = new Canvas(filteredStopBitmap);
 			stopCanvas.drawOval(new RectF(0, 0, stopRadius*2, stopRadius*2), filteredStopPaint);
@@ -217,7 +217,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 					GeoPoint _tl = projection.fromPixels(-stopRadius, canvasHeight);
 					GeoPoint _br = projection.fromPixels(x, 0);
-					
+
 					if (hasSomeGrey) {
 						drawGray = true;
 						drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
