@@ -88,6 +88,10 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		private Projection projection;
 		private PointTree pointTree;
 		private Point stopCircle = new Point();
+		private int lat_tl;
+		private int lon_tl;
+		private int lat_br;
+		private int lon_br;
 
 		private BusServiceMap serviceFilter = new BusServiceMap();
 		
@@ -197,12 +201,9 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				this.bitmapGreyCanvas = canvas;
 				this.bitmapRedCanvas = canvas;
 
-				if (hasSomeGrey) {
-					drawGray = true;
-					drawStops(tl.getLatitudeE6(), tl.getLongitudeE6(), br.getLatitudeE6(), br.getLongitudeE6(), pointTree.rootRecordNum, 0);
-				}
-				drawGray = false;
-				drawStops(tl.getLatitudeE6(), tl.getLongitudeE6(), br.getLatitudeE6(), br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+				if (hasSomeGrey)
+					drawStops(tl, br, true);
+				drawStops(tl, br, false);
 				return;
 			}
 
@@ -216,12 +217,9 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			
 			// draw!
 			if (oldBitmapRedBuffer == null) {
-				if (hasSomeGrey) {
-					drawGray = true;
-					drawStops(tl.getLatitudeE6(), tl.getLongitudeE6(), br.getLatitudeE6(), br.getLongitudeE6(), pointTree.rootRecordNum, 0);
-				}
-				drawGray = false;
-				drawStops(tl.getLatitudeE6(), tl.getLongitudeE6(), br.getLatitudeE6(), br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+				if (hasSomeGrey)
+					drawStops(tl, br, true);
+				drawStops(tl, br, false);
 			} else {
 				Point oldTlPix = projection.toPixels(oldtl, null);
 				Point oldBrPix = projection.toPixels(oldbr, null);
@@ -235,13 +233,9 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 					GeoPoint _tl = projection.fromPixels(-stopRadius, canvasHeight);
 					GeoPoint _br = projection.fromPixels(x, 0);
-
-					if (hasSomeGrey) {
-						drawGray = true;
-						drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
-					}
-					drawGray = false;
-					drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+					if (hasSomeGrey)
+						drawStops(_tl, _br, true);
+					drawStops(_tl, _br, false);
 				} else if (oldBrPix.x < canvasWidth) { // moving to the right
 					int x = oldBrPix.x;
 					if (x < 0)
@@ -250,12 +244,9 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 					GeoPoint _tl = projection.fromPixels(x, canvasHeight);
 					GeoPoint _br = projection.fromPixels(canvasWidth + stopRadius, 0);
-					if (hasSomeGrey) {
-						drawGray = true;
-						drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
-					}
-					drawGray = false;
-					drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+					if (hasSomeGrey)
+						drawStops(_tl, _br, true);
+					drawStops(_tl, _br, false);
 				}
 
 				// FIXME: can also skip drawing the overlapped X area!
@@ -269,12 +260,9 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 					GeoPoint _tl = projection.fromPixels(0, y);
 					GeoPoint _br = projection.fromPixels(canvasWidth + stopRadius, 0);
-					if (hasSomeGrey) {
-						drawGray = true;
-						drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
-					}
-					drawGray = false;
-					drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+					if (hasSomeGrey)
+						drawStops(_tl, _br, true);
+					drawStops(_tl, _br, false);
 				} else if (oldTlPix.y < canvasHeight) { // moving up
 					int y = oldTlPix.y;
 					if (y < 0)
@@ -283,13 +271,9 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 
 					GeoPoint _tl = projection.fromPixels(-stopRadius, canvasHeight);
 					GeoPoint _br = projection.fromPixels(canvasWidth, y);
-
-					if (hasSomeGrey) {
-						drawGray = true;
-						drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
-					}
-					drawGray = false;
-					drawStops(_tl.getLatitudeE6(), _tl.getLongitudeE6(), _br.getLatitudeE6(), _br.getLongitudeE6(), pointTree.rootRecordNum, 0);
+					if (hasSomeGrey)
+						drawStops(_tl, _br, true);
+					drawStops(_tl, _br, false);
 				}
 			}
 
@@ -405,7 +389,16 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			*/
 		}
 		
-		private void drawStops(int lat_tl, int lon_tl, int lat_br, int lon_br, int stopNodeIdx, int depth) {
+		private void drawStops(GeoPoint tl, GeoPoint br, boolean drawGray) {
+			this.drawGray = drawGray;
+			this.lat_tl = tl.getLatitudeE6();
+			this.lon_tl = tl.getLongitudeE6();
+			this.lat_br = br.getLatitudeE6();
+			this.lon_br = br.getLongitudeE6();
+			drawStops(pointTree.rootRecordNum, 0);
+		}
+		
+		private void drawStops(int stopNodeIdx, int depth) {
 			if (stopNodeIdx==-1) 
 				return;
 			
@@ -430,10 +423,10 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			}
 			
 			if (br > here)
-				drawStops(lat_tl,lon_tl,lat_br,lon_br,pointTree.right[stopNodeIdx],depth+1);
+				drawStops(pointTree.right[stopNodeIdx],depth+1);
 			
 			if (tl < here)
-				drawStops(lat_tl,lon_tl,lat_br,lon_br,pointTree.left[stopNodeIdx],depth+1);
+				drawStops(pointTree.left[stopNodeIdx],depth+1);
 			
 			// If this node falls within range, add it
 			if (lat_tl <= lat && lat_br >= lat && lon_tl <= lon && lon_br >= lon) {
