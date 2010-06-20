@@ -177,23 +177,25 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				curBitmapGreyBuffer = bitmapBufferGrey2;	
 				curBitmapRedBuffer = bitmapBufferRed2;	
 			}
-			bitmapGreyCanvas = new Canvas(curBitmapGreyBuffer);
+			if (hasSomeGrey) {
+				bitmapGreyCanvas = new Canvas(curBitmapGreyBuffer);
+				curBitmapGreyBuffer.eraseColor(Color.TRANSPARENT);
+			}
 			bitmapRedCanvas = new Canvas(curBitmapRedBuffer);
-			curBitmapGreyBuffer.eraseColor(Color.TRANSPARENT);
 			curBitmapRedBuffer.eraseColor(Color.TRANSPARENT);
 
 			// check if the projection has radically changed
 			float projectionCheck = projection.metersToEquatorPixels(20);
 			if (projectionCheck != oldProjectionCheck) {
-				oldBitmapRedBuffer = null;
 				oldBitmapGreyBuffer = null;
+				oldBitmapRedBuffer = null;
 			}
 			oldProjectionCheck = projectionCheck;
 			
 			// if we're showing service labels, just draw directly onto the supplied canvas
 			if (showServiceLabels) {
-				this.bitmapRedCanvas = canvas;
 				this.bitmapGreyCanvas = canvas;
+				this.bitmapRedCanvas = canvas;
 
 				if (hasSomeGrey) {
 					drawGray = true;
@@ -207,7 +209,8 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			// draw the old bitmap onto the new one in the right place
 			if (oldBitmapRedBuffer != null) {
 				Point oldBlPix = projection.toPixels(oldbl, null);
-				this.bitmapGreyCanvas.drawBitmap(oldBitmapGreyBuffer, oldBlPix.x, oldBlPix.y, null);
+				if (hasSomeGrey)
+					this.bitmapGreyCanvas.drawBitmap(oldBitmapGreyBuffer, oldBlPix.x, oldBlPix.y, null);
 				this.bitmapRedCanvas.drawBitmap(oldBitmapRedBuffer, oldBlPix.x, oldBlPix.y, null);
 			}
 			
