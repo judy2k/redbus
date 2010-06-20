@@ -225,7 +225,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			} else {
 				Point oldTlPix = projection.toPixels(oldtl, null);
 				Point oldBrPix = projection.toPixels(oldbr, null);
-				
+
 				// handle latitude changes
 				if (oldTlPix.x > 0) { // moving to the left
 					int x = oldTlPix.x;
@@ -405,40 +405,40 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			*/
 		}
 		
-		private void drawStops(int xtl, int ytl, int xbr, int ybr, int here, int depth) {
-			if (here==-1) 
+		private void drawStops(int lat_tl, int lon_tl, int lat_br, int lon_br, int stopNodeIdx, int depth) {
+			if (stopNodeIdx==-1) 
 				return;
 			
-			int topleft, bottomright, herepos, herex, herey;
+			int tl, br, here, lat, lon;
 			
-			herex=pointTree.lat[here];
-			herey=pointTree.lon[here];
+			lat=pointTree.lat[stopNodeIdx];
+			lon=pointTree.lon[stopNodeIdx];
 			
 			if (depth % 2 == 0) {
-				herepos = herex;
-				topleft = xtl;
-				bottomright = xbr;
+				here = lat;
+				tl = lat_tl;
+				br = lat_br;
 			}
 			else {
-				herepos = herey;
-				topleft = ytl;
-				bottomright = ybr;
+				here = lon;
+				tl = lon_tl;
+				br = lon_br;
 			}
 			
-			if (topleft > bottomright) {
+			if (tl > br) {
 				Log.println(Log.ERROR,"redbus", "co-ord error!");
 			}
 			
-			if (bottomright > herepos)
-				drawStops(xtl,ytl,xbr,ybr,pointTree.right[here],depth+1);
+			if (br > here)
+				drawStops(lat_tl,lon_tl,lat_br,lon_br,pointTree.right[stopNodeIdx],depth+1);
 			
-			if (topleft < herepos)
-				drawStops(xtl,ytl,xbr,ybr,pointTree.left[here],depth+1);
+			if (tl < here)
+				drawStops(lat_tl,lon_tl,lat_br,lon_br,pointTree.left[stopNodeIdx],depth+1);
 			
 			// If this node falls within range, add it
-			if (xtl <= herex && xbr >= herex && ytl <= herey && ybr >= herey) {
-				boolean validServices = ((pointTree.serviceMap0[here] & serviceFilter.bits0) != 0) ||
-										((pointTree.serviceMap1[here] & serviceFilter.bits1) != 0);
+			if (lat_tl <= lat && lat_br >= lat && lon_tl <= lon && lon_br >= lon) {
+				boolean validServices = ((pointTree.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
+										((pointTree.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
 				
 				Bitmap bmp = normalStopBitmap;
 				Canvas canvas = bitmapRedCanvas;
@@ -455,10 +455,10 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 					canvas = bitmapGreyCanvas;
 				}
 				
-				projection.toPixels(new GeoPoint(pointTree.lat[here],pointTree.lon[here]), stopCircle);				
+				projection.toPixels(new GeoPoint(lat, lon), stopCircle);				
 				canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
 				if (showService) {
-					BusServiceMap nodeServiceMap = pointTree.lookupServiceMapByStopNodeIdx(here);
+					BusServiceMap nodeServiceMap = pointTree.lookupServiceMapByStopNodeIdx(stopNodeIdx);
 					canvas.drawText(formatServices(pointTree, nodeServiceMap.andWith(serviceFilter), 3), stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
 				}
 			}
