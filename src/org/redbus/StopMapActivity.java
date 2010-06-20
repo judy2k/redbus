@@ -303,7 +303,10 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			oldbr = br;
 			oldbl = bl;
 			
-			
+			// draw service label info text last
+			if (!showServiceLabels)
+				canvas.drawBitmap(showServicesBitmap, 0, 0, null);
+
 			
 			/*
 
