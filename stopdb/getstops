@@ -22,12 +22,12 @@ import os
 import mechanize
 import BeautifulSoup
 import datetime
-from xml.dom.minidom import parseString
-from xml import xpath
 import psycopg2
 import time
+import xml.sax
+from BusSaxDocumentHandler import BusSaxDocumentHandler
 
-debug = False
+debug = True
 
 nowdate = datetime.datetime.today()
 
@@ -53,37 +53,10 @@ for service in services:
     count += 1
     if debug:
         print >>sys.stderr, "Processing service \"%s\" (%i/%i)" % (service, count, len(services))
-    servicedom = parseString(browser.open('http://www.mybustracker.co.uk/getServicePoints.php?serviceMnemo=%s' % service).read())
     
-    for stop in xpath.Evaluate('//busStop', servicedom.documentElement):
-        stopCode = xpath.Evaluate('sms/text()', stop)[0].data.strip()
-        stopName = xpath.Evaluate('nom/text()', stop)[0].data.strip()
-        x = xpath.Evaluate('x/text()', stop)[0].data.strip()
-        y = xpath.Evaluate('y/text()', stop)[0].data.strip()
-        servicesAtThisStop = [tmpsrv.data.strip() for tmpsrv in xpath.Evaluate('services/service/mnemo/text()', stop)]
-
-        for tmpservice in servicesAtThisStop:
-            if not services.has_key(tmpservice):
-                print >>sys.stderr, "Warning: Stop %s has services which do not exist (%s)" % (stopCode, tmpservice)
-                
-        
-        if stops.has_key(stopCode):
-            oldStop = stops[stopCode]
-            
-            if oldStop['StopName'] != stopName:
-                print >>sys.stderr, "Warning: Stop %s has differing names (%s != %s) between services" % (stopCode, oldStop['StopName'], stopName)
-            if oldStop['X'] != x:
-                print >>sys.stderr, "Warning: Stop %s has differing X coordinate (%s != %s) between services" % (stopCode, oldStop['X'], x)
-            if oldStop['Y'] != y:
-                print >>sys.stderr, "Warning: Stop %s has differing Y coordinate (%s != %s) between services" % (stopCode, oldStop['Y'], y)
-            if ','.join(oldStop['Services']) != ','.join(servicesAtThisStop):
-                print >>sys.stderr, "Warning: Stop %s has differing services list (%s != %s) between services" % (stopCode, ','.join(oldStop['Services']), ','.join(servicesAtThisStop))
-        else:
-            stops[stopCode] = { 'StopCode': stopCode,
-                                'StopName': stopName,
-                                'X': x,
-                                'Y': y,
-                                'Services': servicesAtThisStop }  
+    xmlString = browser.open('http://www.mybustracker.co.uk/getServicePoints.php?serviceMnemo=%s' % service).read()
+    handler = BusSaxDocumentHandler(services, stops)
+    xml.sax.parseString(xmlString, handler)
 
 # Connect to database
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
