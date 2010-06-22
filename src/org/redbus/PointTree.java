@@ -98,9 +98,9 @@ public class PointTree {
 					}
 				}
 			}
-		}
 
-		return pointTree;
+			return pointTree;
+		}
 	}
 
 	public static void saveNewDatabase(byte[] gzippedDatabase) throws IOException
