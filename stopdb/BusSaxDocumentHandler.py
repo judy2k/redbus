@@ -60,7 +60,7 @@ class BusSaxDocumentHandler(handler.ContentHandler):
                                                 'X': self.x,
                                                 'Y': self.y,
                                                 'Services': self.servicesAtThisStop }  
-            inBusStop = False
+            self.inBusStop = False
         
         elif name == 'mnemo':
             self.servicesAtThisStop += ( self.curService.strip(), )
