@@ -85,6 +85,18 @@ public class PointTree {
 						file.delete();
 					} catch (Throwable t) {
 					}
+					
+					// zap the LASTUPDATE from the db so we redownload it
+			        LocalDBHelper db = new LocalDBHelper(ctx);
+			        try {
+			        	db.deleteGlobalSetting("LASTUPDATE");
+			        } catch (Throwable t) {
+			        	// ignore
+			        } finally {
+			        	db.close();
+			        }
+
+					
 				} finally {
 					try {
 						if (stopsStream != null)
