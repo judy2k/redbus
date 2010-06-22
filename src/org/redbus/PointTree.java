@@ -139,6 +139,7 @@ public class PointTree {
 				} catch (Throwable t) {
 				}
 				outFile.renameTo(dbFile);
+				pointTree = null;
 			} catch (Throwable t) {
 				try {
 					outFile.delete();
