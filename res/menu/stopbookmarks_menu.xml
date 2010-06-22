@@ -11,5 +11,5 @@
 				android:title="Restore"></item>
 		</menu>
 	</item>
-<item android:title="Check for new bus data" android:id="@+id/stopbookmarks_menu_checkupdates"></item>
+<item android:id="@+id/stopbookmarks_menu_checkupdates" android:title="Check for new bus stop data"></item>
 </menu>
