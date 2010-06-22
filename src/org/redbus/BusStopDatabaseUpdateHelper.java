@@ -28,48 +28,37 @@ import java.util.regex.Pattern;
 
 import org.apache.http.protocol.HTTP;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class PointTreeUpdateHelper {
+public class BusStopDatabaseUpdateHelper {
 	
-	private static Integer RequestId = new Integer(0);
 	private static final Pattern busUpdateRegex = Pattern.compile("bus2.dat-([0-9]+).gz");
 
-	public static int checkForUpdates(Context ctx)
+	public static void checkForUpdates(long lastUpdateDate, BusStopDatabaseUpdateResponseListener callback)
 	{
-		int requestId = RequestId++;
-
-		new AsyncUpdateTask().execute(new UpdateRequest(requestId, UpdateRequest.REQ_CHECKUPDATES, ctx));
-
-		return requestId;
+		new AsyncUpdateTask().execute(new UpdateRequest(UpdateRequest.REQ_CHECKUPDATES, lastUpdateDate, -1, callback));
 	}
 
-	public static int getUpdate(long updateDate)
+	public static void getUpdate(long updateDate, BusStopDatabaseUpdateResponseListener callback)
 	{
-		int requestId = RequestId++;
-
-		new AsyncUpdateTask().execute(new UpdateRequest(requestId, UpdateRequest.REQ_GETUPDATE, updateDate));
-
-		return requestId;
+		new AsyncUpdateTask().execute(new UpdateRequest(UpdateRequest.REQ_GETUPDATE, -1, updateDate, callback));
 	}
 
 	private static class AsyncUpdateTask extends AsyncTask<UpdateRequest, Integer, UpdateRequest> {
 		
 		protected UpdateRequest doInBackground(UpdateRequest... params) {
 			UpdateRequest ur = params[0];
-			ur.updateDate = -1;
-			ur.updateLength = -1;
-			ur.updateData = null;
 
 			try {
 				switch(ur.requestType) {
 				case UpdateRequest.REQ_CHECKUPDATES:
+					ur.updateDate = -1;
 					checkUpdates(ur);
 					break;
 
 				case UpdateRequest.REQ_GETUPDATE:
+					ur.updateData = null;
 					getUpdate(ur);
 					break;
 				}				
@@ -87,15 +76,6 @@ public class PointTreeUpdateHelper {
 			if (downloadsHtml == null)
 				return;
 
-			// get the date of the previous update
-			long lastUpdateDate = -1;
-			LocalDBHelper db = new LocalDBHelper(ur.ctx);
-			try {
-				lastUpdateDate = Long.parseLong(db.getGlobalSetting("lastupdate", "-1"));
-			} finally {
-				db.close();
-			}
-
 			// find the latest update
 			long latestUpdateDate = -1;
 			Matcher matcher= busUpdateRegex.matcher(downloadsHtml);
@@ -106,12 +86,11 @@ public class PointTreeUpdateHelper {
 			}
 
 			// no update newer than the one we have - just return
-			if (latestUpdateDate <= lastUpdateDate) 
+			if (latestUpdateDate <= ur.lastUpdateDate) {
+				ur.updateDate = 0;
 				return;
+			}
 			ur.updateDate = latestUpdateDate;
-
-			// Now, get the size of the update
-			ur.updateLength = doGetContentLength(new URL("http://redbus.googlecode.com/files/bus2.dat-" + latestUpdateDate + ".gz"));
 		}
 
 		private void getUpdate(UpdateRequest ur) throws MalformedURLException {
@@ -176,6 +155,7 @@ public class PointTreeUpdateHelper {
 					connection = (HttpURLConnection) url.openConnection();
 					connection.setReadTimeout(30 * 1000);
 					connection.setConnectTimeout(30 * 1000);
+					connection.setUseCaches(false);
 					if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
 						Log.e("PointTreeUpdateHelperRequestTask.doGetUrl", "HttpError: " + connection.getResponseMessage());
 						continue;
@@ -185,7 +165,7 @@ public class PointTreeUpdateHelper {
 					byte[] result = new byte[connection.getContentLength()];
 					int pos = 0;
 					while(true) {
-						int len = is.read(result, pos, 1024);
+						int len = is.read(result, pos, result.length - pos);
 						if (len < 0)
 							break;
 						pos += len;
@@ -209,71 +189,47 @@ public class PointTreeUpdateHelper {
 			
 			return null;
 		}
-		
-		private int doGetContentLength(URL url) {
-			for(int retries = 0; retries < 2; retries++) {
-				HttpURLConnection connection = null;
-				try {
-					// make the request and check the response code
-					connection = (HttpURLConnection) url.openConnection();
-					connection.setRequestMethod("HEAD");
-					connection.setReadTimeout(30 * 1000);
-					connection.setConnectTimeout(30 * 1000);
-					if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-						Log.e("PointTreeUpdateHelperRequestTask.doHeadUrl", "HttpError: " + connection.getResponseMessage());
-						continue;
-					}
-					
-					return connection.getContentLength();
-				} catch (Throwable t) {
-					Log.e("PointTreeUpdateHelperRequestTask.doHeadUrl", "Throwable", t);
-				} finally {
-					try {
-						if (connection != null)
-							connection.disconnect();
-					} catch (Throwable t) {
-					}
-				}
-			}
-			
-			return -1;
-		}
 
 		protected void onPostExecute(UpdateRequest request) {
-			/*
-			if ((request.addresses == null) || (request.addresses.size() == 0)) {
-				request.callback.geocodeResponseError(request.requestId, "Could not find address...");
-			} else {
-				request.callback.geocodeResponseSucccess(request.requestId, request.addresses);
+			switch(request.requestType) {
+			case UpdateRequest.REQ_CHECKUPDATES:
+				if (request.updateDate == -1) {
+					request.callback.checkUpdatesError();
+					return;
+				}
+				
+				request.callback.checkUpdatesSuccess(request.updateDate);
+				break;
+
+			case UpdateRequest.REQ_GETUPDATE:
+				if (request.updateData == null) {
+					request.callback.getUpdateError();
+					return;
+				}
+				
+				request.callback.getUpdateSuccess(request.updateDate, request.updateData);
+				break;
 			}
-			*/
 		}
 	}
 	
-	private static class UpdateRequest {
+	public static class UpdateRequest {
 		
 		public static final int REQ_CHECKUPDATES = 0;
 		public static final int REQ_GETUPDATE = 1;
 		
-		public UpdateRequest(int requestId, int requestType, Context ctx)
+		public UpdateRequest(int requestType, long lastUpdateDate, long updateDate, BusStopDatabaseUpdateResponseListener callback)
 		{
-			this.requestId = requestId;
 			this.requestType = requestType;
-			this.ctx = ctx;
-		}
-		
-		public UpdateRequest(int requestId, int requestType, long updateDate)
-		{
-			this.requestId = requestId;
-			this.requestType = requestType;
+			this.lastUpdateDate = lastUpdateDate;
 			this.updateDate = updateDate;
+			this.callback = callback;
 		}
 		
-		public int requestId;
 		public int requestType;
-		public Context ctx;
+		public long lastUpdateDate;
 		public long updateDate;
-		public int updateLength;
 		public byte[] updateData;
+		public BusStopDatabaseUpdateResponseListener callback;
 	}
 }

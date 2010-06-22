@@ -20,7 +20,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 	private long stopCode;
 	private String stopName;
 
-	private static final int ALARM_MAX_TIMEOUT_MSEC = 20 * 60 * 1000;
+	private static final int ALARM_MAX_TIMEOUT_MSEC = 40 * 60 * 1000;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -47,7 +47,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 			Notification notification = new Notification(R.drawable.tracker_24x24_masked, "Bus alarm aborted!", System.currentTimeMillis());
 			notification.defaults |= Notification.DEFAULT_ALL;
 			notification.flags |= Notification.FLAG_AUTO_CANCEL;
-			notification.setLatestEventInfo(context, "Bus alarm aborted!", "Bus did not arrive within 20 mins; cancelling alarm", contentIntent);
+			notification.setLatestEventInfo(context, "Bus alarm aborted!", "Bus did not arrive within 40 mins; cancelling alarm", contentIntent);
 
 			NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 			nm.notify(BusTimesActivity.ALERT_NOTIFICATION_ID, notification);

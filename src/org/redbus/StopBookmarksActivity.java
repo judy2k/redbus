@@ -20,6 +20,7 @@ package org.redbus;
 
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.Date;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlSerializer;
@@ -48,7 +49,7 @@ import android.widget.Toast;
 import android.util.Log;
 import android.util.Xml;
 
-public class StopBookmarksActivity extends ListActivity
+public class StopBookmarksActivity extends ListActivity implements BusStopDatabaseUpdateResponseListener
 {	
 	private static final String[] columnNames = new String[] { LocalDBHelper.ID, LocalDBHelper.BOOKMARKS_COL_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
@@ -56,6 +57,7 @@ public class StopBookmarksActivity extends ListActivity
 
 	private long bookmarkId = -1;
 	private String bookmarkName = null;
+	private boolean isManualUpdateCheck = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
@@ -78,7 +80,23 @@ public class StopBookmarksActivity extends ListActivity
 	    			show();        	
         		db.setGlobalSetting("PREVIOUSVERSIONCODE", Integer.toString(pi.versionCode));
         	}
-        } catch (Exception e) {
+        	
+        	long nextUpdateCheck = Long.parseLong(db.getGlobalSetting("NEXTUPDATECHECK", "0"));
+			long lastUpdateDate = Long.parseLong(db.getGlobalSetting("LASTUPDATE", "-1"));
+        	
+        	// do update check
+        	if (nextUpdateCheck <= new Date().getTime()) {
+        		isManualUpdateCheck = false;
+        		BusStopDatabaseUpdateHelper.checkForUpdates(lastUpdateDate, this);
+        		
+            	// setup time for next check
+            	nextUpdateCheck = new Date().getTime();
+            	nextUpdateCheck += 24 * 60 * 60 * 1000; // 1 day
+            	nextUpdateCheck += (long) (Math.random() * (12 * 60 * 60 * 1000.0)); // some random time in the 12 hours afterwards
+            	db.setGlobalSetting("NEXTUPDATECHECK", Long.toString(nextUpdateCheck));
+        	}
+        	
+        } catch (Throwable t) {
         	// ignore
         } finally {
         	db.close();
@@ -314,8 +332,76 @@ public class StopBookmarksActivity extends ListActivity
 	        update();
 			return true;		
 		}
+		
+		case R.id.stopbookmarks_menu_checkupdates: {
+	        // display changes popup
+	        LocalDBHelper db = new LocalDBHelper(this);
+			long lastUpdateDate = -1;
+	        try {
+				lastUpdateDate = Long.parseLong(db.getGlobalSetting("LASTUPDATE", "-1"));
+	        } catch (Exception e) {
+	        	return true;
+	        } finally {
+	        	db.close();
+	        }
+	        
+    		isManualUpdateCheck = true;
+    		BusStopDatabaseUpdateHelper.checkForUpdates(lastUpdateDate, this);
+    		return true;
+		}
 		}
 
 		return false;
+	}
+
+	public void checkUpdatesError() {
+		Toast.makeText(this, "Failed to check for bus stop data updates; please try again later", Toast.LENGTH_SHORT).show();
+	}
+
+	public void checkUpdatesSuccess(long updateDate) {
+		if (updateDate == 0) {
+			if (isManualUpdateCheck)
+				Toast.makeText(this, "No new bus stop data available", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
+		final long updateDateF = updateDate;
+		new AlertDialog.Builder(this)
+			.setTitle("New bus stops")
+			.setMessage("New bus stop data is available; shall I download it now?")
+			.setPositiveButton(android.R.string.ok, 
+					new DialogInterface.OnClickListener() {
+	                    public void onClick(DialogInterface dialog, int whichButton) {
+	                    	BusStopDatabaseUpdateHelper.getUpdate(updateDateF, StopBookmarksActivity.this);
+	                    }
+					})
+			.setNegativeButton(android.R.string.cancel, null)
+	        .show();		
+	}
+
+	public void getUpdateError() {
+		Toast.makeText(this, "Failed to download update; please try again later", Toast.LENGTH_SHORT).show();
+	}
+
+	public void getUpdateSuccess(long updateDate, byte[] updateData) {
+		
+		try {
+			PointTree.saveNewDatabase(updateData);
+		} catch (Throwable t) {
+			Log.e("BusStopDatabaseUpdateHelper", "onPostExecute", t);
+			Toast.makeText(this, "Failed to download update; please try again later", Toast.LENGTH_SHORT).show();
+			return;
+		}
+
+		Toast.makeText(this, "Update downloaded, and installed successfully...", Toast.LENGTH_SHORT).show();
+		
+        LocalDBHelper db = new LocalDBHelper(this);
+        try {
+        	db.setGlobalSetting("LASTUPDATE", Long.toString(updateDate));
+        } catch (Exception e) {
+        	// ignore
+        } finally {
+        	db.close();
+        }
 	}
 }

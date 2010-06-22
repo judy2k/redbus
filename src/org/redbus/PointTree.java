@@ -24,6 +24,7 @@
 
 package org.redbus;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,72 +37,124 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 import android.content.Context;
 import android.util.Log;
 
 
 public class PointTree {
-	
+
 	private static PointTree pointTree = null;
-	
+	private static Integer syncObj = new Integer(0);
+
 	public static PointTree getPointTree(Context ctx)
 	{
-		if (pointTree == null) {
-			InputStream stopsStream = null;
-			OutputStream outStream = null;
-			File file = new File("/data/data/org.redbus/files/bus2.dat");
-			try {
-				// first of all, if the file doesn't exist on disk, extract it from our resources and save it out to there
-				if (!file.exists()) {
-					stopsStream = ctx.getResources().openRawResource(R.raw.stops);
-					outStream = new FileOutputStream(file);
-					byte b[] = new byte[4096];
-					int len = 0;
-					while((len = stopsStream.read(b)) != -1) {
-						if (len != 0)
-							outStream.write(b, 0, len);
-					}
-					outStream.close();
-					outStream = null;
-					stopsStream.close();
-					stopsStream = null;
-				}
-				
-				// now, load the on-disk file
-				stopsStream = new FileInputStream(file);
-				pointTree = new PointTree(stopsStream, (int) file.length());
-
-			} catch (IOException e) {
-				Log.println(Log.ERROR,"redbus","Error reading stops");
-				e.printStackTrace();
-				
-				// always delete the file if there was an error
+		synchronized (syncObj) {
+			if (pointTree == null) {
+				InputStream stopsStream = null;
+				OutputStream outStream = null;
+				File file = new File("/data/data/org.redbus/files/bus2.dat");
 				try {
-					file.delete();
+					// first of all, if the file doesn't exist on disk, extract it from our resources and save it out to there
+					if (!file.exists()) {
+						stopsStream = ctx.getResources().openRawResource(R.raw.stops);
+						outStream = new FileOutputStream(file);
+						byte b[] = new byte[4096];
+						int len = 0;
+						while((len = stopsStream.read(b)) != -1) {
+							if (len != 0)
+								outStream.write(b, 0, len);
+						}
+						outStream.close();
+						outStream = null;
+						stopsStream.close();
+						stopsStream = null;
+					}
+
+					// now, load the on-disk file
+					stopsStream = new FileInputStream(file);
+					pointTree = new PointTree(stopsStream, (int) file.length());
+
+				} catch (IOException e) {
+					Log.println(Log.ERROR,"redbus","Error reading stops");
+					e.printStackTrace();
+
+					// always delete the file if there was an error
+					try {
+						file.delete();
+					} catch (Throwable t) {
+					}
+				} finally {
+					try {
+						if (stopsStream != null)
+							stopsStream.close();
+					} catch (Throwable t) {
+					}
+					try {
+						if (outStream != null)
+							outStream.close();
+					} catch (Throwable t) {
+					}
+				}
+			}
+		}
+
+		return pointTree;
+	}
+
+	public static void saveNewDatabase(byte[] gzippedDatabase) throws IOException
+	{
+		synchronized (syncObj) {
+			FileOutputStream outStream = null;
+			GZIPInputStream inStream = null;
+			File outFile = new File("/data/data/org.redbus/files/bus2.dat.new");
+			File dbFile = new File("/data/data/org.redbus/files/bus2.dat");
+			try {
+				outStream = new FileOutputStream(outFile);
+
+				// save the data out
+				inStream = new GZIPInputStream(new ByteArrayInputStream(gzippedDatabase));
+				byte[] buf = new byte[1024];
+				int len;
+				while((len = inStream.read(buf)) >= 0)
+					outStream.write(buf, 0, len);
+				outStream.flush();
+
+				// now delete the old database and rename the new file to the old filename
+				try {
+					dbFile.delete();
 				} catch (Throwable t) {
+				}
+				outFile.renameTo(dbFile);
+			} catch (Throwable t) {
+				try {
+					outFile.delete();
+				} catch (Throwable t2) {
+				}
+				try {
+					dbFile.delete();				
+				} catch (Throwable t2) {
 				}
 			} finally {
-				try {
-					if (stopsStream != null)
-						stopsStream.close();
-				} catch (Throwable t) {
-				}
 				try {
 					if (outStream != null)
 						outStream.close();
 				} catch (Throwable t) {
 				}
-			}
+				try {
+					if (inStream != null)
+						inStream.close();
+				} catch (Throwable t) {
+				}
+			}			
 		}
-		
-		return pointTree;
 	}
-	
+
 	public static final int SERVICE_MAP_LONG_COUNT = 2;
 	public static final int KDTREE_RECORD_SIZE = 28;
 	public static final int METADATA_RECORD_SIZE = 20;
-	
+
 	private byte[] stopMetadata;
 	public short[] left;
 	public short[] right;
@@ -114,7 +167,7 @@ public class PointTree {
 	final HashMap<Integer, Integer> serviceBitToSortIndex = new HashMap<Integer, Integer>();
 	public HashMap<String, Integer> serviceNameToServiceBit = new HashMap<String, Integer>();
 	private String[] serviceBitToServiceName;
-	
+
 	public int lowerLeftLat;
 	public int lowerLeftLon;
 	public int upperRightLat;
@@ -146,7 +199,7 @@ public class PointTree {
 		this.lowerLeftLon = Integer.MAX_VALUE;
 		this.upperRightLat = Integer.MIN_VALUE;
 		this.upperRightLon = Integer.MIN_VALUE;
-		
+
 		// read in the kdtree
 		int off = 8;
 		for(int i = 0; i <= rootRecordNum; ++i)
@@ -169,7 +222,7 @@ public class PointTree {
 
 			off += KDTREE_RECORD_SIZE;
 		}
-		
+
 		// read in the service metadata
 		System.arraycopy(b, off, stopMetadata, 0, stopMetadata.length);
 		for(int i=0; i<= rootRecordNum; i++) {
@@ -213,80 +266,80 @@ public class PointTree {
 					arg1BaseService = new Integer(Integer.parseInt(arg1.replaceAll("[^0-9]", "").trim()));
 					baseServices.put(arg1, arg1BaseService);
 				}
-				
+
 				if (arg0BaseService.intValue() != arg1BaseService.intValue())
 					return arg0BaseService.intValue() - arg1BaseService.intValue();
 				return arg0.compareTo(arg1);
 			}
 		});
-		
+
 		// now, generate the servicebit -> idx lookup table
 		for(int idx=0; idx < sortedServices.size(); idx++)
 			serviceBitToSortIndex.put(serviceNameToServiceBit.get(sortedServices.get(idx)), new Integer(idx));
 	}
-	
+
 	private short readShort(byte[] b, int off)
 	{
 		return (short) (((((int) b[off+0]) & 0xff) <<  8) | (((int) b[off+1]) & 0xff));
 	}
-	
+
 	private int readInt(byte[] b, int off)
 	{
 		return ((((int) b[off+0]) & 0xff) << 24) |
-			   ((((int) b[off+1]) & 0xff) << 16) |
-			   ((((int) b[off+2]) & 0xff) <<  8) |
-			    (((int) b[off+3]) & 0xff);
+		((((int) b[off+1]) & 0xff) << 16) |
+		((((int) b[off+2]) & 0xff) <<  8) |
+		(((int) b[off+3]) & 0xff);
 	}
 
 	private long readLong(byte[] b, int off)
 	{
 		return ((((long) b[off+0]) & 0xff) << 56) |
-			   ((((long) b[off+1]) & 0xff) << 48) |
-			   ((((long) b[off+2]) & 0xff) << 40) |
-			   ((((long) b[off+3]) & 0xff) << 32) |
-			   ((((long) b[off+4]) & 0xff) << 24) |
-			   ((((long) b[off+5]) & 0xff) << 16) |
-			   ((((long) b[off+6]) & 0xff) <<  8) |
-			    (((long) b[off+7]) & 0xff);
+		((((long) b[off+1]) & 0xff) << 48) |
+		((((long) b[off+2]) & 0xff) << 40) |
+		((((long) b[off+3]) & 0xff) << 32) |
+		((((long) b[off+4]) & 0xff) << 24) |
+		((((long) b[off+5]) & 0xff) << 16) |
+		((((long) b[off+6]) & 0xff) <<  8) |
+		(((long) b[off+7]) & 0xff);
 	}
 
 	// Could use Android location class to do this, but kept in here from prototype.
 	// sqrt isn't technically needed, but in here to possibly do distance conversions later.
-	
+
 	private double distance(int stopIdx, int x, int y)
 	{
 		double deltax = (lat[stopIdx]-x) / 1E6;
 		double deltay = (lon[stopIdx]-y) / 1E6;
 		return Math.sqrt((deltax * deltax) + (deltay * deltay));
 	}
-	
+
 	// Recursive search - use 'findNearest' to start
 	private int searchNearest(int here, int best, int x, int y, int depth)
 	{
 		if (here == -1) return best;
 		if (best == -1) best = here;
-		
+
 		double herepos, wantedpos;
-		
+
 		if (depth % 2 == 0) {
-		    herepos = lat[here] / 1E6;
-		    wantedpos = x / 1E6;
+			herepos = lat[here] / 1E6;
+			wantedpos = x / 1E6;
 		}
 		else {
 			herepos = lon[here] / 1E6;
 			wantedpos = y / 1E6;
 		}
-		
+
 		// Which is closer?
 		double disthere = distance(here,x,y);
 		double distbest = distance(best,x,y);
-		
+
 		if (disthere < distbest) 
 			best = here;
-		
+
 		// Which branch is nearer?
 		int nearest, furthest;
-		
+
 		if (wantedpos < herepos) {
 			nearest = left[here];
 			furthest = right[here];
@@ -295,80 +348,80 @@ public class PointTree {
 			furthest = left[here];
 			nearest = right[here];
 		}
-		
+
 		best = searchNearest(nearest,best,x,y,depth+1);
-		
+
 		// Do we still need to search the away branch?
 		distbest = distance(best,x,y);
-		
+
 		double distaxis = Math.abs(wantedpos - herepos);
-		
+
 		if (distaxis < distbest)
 			best = searchNearest(furthest,best,x,y,depth+1);
-		
+
 		return best;
 	}
-	
+
 	// Public interface to this class - finds the node nearest to the supplied
 	// co-ords
-	
+
 	public int findNearest(int x, int y)
 	{	
 		return this.searchNearest(rootRecordNum,-1,x,y,0);
 	}
-	
+
 	private ArrayList<Integer> searchRect(int xtl, int ytl,
-                                     int xbr, int ybr,
-                                     int here,
-                                     ArrayList<Integer> stops,
-                                     int depth)
-	{
+			int xbr, int ybr,
+			int here,
+			ArrayList<Integer> stops,
+			int depth)
+			{
 		if (here==-1) return stops;
-		
+
 		int topleft, bottomright, herepos, herex, herey;
-		
+
 		herex=lat[here];
 		herey=lon[here];
-		
+
 		if (depth % 2 == 0) {
-		    herepos = herex;
-		    topleft = xtl;
-		    bottomright = xbr;
+			herepos = herex;
+			topleft = xtl;
+			bottomright = xbr;
 		}
 		else {
 			herepos = herey;
 			topleft = ytl;
 			bottomright = ybr;
 		}
-		
+
 		if (topleft > bottomright) {
 			Log.println(Log.ERROR,"redbus", "co-ord error!");
 		}
-		
+
 		if (bottomright > herepos) {
 			stops = searchRect(xtl,ytl,xbr,ybr,right[here],stops, depth+1);
 		}
-		
+
 		if (topleft < herepos) {
 			stops = searchRect(xtl,ytl,xbr,ybr,left[here],stops, depth+1);
 		}
-		
+
 		// If this node falls within range, add it
 		if (xtl <= herex && xbr >= herex && ytl <= herey && ybr >= herey) {
 			stops.add(here);
 		}
-		
+
 		return stops;
-	}
+			}
 
 	// Return nodes within a certain rectangle - top-left/bottom-right
 	public ArrayList<Integer> findRect(int xtl, int ytl,
-	                                             int xbr, int ybr)
-	{
+			int xbr, int ybr)
+			{
 		ArrayList<Integer> stops = new ArrayList<Integer>();		
 		return searchRect(xtl,ytl,xbr,ybr,rootRecordNum,stops,0);
-	}
-	
+			}
+
 	public int lookupStopNodeIdxByStopCode(int stopCode)
 	{
 		Integer node = nodeIdxByStopCode.get(new Integer(stopCode));
@@ -378,7 +431,7 @@ public class PointTree {
 			return -1;
 		return node.intValue();
 	}
-	
+
 	public String lookupStopNameByStopNodeIdx(int stopNodeIdx)
 	{
 		int off = stopNodeIdx * METADATA_RECORD_SIZE;
@@ -388,13 +441,13 @@ public class PointTree {
 			return "???";
 		}
 	}
-	
+
 	public int lookupStopCodeByStopNodeIdx(int stopNodeIdx) 
 	{
 		int off = stopNodeIdx * METADATA_RECORD_SIZE;
 		return readInt(stopMetadata, off);
 	}
-	
+
 	public BusServiceMap lookupServiceMapByStopNodeIdx(int stopNodeIdx)
 	{
 		return new BusServiceMap(serviceMap0[stopNodeIdx], serviceMap1[stopNodeIdx]);
@@ -407,7 +460,7 @@ public class PointTree {
 		for(int i=0; i< maxEntries; i++)
 			if (serviceMap.isBitSet(i))
 				tmp[serviceBitToSortIndex.get(i)] = serviceBitToServiceName[i];
-		
+
 		ArrayList<String> result = new ArrayList<String>();
 		for(String cur: tmp) {
 			if (cur == null)
