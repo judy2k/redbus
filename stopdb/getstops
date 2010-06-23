@@ -27,7 +27,7 @@ import time
 import xml.sax
 from BusSaxDocumentHandler import BusSaxDocumentHandler
 
-debug = True
+debug = False
 
 nowdate = datetime.datetime.today()
 
