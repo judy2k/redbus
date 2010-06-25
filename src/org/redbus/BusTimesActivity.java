@@ -394,8 +394,8 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 					// stop location
 					Location location = new Location("");
-					location.setLatitude(pt.lat[stopNodeIdx]);
-					location.setLongitude(pt.lon[stopNodeIdx]);
+					location.setLatitude(pt.lat[stopNodeIdx] / 1E6);
+					location.setLongitude(pt.lon[stopNodeIdx] / 1E6);
 
 					// create an intent
 					Intent i = new Intent(BusTimesActivity.this, ProximityAlarmReceiver.class);
