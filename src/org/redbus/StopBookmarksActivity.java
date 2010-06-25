@@ -27,7 +27,9 @@ import org.xmlpull.v1.XmlSerializer;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.pm.PackageInfo;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -54,6 +56,9 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 	private static final String[] columnNames = new String[] { LocalDBHelper.ID, LocalDBHelper.BOOKMARKS_COL_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
 	private static final String bookmarksXmlFile = "/sdcard/redbus-stops.xml";
+	
+	private ProgressDialog busyDialog = null;
+	private int expectedRequestId = -1;
 
 	private long bookmarkId = -1;
 	private String bookmarkName = null;
@@ -85,17 +90,10 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 			long lastUpdateDate = Long.parseLong(db.getGlobalSetting("LASTUPDATE", "-1"));
         	
         	// do update check
-        	if (nextUpdateCheck <= new Date().getTime()) {
+        	if (nextUpdateCheck <= new Date().getTime() / 1000) {
         		isManualUpdateCheck = false;
-        		BusStopDatabaseUpdateHelper.checkForUpdates(lastUpdateDate, this);
-        		
-            	// setup time for next check
-            	nextUpdateCheck = new Date().getTime();
-            	nextUpdateCheck += 24 * 60 * 60 * 1000; // 1 day
-            	nextUpdateCheck += (long) (Math.random() * (12 * 60 * 60 * 1000.0)); // some random time in the 12 hours afterwards
-            	db.setGlobalSetting("NEXTUPDATECHECK", Long.toString(nextUpdateCheck));
+        		expectedRequestId = BusStopDatabaseUpdateHelper.checkForUpdates(lastUpdateDate, this);
         	}
-        	
         } catch (Throwable t) {
         	// ignore
         } finally {
@@ -345,6 +343,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 	        	db.close();
 	        }
 	        
+			displayBusy("Checking for updates...");
     		isManualUpdateCheck = true;
     		BusStopDatabaseUpdateHelper.checkForUpdates(lastUpdateDate, this);
     		return true;
@@ -353,17 +352,75 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 
 		return false;
 	}
+	
+	private void displayBusy(String reason) {
+		dismissBusy();
 
-	public void checkUpdatesError() {
-		Toast.makeText(this, "Failed to check for bus stop data updates; please try again later", Toast.LENGTH_SHORT).show();
+		busyDialog = ProgressDialog.show(this, "", reason, true, true, new OnCancelListener() {
+			public void onCancel(DialogInterface dialog) {
+				StopBookmarksActivity.this.expectedRequestId = -1;
+			}
+		});
 	}
 
-	public void checkUpdatesSuccess(long updateDate) {
+	private void dismissBusy() {
+		if (busyDialog != null) {
+			try {
+				busyDialog.dismiss();
+			} catch (Throwable t) {
+			}
+			busyDialog = null;
+		}
+	}
+	
+	private void setNextUpdateTime(boolean wasSuccessful) {	
+        LocalDBHelper db = new LocalDBHelper(this);
+        try {
+        	int retryCount = Integer.parseInt(db.getGlobalSetting("UPDATECHECKRETRIES", "0"));
+        	if ((retryCount < 3) && (!wasSuccessful)) {
+        		// if it was unsuccessful and we've had less that 3 retries, try again in a minute
+    	    	long nextUpdateCheck = new Date().getTime() / 1000;
+    	    	nextUpdateCheck += 60; // 1 min
+    	    	db.setGlobalSetting("NEXTUPDATECHECK", Long.toString(nextUpdateCheck));
+    	    	db.getGlobalSetting("UPDATECHECKRETRIES", Integer.toString(retryCount + 1));
+        	} else {
+        		// if it was successful OR we've had > 2 retries, then we delay for ~24 hours before trying again
+		    	long nextUpdateCheck = new Date().getTime() / 1000;
+		    	nextUpdateCheck += 23 * 60 * 60; // 1 day
+		    	nextUpdateCheck += (long) (Math.random() * (2 * 60 * 60.0)); // some random time in the 2 hours afterwards
+		    	db.setGlobalSetting("NEXTUPDATECHECK", Long.toString(nextUpdateCheck));
+		    	db.getGlobalSetting("UPDATECHECKRETRIES", "0");
+        	}
+        } finally {
+        	db.close();
+        }
+	}
+
+	public void checkUpdatesError(int requestId) {
+		if (requestId != expectedRequestId)
+			return;
+
+		dismissBusy();
+		
+		if (isManualUpdateCheck)
+			Toast.makeText(this, "Failed to check for bus stop data updates; please try again later", Toast.LENGTH_SHORT).show();
+		setNextUpdateTime(false);
+	}
+
+	public void checkUpdatesSuccess(int requestId, long updateDate) {
+		if (requestId != expectedRequestId)
+			return;
+
+		dismissBusy();
+		setNextUpdateTime(true);
+
 		if (updateDate == 0) {
 			if (isManualUpdateCheck)
 				Toast.makeText(this, "No new bus stop data available", Toast.LENGTH_SHORT).show();
 			return;
 		}
+
+		// FIXME: deal with activity being closed when this is called
 		
 		final long updateDateF = updateDate;
 		new AlertDialog.Builder(this)
@@ -372,6 +429,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 			.setPositiveButton(android.R.string.ok, 
 					new DialogInterface.OnClickListener() {
 	                    public void onClick(DialogInterface dialog, int whichButton) {
+	            			displayBusy("Downloading bus data update...");
 	                    	BusStopDatabaseUpdateHelper.getUpdate(updateDateF, StopBookmarksActivity.this);
 	                    }
 					})
@@ -379,12 +437,21 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 	        .show();		
 	}
 
-	public void getUpdateError() {
+	public void getUpdateError(int requestId) {
+		if (requestId != expectedRequestId)
+			return;
+
+		dismissBusy();
+
 		Toast.makeText(this, "Failed to download update; please try again later", Toast.LENGTH_SHORT).show();
 	}
 
-	public void getUpdateSuccess(long updateDate, byte[] updateData) {
-		
+	public void getUpdateSuccess(int requestId, long updateDate, byte[] updateData) {
+		if (requestId != expectedRequestId)
+			return;
+
+		dismissBusy();
+
 		try {
 			PointTree.saveNewDatabase(updateData);
 		} catch (Throwable t) {

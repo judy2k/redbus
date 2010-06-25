@@ -19,9 +19,9 @@
 package org.redbus;
 
 public interface BusStopDatabaseUpdateResponseListener {
-	public void checkUpdatesError();
-	public void checkUpdatesSuccess(long updateDate);
+	public void checkUpdatesError(int requestId);
+	public void checkUpdatesSuccess(int requestId, long updateDate);
 	
-	public void getUpdateError();
-	public void getUpdateSuccess(long updateDate, byte[] updateData);
+	public void getUpdateError(int requestId);
+	public void getUpdateSuccess(int requestId, long updateDate, byte[] updateData);
 }

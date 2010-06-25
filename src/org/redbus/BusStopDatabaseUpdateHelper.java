@@ -35,14 +35,24 @@ public class BusStopDatabaseUpdateHelper {
 	
 	private static final Pattern busUpdateRegex = Pattern.compile("bus2.dat-([0-9]+).gz");
 
-	public static void checkForUpdates(long lastUpdateDate, BusStopDatabaseUpdateResponseListener callback)
+	private static Integer RequestId = new Integer(0);
+
+	public static int checkForUpdates(long lastUpdateDate, BusStopDatabaseUpdateResponseListener callback)
 	{
-		new AsyncUpdateTask().execute(new UpdateRequest(UpdateRequest.REQ_CHECKUPDATES, lastUpdateDate, -1, callback));
+		int requestId = RequestId++;
+
+		new AsyncUpdateTask().execute(new UpdateRequest(requestId, UpdateRequest.REQ_CHECKUPDATES, lastUpdateDate, -1, callback));
+		
+		return requestId;
 	}
 
-	public static void getUpdate(long updateDate, BusStopDatabaseUpdateResponseListener callback)
+	public static int getUpdate(long updateDate, BusStopDatabaseUpdateResponseListener callback)
 	{
-		new AsyncUpdateTask().execute(new UpdateRequest(UpdateRequest.REQ_GETUPDATE, -1, updateDate, callback));
+		int requestId = RequestId++;
+
+		new AsyncUpdateTask().execute(new UpdateRequest(requestId, UpdateRequest.REQ_GETUPDATE, -1, updateDate, callback));
+		
+		return requestId;
 	}
 
 	private static class AsyncUpdateTask extends AsyncTask<UpdateRequest, Integer, UpdateRequest> {
@@ -194,20 +204,20 @@ public class BusStopDatabaseUpdateHelper {
 			switch(request.requestType) {
 			case UpdateRequest.REQ_CHECKUPDATES:
 				if (request.updateDate == -1) {
-					request.callback.checkUpdatesError();
+					request.callback.checkUpdatesError(request.requestId);
 					return;
 				}
 				
-				request.callback.checkUpdatesSuccess(request.updateDate);
+				request.callback.checkUpdatesSuccess(request.requestId, request.updateDate);
 				break;
 
 			case UpdateRequest.REQ_GETUPDATE:
 				if (request.updateData == null) {
-					request.callback.getUpdateError();
+					request.callback.getUpdateError(request.requestId);
 					return;
 				}
 				
-				request.callback.getUpdateSuccess(request.updateDate, request.updateData);
+				request.callback.getUpdateSuccess(request.requestId, request.updateDate, request.updateData);
 				break;
 			}
 		}
@@ -218,14 +228,16 @@ public class BusStopDatabaseUpdateHelper {
 		public static final int REQ_CHECKUPDATES = 0;
 		public static final int REQ_GETUPDATE = 1;
 		
-		public UpdateRequest(int requestType, long lastUpdateDate, long updateDate, BusStopDatabaseUpdateResponseListener callback)
+		public UpdateRequest(int requestId, int requestType, long lastUpdateDate, long updateDate, BusStopDatabaseUpdateResponseListener callback)
 		{
+			this.requestId = requestId;
 			this.requestType = requestType;
 			this.lastUpdateDate = lastUpdateDate;
 			this.updateDate = updateDate;
 			this.callback = callback;
 		}
 		
+		public int requestId;
 		public int requestType;
 		public long lastUpdateDate;
 		public long updateDate;
