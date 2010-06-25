@@ -27,8 +27,13 @@ import org.xmlpull.v1.XmlSerializer;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.pm.PackageInfo;
 import android.database.Cursor;
@@ -86,14 +91,22 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
         		db.setGlobalSetting("PREVIOUSVERSIONCODE", Integer.toString(pi.versionCode));
         	}
         	
+        	// get update details
         	long nextUpdateCheck = Long.parseLong(db.getGlobalSetting("NEXTUPDATECHECK", "0"));
 			long lastUpdateDate = Long.parseLong(db.getGlobalSetting("LASTUPDATE", "-1"));
         	
-        	// do update check
-        	if (nextUpdateCheck <= new Date().getTime() / 1000) {
-        		isManualUpdateCheck = false;
+            // are we being called from a click on a notification?
+            if (getIntent().getBooleanExtra("DoManualUpdate", false)) {
+    			displayBusy("Checking for updates...");
+        		isManualUpdateCheck = true;
         		expectedRequestId = BusStopDatabaseUpdateHelper.checkForUpdates(lastUpdateDate, this);
-        	}
+            } else {
+            	// otherwise, we do an background update check
+	        	if (nextUpdateCheck <= new Date().getTime() / 1000) {
+	        		isManualUpdateCheck = false;
+	        		expectedRequestId = BusStopDatabaseUpdateHelper.checkForUpdates(lastUpdateDate, this);
+	        	}
+            }
         } catch (Throwable t) {
         	// ignore
         } finally {
@@ -345,7 +358,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 	        
 			displayBusy("Checking for updates...");
     		isManualUpdateCheck = true;
-    		BusStopDatabaseUpdateHelper.checkForUpdates(lastUpdateDate, this);
+    		expectedRequestId = BusStopDatabaseUpdateHelper.checkForUpdates(lastUpdateDate, this);
     		return true;
 		}
 		}
@@ -420,21 +433,35 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 			return;
 		}
 
-		// FIXME: deal with activity being closed when this is called
-		
-		final long updateDateF = updateDate;
-		new AlertDialog.Builder(this)
-			.setTitle("New bus stops")
-			.setMessage("New bus stop data is available; shall I download it now?")
-			.setPositiveButton(android.R.string.ok, 
-					new DialogInterface.OnClickListener() {
-	                    public void onClick(DialogInterface dialog, int whichButton) {
-	            			displayBusy("Downloading bus data update...");
-	                    	BusStopDatabaseUpdateHelper.getUpdate(updateDateF, StopBookmarksActivity.this);
-	                    }
-					})
-			.setNegativeButton(android.R.string.cancel, null)
-	        .show();		
+		// if its an automatic update check, we use a notification so we don't spam the user with unexpected popups.
+		// if its a manual check, we /do/ show a popup
+		if (!isManualUpdateCheck) {
+			Intent i = new Intent(this, StopBookmarksActivity.class);
+			i.putExtra("DoManualUpdate", true);
+			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
+
+			Notification notification = new Notification(R.drawable.tracker_24x24_masked, "New bus stop data available", System.currentTimeMillis());
+			notification.defaults |= Notification.DEFAULT_ALL;
+			notification.flags |= Notification.FLAG_AUTO_CANCEL;
+			notification.setLatestEventInfo(this, "New bus stop data available", "Press to download", contentIntent);
+
+			NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			nm.notify(BusTimesActivity.ALERT_NOTIFICATION_ID, notification);
+		} else {
+			final long updateDateF = updateDate;
+			new AlertDialog.Builder(this)
+				.setTitle("New bus stops")
+				.setMessage("New bus stop data is available; shall I download it now?")
+				.setPositiveButton(android.R.string.ok, 
+						new DialogInterface.OnClickListener() {
+		                    public void onClick(DialogInterface dialog, int whichButton) {
+		            			displayBusy("Downloading bus data update...");
+		                    	expectedRequestId = BusStopDatabaseUpdateHelper.getUpdate(updateDateF, StopBookmarksActivity.this);
+		                    }
+						})
+				.setNegativeButton(android.R.string.cancel, null)
+		        .show();		
+		}
 	}
 
 	public void getUpdateError(int requestId) {
