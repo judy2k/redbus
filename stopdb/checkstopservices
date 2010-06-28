@@ -26,7 +26,7 @@ import psycopg2
 import time
 import re
 
-debug = False
+debug = True
 
 serviceRe = re.compile('range[0-9]+\"\s*>\s*([0-9A-Z]+)\s+')
 
@@ -63,7 +63,8 @@ for row in curs:
     servicesByIdx.append(service)
 
 # Get the list of stops from the database
-print "Loading stop data from database..."
+if debug:
+    print "Loading stop data from database..."
 stopsByStopCode = {}
 curs.execute("SELECT stop_id, stop_code, stop_name FROM stops WHERE created_date = %s order by stop_code desc", (latestdate, ))
 for row in curs:
@@ -86,7 +87,8 @@ for row in curs:
     stopsByStopCode[code] = stop
 
 # Now, lookup the services for each stop
-print "Starting to check stops..."
+if debug:
+    print "Starting to check stops..."
 for stop in stopsByStopCode.itervalues():
     xmlString = browser.open('http://www.mybustracker.co.uk/getBusStopDepartures.php?' +
                              'refreshCount=0' +
@@ -123,7 +125,8 @@ for stop in stopsByStopCode.itervalues():
         if curs.rowcount == 0:
             curs.execute("INSERT INTO stop_override (stop_code, service_diff) VALUES (%s, %s)", (stop['StopCode'], " ".join(diff)))
         db.commit()
-        print >>sys.stderr, "Stop %s has differing services: %s" % (stop['StopCode'], ",".join(diff))
+        if debug:
+            print >>sys.stderr, "Stop %s has differing services: %s" % (stop['StopCode'], ",".join(diff))
 
 # DONE
 dbcur.close()
