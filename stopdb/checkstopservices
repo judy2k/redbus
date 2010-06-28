@@ -28,8 +28,6 @@ import re
 
 debug = False
 
-nowdate = datetime.datetime.today()
-
 serviceRe = re.compile('range[0-9]+\"\s*>\s*([0-9A-Z]+)\s+')
 
 browser = mechanize.Browser()
@@ -44,6 +42,9 @@ mapcurs = db.cursor()
 # Use only the latest data
 curs.execute("SELECT max(created_date) FROM services")
 latestdate = curs.fetchone()[0]
+
+# Zap any old service maps
+curs.execute("UPDATE stop_override SET service_diff = NULL");
 
 # Get the list of services from the database
 servicesByIdx = []
@@ -117,6 +118,11 @@ for stop in stopsByStopCode.itervalues():
                     difftype = "+"
                 diff.append("%s%s" % (difftype, servicesByIdx[i]['ServiceName']))
                 
+        # Add it to the database and report on it
+        curs.execute("UPDATE stop_override SET service_diff = %s WHERE stop_code=%s", (" ".join(diff), stop['StopCode']))
+        if curs.rowcount == 0:
+            curs.execute("INSERT INTO stop_override (stop_code, service_diff) VALUES (%s, %s)", (stop['StopCode'], " ".join(diff)))
+        db.commit()
         print >>sys.stderr, "Stop %s has differing services: %s" % (stop['StopCode'], ",".join(diff))
 
 # DONE

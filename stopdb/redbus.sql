@@ -71,3 +71,26 @@ ALTER TABLE stops_services
   ADD CONSTRAINT stops_services_stop_id_fk FOREIGN KEY (stop_id)
       REFERENCES stops (stop_id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+
+
+
+CREATE SEQUENCE stop_override_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+SELECT pg_catalog.setval('stop_override_id_seq', 1, false);
+
+CREATE TABLE stop_override (
+    stop_override_id integer DEFAULT nextval('stop_override_id_seq'::regclass) NOT NULL,
+    stop_code integer NOT NULL,
+    stop_name character varying(255) NULL,
+    x numeric(20,17) NULL,
+    y numeric(20,17) NULL,
+    service_diff character varying(2000) NULL
+);
+
+ALTER TABLE ONLY stop_override
+    ADD CONSTRAINT stop_override_pkey PRIMARY KEY (stop_override_id);
