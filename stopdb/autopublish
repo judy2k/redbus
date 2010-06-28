@@ -44,4 +44,7 @@ if [ x$oldsum != x$newsum ]; then
 	mv $INSTDIR/bus2.dat.gz $INSTDIR/$OUTFILE
 	$INSTDIR/googlecode_upload.py -s "new bus data for `date`" -p redbus -u $GCODE_USER -w $GCODE_PASS $INSTDIR/$OUTFILE || exit 1
 	rm -f $OUTFILE
+else
+	# Otherwise, no changed => delete the duplicated data from the database
+	$INSTDIR/removedata LATEST
 fi

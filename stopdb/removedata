@@ -1,0 +1,51 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright 2010 Andrew De Quincey -  adq@lidskialf.net
+# This file is part of rEdBus.
+#
+#  rEdBus is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  rEdBus is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
+
+import sys
+import os
+import mechanize
+import BeautifulSoup
+import datetime
+import psycopg2
+import time
+
+# Connect to database
+db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
+dbcur = db.cursor()
+
+dates = [] 
+dbcur.execute("SELECT DISTINCT created_date FROM services ORDER BY created_date ASC")
+for row in dbcur:
+    dates.append(row[0])
+
+if len(sys.argv) != 2:
+    for date in dates:
+        print date
+else:
+    date = sys.argv[1]
+    if date == "LATEST":
+        date = dates[len(dates)-1]
+    
+    dbcur.execute("DELETE FROM stops_services WHERE created_date = %s", (date, ));
+    dbcur.execute("DELETE FROM services WHERE created_date = %s", (date, ));
+    dbcur.execute("DELETE FROM stops WHERE created_date = %s", (date, ));
+
+db.commit();
+dbcur.close()
+db.close()
