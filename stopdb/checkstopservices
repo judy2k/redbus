@@ -89,7 +89,12 @@ for row in curs:
 # Now, lookup the services for each stop
 if debug:
     print "Starting to check stops..."
+count = 0
 for stop in stopsByStopCode.itervalues():
+    if debug:
+        print "Checking stop %s (%i/%i)" % (stop['StopCode'], count, len(stopsByStopCode))
+    count += 1
+
     xmlString = browser.open('http://www.mybustracker.co.uk/getBusStopDepartures.php?' +
                              'refreshCount=0' +
                              '&clientType=b' +
@@ -127,7 +132,13 @@ for stop in stopsByStopCode.itervalues():
         db.commit()
         if debug:
             print >>sys.stderr, "Stop %s has differing services: %s" % (stop['StopCode'], ",".join(diff))
+            
+            
+    if (count % 250) == 0:
+        time.sleep(30)
+    else:
+        time.sleep(1)
 
 # DONE
-dbcur.close()
+curs.close()
 db.close()
