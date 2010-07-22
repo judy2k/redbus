@@ -1,0 +1,39 @@
+#!/usr/bin/python
+
+import os
+import sys
+import psycopg2
+import mechanize
+import urllib
+import re
+
+# Connect to database
+db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
+curs = db.cursor()
+
+# Use only the latest data
+curs.execute("SELECT max(created_date) FROM services")
+latestdate = curs.fetchone()[0]
+
+browser = mechanize.Browser()
+browser.set_handle_robots(False)
+browser.add_headers = []
+
+curs.execute("select stop_code, stop_name, x, y from stops where length(stop_name)=16 and created_date=%s", (latestdate, ))
+for row in curs:
+  stopcode= row[0]
+  stopname= row[1]
+  x= row[2]
+  y= row[3]
+  
+  guessurl = "http://maps.google.com/maps/suggest?q=%s&cp=%i&ll=55.950176,-3.187536&spn=0.186462,1.056747&hl=en&gl=&v=2&json=a&num=10" % ( urllib.quote_plus(stopname), len(stopname))
+  
+  print "Partial name: %s" % stopname
+  print "Stop code: %s" % stopcode
+  print "Guesses: %s" % re.findall('"([^"^,]+)', browser.open(guessurl).read())
+  
+  os.popen("chromium http://maps.google.com/maps?ll=%f,%f&z=14" % (x, y));
+  print "Enter the rest of the name: "
+  print stopname, 
+  suffix = sys.stdin.readline()
+  print 
