@@ -10,6 +10,7 @@ import re
 # Connect to database
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
 curs = db.cursor()
+upcurs = db.cursor()
 
 # Use only the latest data
 curs.execute("SELECT max(created_date) FROM services")
@@ -19,7 +20,7 @@ browser = mechanize.Browser()
 browser.set_handle_robots(False)
 browser.add_headers = []
 
-curs.execute("select stop_code, stop_name, x, y from stops where length(stop_name)=16 and created_date=%s", (latestdate, ))
+curs.execute("select s.stop_code, s.stop_name, s.x, s.y from stops s LEFT JOIN stop_override so on s.stop_code = so.stop_code where length(s.stop_name)=16 and s.created_date=%s AND so.stop_name IS NULL", (latestdate, ))
 for row in curs:
   stopcode= row[0]
   stopname= row[1]
@@ -37,3 +38,9 @@ for row in curs:
   print stopname, 
   suffix = sys.stdin.readline()
   print 
+
+  upcurs.execute("UPDATE stop_override SET stop_name = %s WHERE stop_code=%s", (stopname + suffix, stopcode))
+  if upcurs.rowcount == 0:
+    upcurs.execute("INSERT INTO stop_override (stop_code, stop_name) VALUES (%s, %s)", (stopcode, stopname + suffix))
+  db.commit()
+                                    
