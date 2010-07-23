@@ -62,7 +62,7 @@ if debug:
 count = 0
 for override in overrides:
     if debug:
-        print "Checking stop %s (%i/%i)" % (override['StopCode'], count, len(overrides))
+        print "Checking stop %s (%i/%i)" % (override['StopCode'], count + 1, len(overrides))
     count += 1
 
     xmlString = browser.open('http://www.mybustracker.co.uk/getBusStopDepartures.php?' +
