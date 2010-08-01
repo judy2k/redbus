@@ -4,7 +4,5 @@
 	<string name="app_name">Edinburgh Bus Tracker</string>
 	<string name="bookmarkhelp">&quot;No bookmarks\n\nPress menu then 'Nearby Stops map' to view a map, or 'Enter stop code' to enter a code displayed at a bus stop.\n\nFrom the map view touch a stop on the map to display times, and then press menu to add a bookmark.&quot;</string>
 	<string name="newversiontext">Changes:\n
-* Bus database updates.\n
-* Longer times for arrival alarm.\n
-* Optimise file format and map display.</string>
+* Froyo/2.2 compatability fix.</string>
 </resources>

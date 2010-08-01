@@ -47,6 +47,7 @@ public class PointTree {
 
 	private static PointTree pointTree = null;
 	private static Integer syncObj = new Integer(0);
+	private static String filesPath = "/data/data/org.redbus/files";
 
 	public static PointTree getPointTree(Context ctx)
 	{
@@ -54,7 +55,14 @@ public class PointTree {
 			if (pointTree == null) {
 				InputStream stopsStream = null;
 				OutputStream outStream = null;
-				File file = new File("/data/data/org.redbus/files/bus2.dat");
+				File dir = new File(filesPath);
+				try {
+					if (!dir.exists())
+						dir.mkdir();
+				} catch (Exception ex) {
+				}
+				
+				File file = new File(dir, "bus2.dat");
 				try {
 					// first of all, if the file doesn't exist on disk, extract it from our resources and save it out to there
 					if (!file.exists()) {
@@ -120,8 +128,15 @@ public class PointTree {
 		synchronized (syncObj) {
 			FileOutputStream outStream = null;
 			GZIPInputStream inStream = null;
-			File outFile = new File("/data/data/org.redbus/files/bus2.dat.new");
-			File dbFile = new File("/data/data/org.redbus/files/bus2.dat");
+			File dir = new File(filesPath);
+			try {
+				if (!dir.exists())
+					dir.mkdir();
+			} catch (Exception ex) {
+			}
+			
+			File outFile = new File(dir, "bus2.dat.new");
+			File dbFile = new File(dir, "bus2.dat");
 			try {
 				outStream = new FileOutputStream(outFile);
 
