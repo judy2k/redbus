@@ -4,5 +4,5 @@
 	<string name="app_name">Edinburgh Bus Tracker</string>
 	<string name="bookmarkhelp">&quot;No bookmarks\n\nPress menu then 'Nearby Stops map' to view a map, or 'Enter stop code' to enter a code displayed at a bus stop.\n\nFrom the map view touch a stop on the map to display times, and then press menu to add a bookmark.&quot;</string>
 	<string name="newversiontext">Changes:\n
-* Disable grey stop drawing to reduce memory budget - hopefully fix out of memory crashes.</string>
+* Workaround for map crashes on some 1.6/2.1 devices (e.g. Dell Streak)\n</string>
 </resources>

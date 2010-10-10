@@ -459,6 +459,8 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			}
 		}
 		
+		
+		
 		@Override
 		public boolean onTap(GeoPoint point, MapView mapView)
 		{
@@ -572,7 +574,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 		mapController.setZoom(17);
 
 		// Make map update automatically as user moves around
-		myLocationOverlay = new MyLocationOverlay(this, mapView);
+		myLocationOverlay = new WorkaroundMyLocationOverlay(this, mapView);
 		mapView.getOverlays().add(myLocationOverlay);
 
 		// Check to see if we've been passed data
