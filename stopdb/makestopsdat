@@ -70,7 +70,7 @@ for row in curs:
         service = servicesById[maprow[0]]
         stopmap |= 1 << service['ServiceIdx']
 
-    stops.append(((x,y),code,name,0,stopmap))
+    stops.append(((x,y),code,name,(stopmap >> 32) & 0xffffffff,stopmap & 0xffffffff))
 if len(stops) > 32767:
     print >>sys.stderr, "Error: more than 32767 stops found - need to fix file format!"
     sys.exit(1)
