@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
 # Copyright 2010 Andrew De Quincey -  adq@lidskialf.net
@@ -36,7 +36,7 @@ for row in dbcur:
 
 if len(sys.argv) != 2:
     for date in dates:
-        print date
+        print date 
 else:
     date = sys.argv[1]
     if date == "LATEST":
