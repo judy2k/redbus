@@ -6,5 +6,6 @@
 	<string name="futureboo">&quot;Lothian's website no longer supports future departures beyond the current day :(&quot;</string>
 	<string name="newversiontext">&quot;Changes:\n
 * Silence stop data update alarm.\n
-* Add warning about Lothian's website no longer supporting future departures beyond the current day.\n&quot;</string>
+* Add warning about Lothian's website no longer supporting future departures beyond the current day.\n
+* Fix location search in maps view.&quot;</string>
 </resources>
