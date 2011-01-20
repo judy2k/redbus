@@ -520,6 +520,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			View v = vi.inflate(R.layout.futuredepartures, null);
 
 			final GregorianCalendar calendar = new GregorianCalendar();
+			/*
 			final Spinner datePicker = (Spinner) v.findViewById(R.id.futuredepartures_date);
 			String[] dates = new String[4];
 			for(int i=0; i < 4; i++) {
@@ -530,6 +531,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 			datePicker.setAdapter(dateAdapter);
 			calendar.add(Calendar.DAY_OF_MONTH, -4);
+			 */
 			
 			final Spinner hourPicker = (Spinner) v.findViewById(R.id.futuredepartures_time_hour);
 			ArrayAdapter<String> hourAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, hourStrings);
@@ -548,10 +550,11 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 				.setPositiveButton(android.R.string.ok,
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int whichButton) {
-								calendar.add(Calendar.DAY_OF_MONTH, datePicker.getSelectedItemPosition());
+//								calendar.add(Calendar.DAY_OF_MONTH, datePicker.getSelectedItemPosition());
 								calendar.set(Calendar.HOUR_OF_DAY, hourPicker.getSelectedItemPosition());
 								calendar.set(Calendar.MINUTE, minPicker.getSelectedItemPosition() * 15);
-								update(datePicker.getSelectedItemPosition(), calendar.getTime());
+//								update(datePicker.getSelectedItemPosition(), calendar.getTime());
+								update(0, calendar.getTime());
 							}
 						})
 				.setNegativeButton(android.R.string.cancel, null)
