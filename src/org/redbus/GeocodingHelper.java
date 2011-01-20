@@ -50,7 +50,7 @@ public class GeocodingHelper {
 			
 			try {
 				Geocoder geocoder = new Geocoder(gr.ctx, Locale.UK);
-				gr.addresses = geocoder.getFromLocationName(gr.location, 5, pt.lowerLeftLat / 1E6, pt.lowerLeftLon / 1E6, pt.upperRightLat / 1E6, pt.upperRightLon / 1E6);
+				gr.addresses = geocoder.getFromLocationName(gr.location, 5, (double) pt.lowerLeftLat / 1E6, (double) pt.lowerLeftLon / 1E6, (double) pt.upperRightLat / 1E6, (double) pt.upperRightLon / 1E6);
 			} catch (Throwable t) {
 				Log.e("AsyncHttpRequestTask.doInBackGround", "Throwable", t);
 			}
