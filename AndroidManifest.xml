@@ -20,6 +20,8 @@
 
 	<uses-sdk android:minSdkVersion="3" />
 	<supports-screens android:smallScreens="true" />
+	<supports-screens android:largeScreens="true" />
+	<supports-screens android:resizeable="true" />
 	<uses-permission android:name="android.permission.INTERNET"/>
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
