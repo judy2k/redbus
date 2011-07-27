@@ -467,6 +467,7 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 			PointTree pt = PointTree.getPointTree(StopMapActivity.this);
 			final int nearestStopNodeIdx = pt.findNearest(point.getLatitudeE6(), point.getLongitudeE6());
 			final int stopCode = pt.lookupStopCodeByStopNodeIdx(nearestStopNodeIdx);
+			final String stopName = pt.lookupStopNameByStopNodeIdx(nearestStopNodeIdx);
 			final double stopLat = pt.lat[nearestStopNodeIdx] / 1E6;
 			final double stopLon = pt.lon[nearestStopNodeIdx] / 1E6;
 			final BusServiceMap nodeServiceMap = pt.lookupServiceMapByStopNodeIdx(nearestStopNodeIdx);
@@ -511,6 +512,20 @@ public class StopMapActivity extends MapActivity implements GeocodingResponseLis
 				});
 				((Button) v.findViewById(R.id.stoppopup_cancel)).setOnClickListener(new OnClickListener() {
 					public void onClick(View v) {
+						d.dismiss();
+					}
+				});
+				((Button) v.findViewById(R.id.stoppopup_addbookmark)).setOnClickListener(new OnClickListener() {
+					public void onClick(View arg0) {
+						if (stopCode != -1) {
+							LocalDBHelper db = new LocalDBHelper(StopMapActivity.this);
+							try {
+								db.addBookmark(stopCode, stopName);
+							} finally {
+								db.close();
+							}
+							Toast.makeText(StopMapActivity.this, "Added bookmark", Toast.LENGTH_SHORT).show();
+						}
 						d.dismiss();
 					}
 				});
