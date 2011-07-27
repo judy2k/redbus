@@ -58,8 +58,8 @@ import android.util.Xml;
 
 public class StopBookmarksActivity extends ListActivity implements BusStopDatabaseUpdateResponseListener
 {	
-	private static final String[] columnNames = new String[] { LocalDBHelper.ID, LocalDBHelper.BOOKMARKS_COL_STOPNAME };
-	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
+	public static final String[] columnNames = new String[] { LocalDBHelper.ID, LocalDBHelper.BOOKMARKS_COL_STOPNAME };
+	public static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
 	private static final String bookmarksXmlFile = "/sdcard/redbus-stops.xml";
 	
 	private ProgressDialog busyDialog = null;

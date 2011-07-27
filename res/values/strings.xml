@@ -2,8 +2,10 @@
 <resources>
 
 	<string name="app_name">Edinburgh Bus Tracker</string>
+	<string name="shortcuthelp">&quot;No bookmarks\n\nUse the Edinburgh Bus Tracker app to add bookmarks first\n\n</string>
 	<string name="bookmarkhelp">&quot;No bookmarks\n\nPress menu then 'Nearby Stops map' to view a map, or 'Enter stop code' to enter a code displayed at a bus stop.\n\nFrom the map view touch a stop on the map to display times, and then press menu to add a bookmark.&quot;</string>
 	<string name="futureboo">&quot;Lothian's website no longer supports future departures beyond the current day :(&quot;</string>
 	<string name="newversiontext">&quot;Changes:\n
+* Shortcuts to bus stops can be created on the home screen.\n	
 * It is possible to add a bookmark directly from the map.\n&quot;</string>
 </resources>

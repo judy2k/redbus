@@ -10,7 +10,29 @@
 			</intent-filter>
 		</activity>
 		
-		<activity android:name="BusTimesActivity" android:label="Bus Times" />
+		<activity android:name="CreateShortcutActivity"
+              android:label="Create shortcut"
+              android:theme="@android:style/Theme.Dialog">
+        	<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+        	</intent-filter>
+		</activity>
+        
+		<activity-alias android:name="CreateShortcutActivity"
+			android:targetActivity="CreateShortcutActivity"
+			android:label="Edinburgh bus stop">
+			<intent-filter>
+				<action android:name="android.intent.action.CREATE_SHORTCUT" />
+				<category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+		</activity-alias>
+		
+		
+		<activity android:name="BusTimesActivity" android:label="Bus Times" >
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+			</intent-filter>
+		</activity>    	
 		<activity android:name="StopMapActivity" android:label="Map" />
 		<uses-library android:name="com.google.android.maps" />
 		<receiver android:name=".TemporalAlarmReceiver"/>
