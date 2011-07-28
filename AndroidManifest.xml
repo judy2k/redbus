@@ -3,11 +3,19 @@
 	package="org.redbus" android:versionName="1.0.29" android:versionCode="30">
 	
 	<application android:label="@string/app_name" android:icon="@drawable/icon">
-		<activity android:name="StopBookmarksActivity" android:label="Edinburgh Bus Tracker">
-			<intent-filter>
+	    
+		<activity android:name="RedbusTabView" android:label="Edinburgh Bus Tracker">
+			  <intent-filter>
 				<action android:name="android.intent.action.MAIN"></action>
 				<category android:name="android.intent.category.LAUNCHER"></category>
 			</intent-filter>
+		</activity>
+		
+		<activity android:name="StopBookmarksActivity" android:label="Edinburgh Bus Tracker">
+			<!-- <intent-filter>
+				<action android:name="android.intent.action.MAIN"></action>
+				<category android:name="android.intent.category.LAUNCHER"></category>
+			</intent-filter> --> 
 		</activity>
 		
 		<activity android:name="CreateShortcutActivity"

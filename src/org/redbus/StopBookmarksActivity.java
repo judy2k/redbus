@@ -115,9 +115,9 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 	}
 
 	@Override
-	protected void onStart() 
+	protected void onResume() 
 	{
-		super.onStart();
+		super.onResume();
 		
 		update();
 	}
@@ -227,10 +227,10 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 		input.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
 
 		switch(item.getItemId()) {
-		case R.id.stopbookmarks_menu_nearby_stops:
+		/*case R.id.stopbookmarks_menu_nearby_stops:
         	StopMapActivity.showActivity(StopBookmarksActivity.this);
 			return true;
-
+*/
 		case R.id.stopbookmarks_menu_bustimes:
 			new AlertDialog.Builder(this)
 				.setTitle("Enter stopcode")
