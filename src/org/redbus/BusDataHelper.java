@@ -75,7 +75,7 @@ public class BusDataHelper {
 			daysInAdvance = 0;
 		}
 
-		StringBuilder result = new StringBuilder("http://www.mybustracker.co.uk/getBusStopDepartures.php");
+		StringBuilder result = new StringBuilder("http://old.mybustracker.co.uk/getBusStopDepartures.php");
 		result.append("?refreshCount=0");
 		result.append("&clientType=b");
 		result.append("&busStopDay=").append(daysInAdvance);
