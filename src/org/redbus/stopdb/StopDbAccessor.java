@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import org.redbus.R;
-import org.redbus.R.raw;
 import org.redbus.settings.SettingsAccessor;
 
 import android.content.Context;

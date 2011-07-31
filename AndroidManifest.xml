@@ -4,48 +4,30 @@
 	
 	<application android:label="@string/app_name" android:icon="@drawable/icon">
 	    
-	   	<activity-alias android:name="RedbusTabView" android:targetActivity=".ui.RedbusTabView" android:label="Edinburgh Bus Tracker">
-			  <intent-filter>
-				<action android:name="android.intent.action.MAIN"></action>
-				<category android:name="android.intent.category.LAUNCHER"></category>
-			</intent-filter>
+	   	<activity-alias android:name="RedbusTabView" android:label="Edinburgh Bus Tracker" android:targetActivity=".ui.RedbusTabView">
 		</activity-alias>
 		
-		<activity android:name=".ui.RedbusTabView" android:label="Edinburgh Bus Tracker">
+		<activity android:label="Edinburgh Bus Tracker" android:name=".ui.RedbusTabView">
 			  <intent-filter>
 				<action android:name="android.intent.action.MAIN"></action>
 				<category android:name="android.intent.category.LAUNCHER"></category>
 			</intent-filter>
 		</activity>
 		
-		<activity android:name="StopBookmarksActivity" android:label="Edinburgh Bus Tracker">
-			<!-- <intent-filter>
-				<action android:name="android.intent.action.MAIN"></action>
-				<category android:name="android.intent.category.LAUNCHER"></category>
-			</intent-filter> --> 
-		</activity>
-		
-		<activity android:name=".ui.CreateShortcutActivity"
-              android:label="Create shortcut"
-              android:theme="@android:style/Theme.Dialog">
+		<activity android:theme="@android:style/Theme.Dialog" android:label="Create shortcut" android:name=".ui.CreateShortcutActivity">
         	<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>
         	</intent-filter>
 		</activity>
         
 		<activity-alias android:label="Edinburgh bus stop" android:name="CreateShortcutActivity" android:targetActivity=".ui.CreateShortcutActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.CREATE_SHORTCUT"/>
-				<category android:name="android.intent.category.DEFAULT"/>
-			</intent-filter>
 		</activity-alias>
 		
 		<activity android:name=".ui.arrivaltime.ArrivalTimeActivity" android:label="Bus Times" >
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-			</intent-filter>
-		</activity>    	
+		</activity>
+		
 		<activity android:name=".ui.stopmap.StopMapActivity" android:label="Map" />
+		<activity android:name="StopBookmarksActivity" android:label="Edinburgh Bus Tracker" />
 		<uses-library android:name="com.google.android.maps" />
 		<receiver android:name=".ui.alert.TemporalAlert"/>
 		<receiver android:name=".ui.alert.ProximityAlert"/>

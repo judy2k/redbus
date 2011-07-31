@@ -21,7 +21,6 @@ package org.redbus.ui.arrivaltime;
 import java.util.List;
 
 import org.redbus.R;
-import org.redbus.R.id;
 import org.redbus.arrivaltime.ArrivalTime;
 
 import android.content.Context;

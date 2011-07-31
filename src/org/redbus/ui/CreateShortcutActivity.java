@@ -20,9 +20,6 @@ package org.redbus.ui;
 
 import org.redbus.R;
 import org.redbus.StopBookmarksActivity;
-import org.redbus.R.drawable;
-import org.redbus.R.id;
-import org.redbus.R.layout;
 import org.redbus.settings.SettingsAccessor;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 

@@ -20,12 +20,10 @@ package org.redbus.ui;
 
 import org.redbus.R;
 import org.redbus.StopBookmarksActivity;
-import org.redbus.R.layout;
 import org.redbus.ui.stopmap.StopMapActivity;
 
 import android.app.TabActivity;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.widget.TabHost;
 
