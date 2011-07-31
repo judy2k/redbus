@@ -260,9 +260,6 @@ public class StopDbAccessor {
 		return result;
 	}
 
-	// Public interface to this class - finds the node nearest to the supplied
-	// co-ords
-
 	public int findNearest(int x, int y)
 	{	
 		return this.searchNearest(rootRecordNum,-1,x,y,0);

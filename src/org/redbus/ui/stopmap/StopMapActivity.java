@@ -27,6 +27,7 @@ import org.redbus.geocode.IGeocodingResponseListener;
 import org.redbus.settings.SettingsAccessor;
 import org.redbus.stopdb.ServiceBitmap;
 import org.redbus.stopdb.StopDbAccessor;
+import org.redbus.ui.BusyDialog;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 
 
@@ -53,7 +54,7 @@ import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 
-public class StopMapActivity extends MapActivity implements IGeocodingResponseListener  {
+public class StopMapActivity extends MapActivity implements IGeocodingResponseListener, OnCancelListener  {
 
 	private MapView mapView;
 	private MapController mapController;
@@ -151,6 +152,10 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	protected void onDestroy() {
 		busyDialog = null;
 		super.onDestroy();
+	}
+
+	public void onCancel(DialogInterface dialog) {
+		expectedRequestId = -1;
 	}
 
 	@Override
@@ -256,7 +261,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			.setPositiveButton(android.R.string.ok,
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int whichButton) {
-							displayBusy("Finding location...");
+							busyDialog = BusyDialog.show(StopMapActivity.this, StopMapActivity.this, busyDialog, "Finding location...");
 							StopMapActivity.this.expectedRequestId = GeocodingAccessor.geocode(StopMapActivity.this, input.getText().toString(), StopMapActivity.this);
 						}
 					})
@@ -361,32 +366,12 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		
 		}
 	}	
-	
-	private void displayBusy(String reason) {
-		dismissBusy();
-
-		busyDialog = ProgressDialog.show(this, "", reason, true, true, new OnCancelListener() {
-			public void onCancel(DialogInterface dialog) {
-				StopMapActivity.this.expectedRequestId = -1;
-			}
-		});
-	}
-
-	private void dismissBusy() {
-		if (busyDialog != null) {
-			try {
-				busyDialog.dismiss();
-			} catch (Throwable t) {
-			}
-			busyDialog = null;
-		}
-	}
 
 	public void geocodeResponseError(int requestId, String message) {
 		if (requestId != expectedRequestId)
 			return;
 		
-		dismissBusy();
+		BusyDialog.dismiss(busyDialog);
 		
 		new AlertDialog.Builder(this).setTitle("Error").
 			setMessage("Unable to find location: " + message).
@@ -398,7 +383,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		if (requestId != expectedRequestId)
 			return;
 		
-		dismissBusy();
+		BusyDialog.dismiss(busyDialog);
 		if (addresses_.size() == 1) {
 			Address address = addresses_.get(0);
 			GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));

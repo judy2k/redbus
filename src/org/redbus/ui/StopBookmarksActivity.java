@@ -350,7 +350,6 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
 		busyDialog = BusyDialog.show(this, this, busyDialog, "Checking for updates...");
 		isManualUpdateCheck = true;
 		expectedRequestId = StopDbUpdater.checkForUpdates(lastUpdateDate, this);
-
 	}
 	
 	
