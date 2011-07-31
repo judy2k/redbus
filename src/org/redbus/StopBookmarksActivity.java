@@ -232,10 +232,6 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
 		input.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
 
 		switch(item.getItemId()) {
-		/*case R.id.stopbookmarks_menu_nearby_stops:
-        	StopMapActivity.showActivity(StopBookmarksActivity.this);
-			return true;
-*/
 		case R.id.stopbookmarks_menu_bustimes:
 			new AlertDialog.Builder(this)
 				.setTitle("Enter stopcode")

@@ -33,10 +33,10 @@ public class RedbusTabView extends TabActivity {
 
 	    TabHost tabHost = getTabHost();
 	    
-	    tabHost.addTab(tabHost.newTabSpec("bookmarks").setIndicator("bookmarks")
+	    tabHost.addTab(tabHost.newTabSpec("bookmarks").setIndicator("Bookmarks")
             .setContent(new Intent().setClass(this, StopBookmarksActivity.class)));
 
-	    tabHost.addTab(tabHost.newTabSpec("map").setIndicator("map")
+	    tabHost.addTab(tabHost.newTabSpec("map").setIndicator("Map")
 	                  .setContent(new Intent().setClass(this, StopMapActivity.class)));
 	    
 	}

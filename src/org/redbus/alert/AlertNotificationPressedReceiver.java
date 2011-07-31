@@ -16,7 +16,9 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.alert;
+
+import org.redbus.BusTimesActivity;
 
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;

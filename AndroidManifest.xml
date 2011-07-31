@@ -43,9 +43,9 @@
 		</activity>    	
 		<activity android:name=".StopMapActivity" android:label="Map" />
 		<uses-library android:name="com.google.android.maps" />
-		<receiver android:name=".alarm.TemporalAlarmReceiver"/>
-		<receiver android:name=".alarm.ProximityAlarmReceiver"/>
-		<receiver android:name=".AlertNotificationPressedReceiver"/>
+		<receiver android:name=".alarm.TemporalAlertReceiver"/>
+		<receiver android:name=".alarm.ProximityAlertReceiver"/>
+		<receiver android:name=".alert.AlertNotificationPressedReceiver"/>
 	</application>
 
 	<uses-sdk android:minSdkVersion="3" />

@@ -1,4 +1,4 @@
-package org.redbus.alarm;
+package org.redbus.alert;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +19,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.SystemClock;
 
-public class TemporalAlarmReceiver extends BroadcastReceiver implements
+public class TemporalAlertReceiver extends BroadcastReceiver implements
 		IArrivalTimeResponseListener {
 
 	private Context context;

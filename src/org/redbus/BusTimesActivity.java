@@ -27,8 +27,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import org.redbus.alarm.ProximityAlarmReceiver;
-import org.redbus.alarm.TemporalAlarmReceiver;
+import org.redbus.alert.AlertNotificationPressedReceiver;
+import org.redbus.alert.ProximityAlertReceiver;
+import org.redbus.alert.TemporalAlertReceiver;
 import org.redbus.arrivaltime.ArrivalTime;
 import org.redbus.arrivaltime.ArrivalTimeAccessor;
 import org.redbus.arrivaltime.IArrivalTimeResponseListener;
@@ -260,7 +261,7 @@ public class BusTimesActivity extends ListActivity implements IArrivalTimeRespon
 
 	public static void cancelAlerts(Context ctx) {
 		// cancel any temporal alert
-		Intent i = new Intent(ctx, TemporalAlarmReceiver.class);
+		Intent i = new Intent(ctx, TemporalAlertReceiver.class);
 		PendingIntent pi = PendingIntent.getBroadcast(ctx, 0, i, PendingIntent.FLAG_NO_CREATE);
 		if (pi != null) {
 			AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
@@ -269,7 +270,7 @@ public class BusTimesActivity extends ListActivity implements IArrivalTimeRespon
 		}
 
 		// cancel any proximity alert
-		i = new Intent(ctx, ProximityAlarmReceiver.class);
+		i = new Intent(ctx, ProximityAlertReceiver.class);
 		pi = PendingIntent.getBroadcast(ctx, 0, i, PendingIntent.FLAG_NO_CREATE);
 		if (pi != null) {
 			LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
@@ -357,7 +358,7 @@ public class BusTimesActivity extends ListActivity implements IArrivalTimeRespon
 						return;
 
 					// create an intent
-					Intent i = new Intent(BusTimesActivity.this, TemporalAlarmReceiver.class);
+					Intent i = new Intent(BusTimesActivity.this, TemporalAlertReceiver.class);
 					i.putExtra("StopCode", stopCode);
 					i.putExtra("StopName", stopName);
 					i.putExtra("Services", selectedServicesList.toArray(new String[selectedServicesList.size()]));
@@ -408,7 +409,7 @@ public class BusTimesActivity extends ListActivity implements IArrivalTimeRespon
 					location.setLongitude(pt.lon[stopNodeIdx] / 1E6);
 
 					// create an intent
-					Intent i = new Intent(BusTimesActivity.this, ProximityAlarmReceiver.class);
+					Intent i = new Intent(BusTimesActivity.this, ProximityAlertReceiver.class);
 					i.putExtra("StopCode", stopCode);
 					i.putExtra("StopName", stopName);
 					i.putExtra("Location", location);

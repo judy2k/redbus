@@ -1,4 +1,4 @@
-package org.redbus.alarm;
+package org.redbus.alert;
 
 import org.redbus.BusTimesActivity;
 import org.redbus.R;
@@ -15,7 +15,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.widget.Toast;
 
-public class ProximityAlarmReceiver extends BroadcastReceiver {
+public class ProximityAlertReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
