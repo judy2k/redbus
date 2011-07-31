@@ -26,6 +26,7 @@ import org.redbus.settings.SettingsAccessor;
 import org.redbus.stopdb.IStopDbUpdateResponseListener;
 import org.redbus.stopdb.StopDbAccessor;
 import org.redbus.stopdb.StopDbUpdater;
+import org.redbus.ui.BusyDialog;
 import org.redbus.ui.alert.AlertUtils;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 import org.redbus.ui.stopmap.StopMapActivity;
@@ -64,7 +65,7 @@ import android.widget.Toast;
 import android.util.Log;
 import android.util.Xml;
 
-public class StopBookmarksActivity extends ListActivity implements IStopDbUpdateResponseListener
+public class StopBookmarksActivity extends ListActivity implements IStopDbUpdateResponseListener, OnCancelListener
 {	
 	public static final String[] columnNames = new String[] { SettingsAccessor.ID, SettingsAccessor.BOOKMARKS_COL_STOPNAME };
 	public static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
@@ -105,7 +106,7 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
         	
             // are we being called from a click on a notification?
             if (getIntent().getBooleanExtra("DoManualUpdate", false)) {
-    			displayBusy("Checking for updates...");
+            	busyDialog = BusyDialog.show(StopBookmarksActivity.this, StopBookmarksActivity.this, busyDialog, "Checking for updates...");
         		isManualUpdateCheck = true;
         		expectedRequestId = StopDbUpdater.checkForUpdates(lastUpdateDate, this);
             } else {
@@ -135,8 +136,10 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
         SettingsAccessor db = new SettingsAccessor(this);
         try {
         	SimpleCursorAdapter oldAdapter = ((SimpleCursorAdapter) getListAdapter());
-        	if (oldAdapter != null)
+        	if (oldAdapter != null) {
+        		stopManagingCursor(oldAdapter.getCursor());
         		oldAdapter.getCursor().close();
+        	}
 	        Cursor listContentsCursor = db.getBookmarks();
 	        startManagingCursor(listContentsCursor);
 	        setListAdapter(new SimpleCursorAdapter(this, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds));
@@ -360,7 +363,7 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
 	        	db.close();
 	        }
 	        
-			displayBusy("Checking for updates...");
+			busyDialog = BusyDialog.show(this, this, busyDialog, "Checking for updates...");
     		isManualUpdateCheck = true;
     		expectedRequestId = StopDbUpdater.checkForUpdates(lastUpdateDate, this);
     		return true;
@@ -370,24 +373,8 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
 		return false;
 	}
 	
-	private void displayBusy(String reason) {
-		dismissBusy();
-
-		busyDialog = ProgressDialog.show(this, "", reason, true, true, new OnCancelListener() {
-			public void onCancel(DialogInterface dialog) {
-				StopBookmarksActivity.this.expectedRequestId = -1;
-			}
-		});
-	}
-
-	private void dismissBusy() {
-		if (busyDialog != null) {
-			try {
-				busyDialog.dismiss();
-			} catch (Throwable t) {
-			}
-			busyDialog = null;
-		}
+	public void onCancel(DialogInterface dialog) {
+		expectedRequestId = -1;
 	}
 	
 	private void setNextUpdateTime(boolean wasSuccessful) {	
@@ -413,22 +400,22 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
         }
 	}
 
-	public void checkUpdatesError(int requestId) {
+	public void checkUpdateError(int requestId) {
 		if (requestId != expectedRequestId)
 			return;
 
-		dismissBusy();
+		BusyDialog.dismiss(busyDialog);
 		
 		if (isManualUpdateCheck)
 			Toast.makeText(this, "Failed to check for bus stop data updates; please try again later", Toast.LENGTH_SHORT).show();
 		setNextUpdateTime(false);
 	}
 
-	public void checkUpdatesSuccess(int requestId, long updateDate) {
+	public void checkUpdateSuccess(int requestId, long updateDate) {
 		if (requestId != expectedRequestId)
 			return;
 
-		dismissBusy();
+		BusyDialog.dismiss(busyDialog);
 		setNextUpdateTime(true);
 
 		if (updateDate == 0) {
@@ -459,7 +446,7 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
 				.setPositiveButton(android.R.string.ok, 
 						new DialogInterface.OnClickListener() {
 		                    public void onClick(DialogInterface dialog, int whichButton) {
-		            			displayBusy("Downloading bus data update...");
+		                    	busyDialog = BusyDialog.show(StopBookmarksActivity.this, StopBookmarksActivity.this, busyDialog, "Downloading bus data update...");
 		                    	expectedRequestId = StopDbUpdater.getUpdate(updateDateF, StopBookmarksActivity.this);
 		                    }
 						})
@@ -472,7 +459,7 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
 		if (requestId != expectedRequestId)
 			return;
 
-		dismissBusy();
+		BusyDialog.dismiss(busyDialog);
 
 		Toast.makeText(this, "Failed to download update; please try again later", Toast.LENGTH_SHORT).show();
 	}
@@ -481,7 +468,7 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
 		if (requestId != expectedRequestId)
 			return;
 
-		dismissBusy();
+		BusyDialog.dismiss(busyDialog);
 
 		try {
 			StopDbAccessor.saveRawDb(updateData);

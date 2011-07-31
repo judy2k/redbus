@@ -28,11 +28,13 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.redbus.R;
+import org.redbus.StopBookmarksActivity;
 import org.redbus.arrivaltime.ArrivalTime;
 import org.redbus.arrivaltime.ArrivalTimeAccessor;
 import org.redbus.arrivaltime.IArrivalTimeResponseListener;
 import org.redbus.settings.SettingsAccessor;
 import org.redbus.stopdb.StopDbAccessor;
+import org.redbus.ui.BusyDialog;
 import org.redbus.ui.alert.ProximityAlert;
 import org.redbus.ui.alert.TemporalAlert;
 import org.redbus.ui.stopmap.StopMapActivity;
@@ -58,7 +60,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeResponseListener {
+public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeResponseListener, OnCancelListener {
 
 	private int stopCode = -1;
 	private String stopName = "";	
@@ -113,7 +115,11 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		busyDialog = null;
 		super.onDestroy();		
 	}
-
+	
+	public void onCancel(DialogInterface dialog) {
+		expectedRequestId = -1;
+	}
+	
 	private void update() {
 		update(0, null);
 	}
@@ -125,32 +131,11 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 				displayDate = new Date();
 	
 			setTitle(stopName + " (" + titleDateFormat.format(displayDate) + ")");
-			displayBusy("Retrieving bus times");
-
+        	busyDialog = BusyDialog.show(this, this, busyDialog, "Retrieving bus times");
 			expectedRequestId = ArrivalTimeAccessor.getBusTimesAsync(stopCode, daysInAdvance, timeInAdvance, this);
 		} else {
 			setTitle("Unknown bus stop");
 			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
-		}
-	}
-
-	private void displayBusy(String reason) {
-		dismissBusy();
-
-		busyDialog = ProgressDialog.show(this, "", reason, true, true, new OnCancelListener() {
-			public void onCancel(DialogInterface dialog) {
-				ArrivalTimeActivity.this.expectedRequestId = -1;
-			}
-		});
-	}
-
-	private void dismissBusy() {
-		if (busyDialog != null) {
-			try {
-				busyDialog.dismiss();
-			} catch (Throwable t) {
-			}
-			busyDialog = null;
 		}
 	}
 
@@ -164,7 +149,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		if (requestId != expectedRequestId)
 			return;
 		
-		dismissBusy();
+		BusyDialog.dismiss(busyDialog);
 		hideStatusBoxes();
 
 		setListAdapter(new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, new ArrayList<ArrivalTime>()));
@@ -180,7 +165,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		if (requestId != expectedRequestId)
 			return;
 		
-		dismissBusy();
+		BusyDialog.dismiss(busyDialog);
 		hideStatusBoxes();
 		
 		if (sorting.equalsIgnoreCase("service")) {

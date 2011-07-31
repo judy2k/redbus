@@ -205,11 +205,11 @@ public class StopDbUpdater {
 			switch(request.requestType) {
 			case UpdateRequest.REQ_CHECKUPDATES:
 				if (request.updateDate == -1) {
-					request.callback.checkUpdatesError(request.requestId);
+					request.callback.checkUpdateError(request.requestId);
 					return;
 				}
 				
-				request.callback.checkUpdatesSuccess(request.requestId, request.updateDate);
+				request.callback.checkUpdateSuccess(request.requestId, request.updateDate);
 				break;
 
 			case UpdateRequest.REQ_GETUPDATE:

@@ -19,8 +19,8 @@
 package org.redbus.stopdb;
 
 public interface IStopDbUpdateResponseListener {
-	public void checkUpdatesError(int requestId);
-	public void checkUpdatesSuccess(int requestId, long updateDate);
+	public void checkUpdateError(int requestId);
+	public void checkUpdateSuccess(int requestId, long updateDate);
 	
 	public void getUpdateError(int requestId);
 	public void getUpdateSuccess(int requestId, long updateDate, byte[] updateData);
