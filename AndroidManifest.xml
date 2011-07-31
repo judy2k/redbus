@@ -1,43 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="org.redbus" android:versionCode="31" android:versionName="1.0.30">
+	package="org.redbus" android:versionName="1.0.33" android:versionCode="34">
 	
 	<application android:label="@string/app_name" android:icon="@drawable/icon72">
 	    
-	   	<activity android:label="Edinburgh Bus Tracker" android:name=".ui.RedbusTabView">
+	   	<activity android:name=".ui.RedbusTabView" android:label="Edinburgh Bus Tracker">
 			  <intent-filter>
 				<action android:name="android.intent.action.MAIN"></action>
 				<category android:name="android.intent.category.LAUNCHER"></category>
 			</intent-filter>
-		</activity><activity-alias android:name="RedbusTabView" android:label="Edinburgh Bus Tracker" android:targetActivity=".ui.RedbusTabView">
+		</activity>
+		
+		<activity-alias android:name="RedbusTabView" android:targetActivity=".ui.RedbusTabView" android:label="Edinburgh Bus Tracker">
+			  <intent-filter>
+				<action android:name="android.intent.action.MAIN"></action>
+				<!-- do not add LAUNCHER here or you end up with multiple entries! -->
+			</intent-filter>
 		</activity-alias>
+				
+		<activity-alias android:targetActivity=".ui.RedbusTabView" android:name="StopBookmarksActivity" android:label="Edinburgh Bus Tracker">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"></action>
+				<!-- do not add LAUNCHER here or you end up with multiple entries! -->
+			</intent-filter>
+		</activity-alias>
+
+
+
 		
-		
-		
-		<activity-alias android:targetActivity=".ui.RedbusTabView" android:name="StopBookmarksActivity"></activity-alias><activity android:theme="@android:style/Theme.Dialog" android:name=".ui.CreateShortcutActivity" android:label="Bus Bookmark">
+		<activity android:theme="@android:style/Theme.Dialog" android:name=".ui.CreateShortcutActivity" android:label="Bus Bookmark">
         	<intent-filter>
         		<action android:name="android.intent.action.CREATE_SHORTCUT"></action>
         		<category android:name="android.intent.category.DEFAULT"></category>
         	</intent-filter>
 		</activity>
         
-		<activity-alias android:label="Edinburgh bus stop" 
-		android:name="CreateShortcutActivity" 
-		android:targetActivity=".ui.CreateShortcutActivity">
+		<activity-alias android:name="CreateShortcutActivity" android:targetActivity=".ui.CreateShortcutActivity" android:label="Bus Bookmark">
+        	<intent-filter>
+        		<action android:name="android.intent.action.CREATE_SHORTCUT"></action>
+        		<category android:name="android.intent.category.DEFAULT"></category>
+        	</intent-filter>
 		</activity-alias>
+
+
 		
-		<activity android:name=".ui.arrivaltime.ArrivalTimeActivity" android:label="Bus Times" >
+		<activity android:name=".ui.arrivaltime.ArrivalTimeActivity">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 			</intent-filter>
 		</activity>
-		<activity android:name=".ui.arrivaltime.NearbyBookmarkedArrivalTimeActivity" android:label="Nearby arrivals" />
 		
-		
-		<!--  Alias for launcher shortcut backwards compatibility -->
-		<activity-alias android:name="BusTimesActivity"
-		android:targetActivity=".ui.arrivaltime.ArrivalTimeActivity">
+		<activity-alias android:name="BusTimesActivity" android:targetActivity=".ui.arrivaltime.ArrivalTimeActivity" android:label="Bus Times">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+			</intent-filter>
 		</activity-alias>
+		
+		
+		<activity android:name=".ui.arrivaltime.NearbyBookmarkedArrivalTimeActivity" android:label="Nearby arrivals" />
 		
 		<activity android:name=".ui.stopmap.StopMapActivity" android:label="Map" />
 		<activity android:name=".ui.BookmarksActivity" android:label="Edinburgh Bus Tracker" />
@@ -49,9 +69,7 @@
 	</application>
 
 	<uses-sdk android:minSdkVersion="3"/>
-	<supports-screens android:smallScreens="true" />
-	<supports-screens android:largeScreens="true" />
-	<supports-screens android:resizeable="true" />
+	<supports-screens android:smallScreens="true" android:anyDensity="true" android:resizeable="true" android:largeScreens="true" android:normalScreens="true" />
 	<uses-permission android:name="android.permission.INTERNET"/>
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
