@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.redbus.BusTimesActivity;
 import org.redbus.R;
-import org.redbus.WorkaroundMyLocationOverlay;
 import org.redbus.geocode.GeocodingAccessor;
 import org.redbus.geocode.IGeocodingResponseListener;
 import org.redbus.settings.SettingsDbAccessor;

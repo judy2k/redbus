@@ -16,7 +16,7 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.ui.stopmap;
 
 import android.content.Context;
 import android.graphics.Canvas;
