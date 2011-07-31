@@ -394,7 +394,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 			i.putExtra("DoManualUpdate", true);
 			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 
-			Notification notification = new Notification(R.drawable.tracker_24x24_masked, "New bus stop data available", System.currentTimeMillis());
+			Notification notification = new Notification(R.drawable.icon, "New bus stop data available", System.currentTimeMillis());
 			notification.defaults  = 0;
 			notification.flags |= Notification.FLAG_AUTO_CANCEL;
 			notification.setLatestEventInfo(this, "New bus stop data available", "Press to download", contentIntent);

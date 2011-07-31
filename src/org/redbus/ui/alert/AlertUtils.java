@@ -37,7 +37,7 @@ public class AlertUtils {
 		Intent i = new Intent(ctx, AlertNotificationPressedReceiver.class);		
 		PendingIntent pi = PendingIntent.getBroadcast(ctx, 0, i, PendingIntent.FLAG_UPDATE_CURRENT); 
 
-		Notification notification = new Notification(R.drawable.tracker_24x24_masked, "Bus alarm active", System.currentTimeMillis());
+		Notification notification = new Notification(R.drawable.icon, "Bus alarm active", System.currentTimeMillis());
 		notification.defaults = 0;
 		notification.flags |= Notification.FLAG_ONGOING_EVENT;
 		notification.setLatestEventInfo(ctx, "Bus alarm active", "Press to cancel", pi);
