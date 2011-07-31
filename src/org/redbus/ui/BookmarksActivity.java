@@ -84,7 +84,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	protected void onResume() 
 	{
 		super.onResume();
-		Utils.updateBookmarksListAdaptor(this);
+		Common.updateBookmarksListAdaptor(this);
 	}
 	
 	@Override
@@ -197,7 +197,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		                        } finally {
 		                        	db.close();
 		                        }
-		                		Utils.updateBookmarksListAdaptor(BookmarksActivity.this);
+		                		Common.updateBookmarksListAdaptor(BookmarksActivity.this);
 							}
 						})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -219,7 +219,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
                         } finally {
                         	db.close();
                         }
-                		Utils.updateBookmarksListAdaptor(BookmarksActivity.this);
+                		Common.updateBookmarksListAdaptor(BookmarksActivity.this);
                     }
 				})
 		.setNegativeButton(android.R.string.cancel, null)
@@ -275,7 +275,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         SettingsHelper db = new SettingsHelper(this);
         if (db.restore(bookmarksXmlFile)) {
 	        Toast.makeText(this, "Bookmarks restored from " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
-    		Utils.updateBookmarksListAdaptor(this);
+    		Common.updateBookmarksListAdaptor(this);
         }
 	}
 	

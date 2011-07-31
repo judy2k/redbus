@@ -42,7 +42,7 @@ public class CreateShortcutActivity extends ListActivity {
 	protected void onStart() 
 	{
 		super.onStart();
-		Utils.updateBookmarksListAdaptor(this);
+		Common.updateBookmarksListAdaptor(this);
 	}
 	
 	@Override

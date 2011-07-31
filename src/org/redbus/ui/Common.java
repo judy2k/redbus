@@ -7,7 +7,7 @@ import android.app.ListActivity;
 import android.database.Cursor;
 import android.widget.SimpleCursorAdapter;
 
-public class Utils 
+public class Common 
 {
 	private static final String[] columnNames = new String[] { SettingsHelper.ID, SettingsHelper.BOOKMARKS_COL_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
