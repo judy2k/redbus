@@ -26,7 +26,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="5.6"
      inkscape:cx="185.92197"
-     inkscape:cy="638.49697"
+     inkscape:cy="655.70533"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -61,12 +61,22 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <rect
+       style="fill:#e6e6e6;fill-opacity:1;stroke:none"
+       id="rect3013"
+       width="74"
+       height="73.921623"
+       x="196.78572"
+       y="373.44064"
+       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
+       inkscape:export-xdpi="622.70001"
+       inkscape:export-ydpi="622.70001" />
     <g
        id="g4225"
-       transform="translate(-90.371121,-13.002787)"
-       inkscape:export-filename="/home/adq/dev/android/redbus/res/drawable/icon.png"
-       inkscape:export-xdpi="87.862007"
-       inkscape:export-ydpi="87.862007">
+       transform="matrix(1,0,0,0.99894088,-90.371121,-11.979975)"
+       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
+       inkscape:export-xdpi="622.70001"
+       inkscape:export-ydpi="622.70001">
       <rect
          y="421.90073"
          x="341.17902"
@@ -145,10 +155,10 @@
     </g>
     <g
        id="g4092"
-       transform="matrix(0.32392931,0,0,0.32392931,245.58167,418.74887)"
-       inkscape:export-filename="/home/adq/dev/android/redbus/res/drawable/icon.png"
-       inkscape:export-xdpi="87.862007"
-       inkscape:export-ydpi="87.862007">
+       transform="matrix(0.32392931,0,0,0.32358623,245.58167,419.13602)"
+       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
+       inkscape:export-xdpi="622.70001"
+       inkscape:export-ydpi="622.70001">
       <path
          id="path4078"
          d="m 21.481,0.65239 4.062,7.0627 c -7.394,3.6269 -12.406,10.728 -12.406,18.875 h 23.656 23.656 c 0,-8.1468 -5.012,-15.248 -12.406,-18.875 l 4.063,-7.0626 c 0,0 0.19231,-0.37509 -0.17225,-0.58569 -0.365,-0.21059 -0.61,0.14869 -0.61,0.14869 l -4.125,7.1248 c -3.141,-1.3979 -6.6721,-2.1875 -10.406,-2.1875 -3.7341,0 -7.2653,0.7896 -10.406,2.1875 l -4.125,-7.1248 c 0,0 -0.23006,-0.35939 -0.59737,-0.14971 -0.368,0.20967 -0.184,0.58671 -0.184,0.58671 z m 4.062,13.68 c 1.2395,0 2.25,1.0105 2.25,2.25 -10e-6,1.2395 -1.0105,2.2188 -2.25,2.2188 -1.2395,0 -2.25,-0.97928 -2.25,-2.2188 0,-1.23952 1.0105,-2.25 2.25,-2.25 z m 22.5,0 c 1.2395,0 2.25,1.0105 2.25,2.25 -10e-6,1.2395 -1.0105,2.2188 -2.25,2.2188 -1.2395,0 -2.25,-0.97928 -2.25,-2.2188 0,-1.23952 1.0105,-2.25 2.25,-2.25 z"
@@ -182,28 +192,28 @@
        style="fill:#000000;fill-opacity:1;stroke:none"
        id="rect4274"
        width="5"
-       height="5"
+       height="4.9947042"
        x="201.25"
-       y="442.36218"
-       inkscape:export-filename="/home/adq/dev/android/redbus/res/drawable/icon.png"
-       inkscape:export-xdpi="87.862007"
-       inkscape:export-ydpi="87.862007" />
+       y="442.36755"
+       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
+       inkscape:export-xdpi="622.70001"
+       inkscape:export-ydpi="622.70001" />
     <rect
        style="fill:#000000;fill-opacity:1;stroke:none"
        id="rect4274-0"
        width="5"
-       height="5"
+       height="4.9947042"
        x="232.5"
-       y="442.36218"
-       inkscape:export-filename="/home/adq/dev/android/redbus/res/drawable/icon.png"
-       inkscape:export-xdpi="87.862007"
-       inkscape:export-ydpi="87.862007" />
+       y="442.36755"
+       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
+       inkscape:export-xdpi="622.70001"
+       inkscape:export-ydpi="622.70001" />
     <g
        id="g3012"
-       transform="matrix(1,0,0,0.98000004,0,7.472228)"
-       inkscape:export-filename="/home/adq/dev/android/redbus/res/drawable/icon.png"
-       inkscape:export-xdpi="87.862007"
-       inkscape:export-ydpi="87.862007">
+       transform="matrix(1,0,0,0.9789621,0,7.9382088)"
+       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
+       inkscape:export-xdpi="622.70001"
+       inkscape:export-ydpi="622.70001">
       <path
          inkscape:export-ydpi="29.287312"
          inkscape:export-xdpi="29.287312"
