@@ -21,8 +21,7 @@ public class Utils
 	        la.startManagingCursor(listContentsCursor);
 	        la.setListAdapter(new SimpleCursorAdapter(la, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds));
     	} else {
-    		Cursor oldCursor = cursorAdapter.getCursor();
-    		oldCursor.requery();
+    		cursorAdapter.getCursor().requery();
     	}
 	}
 }
