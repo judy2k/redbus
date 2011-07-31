@@ -16,8 +16,11 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.ui;
 
+import org.redbus.R;
+import org.redbus.StopBookmarksActivity;
+import org.redbus.R.layout;
 import org.redbus.ui.stopmap.StopMapActivity;
 
 import android.app.TabActivity;

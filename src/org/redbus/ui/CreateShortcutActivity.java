@@ -16,8 +16,14 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.ui;
 
+import org.redbus.BusTimesActivity;
+import org.redbus.R;
+import org.redbus.StopBookmarksActivity;
+import org.redbus.R.drawable;
+import org.redbus.R.id;
+import org.redbus.R.layout;
 import org.redbus.settings.SettingsDbAccessor;
 
 import android.app.ListActivity;
