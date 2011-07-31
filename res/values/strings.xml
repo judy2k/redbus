@@ -11,5 +11,6 @@
 * Fix homescreen icon not working until removed+re-added (sorry!).\n
 * Fix map not moving to your location when My Location selected.\n
 * Redraw icon in SVG.\n
-* Total code refactoring to ease new feature development.\n&quot;</string>
+* Total code refactoring to ease new feature development.\n
+* Homescreen shortcuts are now supported.\n&quot;</string>
 </resources>
