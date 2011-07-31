@@ -19,7 +19,7 @@
 package org.redbus.ui.alert;
 
 import org.redbus.R;
-import org.redbus.stopdb.StopDbAccessor;
+import org.redbus.stopdb.StopDbHelper;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 import org.redbus.ui.stopmap.StopMapActivity;
 
@@ -49,19 +49,17 @@ public class ProximityAlert extends BroadcastReceiver implements DialogInterface
 	private Spinner uiDistanceSpinner;
 
 	
+	public static void createProximityAlert(ArrivalTimeActivity arrivalTimeActivity, int stopCode) {
+		new ProximityAlert(arrivalTimeActivity, stopCode);
+	}
+	
 	/**
 	 * Empty constructor for BroadcastReceiver implementation
 	 */
 	public ProximityAlert() {
 	}
 	
-	/**
-	 * Constructor for GUI creation
-	 * 
-	 * @param arrivalTimeActivity
-	 * @param stopCode
-	 */
-	public ProximityAlert(ArrivalTimeActivity arrivalTimeActivity, int stopCode) {
+	private ProximityAlert(ArrivalTimeActivity arrivalTimeActivity, int stopCode) {
 		this.uiArrivalTimeActivity = arrivalTimeActivity;
 		this.uiStopCode = stopCode;
 
@@ -84,7 +82,7 @@ public class ProximityAlert extends BroadcastReceiver implements DialogInterface
 	}
 	
 	public void onClick(DialogInterface dialog, int which) {
-		StopDbAccessor pt = StopDbAccessor.Load(uiArrivalTimeActivity);
+		StopDbHelper pt = StopDbHelper.Load(uiArrivalTimeActivity);
 		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode(uiStopCode);
 		if (stopNodeIdx == -1)
 			return;

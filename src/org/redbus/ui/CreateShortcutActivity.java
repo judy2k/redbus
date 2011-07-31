@@ -19,7 +19,7 @@
 package org.redbus.ui;
 
 import org.redbus.R;
-import org.redbus.settings.SettingsAccessor;
+import org.redbus.settings.SettingsHelper;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 
 import android.app.ListActivity;
@@ -52,15 +52,17 @@ public class CreateShortcutActivity extends ListActivity {
 	// FIXME - This duplicates StopBookmarksActivity.update()
 	private void update()
 	{
-        SettingsAccessor db = new SettingsAccessor(this);
+        SettingsHelper db = new SettingsHelper(this);
         try {
         	SimpleCursorAdapter oldAdapter = ((SimpleCursorAdapter) getListAdapter());
-        	if (oldAdapter != null)
+        	if (oldAdapter != null) {
+        		stopManagingCursor(oldAdapter.getCursor());
         		oldAdapter.getCursor().close();
+        	}
 	        Cursor listContentsCursor = db.getBookmarks();
 	        startManagingCursor(listContentsCursor);
 	        setListAdapter(new SimpleCursorAdapter(this, R.layout.stopbookmarks_item, listContentsCursor, 
-	        		StopBookmarksActivity.columnNames, StopBookmarksActivity.listViewIds));
+	        		BookmarksActivity.columnNames, BookmarksActivity.listViewIds));
 	        
         } finally {
         	db.close();

@@ -24,10 +24,10 @@ import java.util.List;
 
 import org.redbus.R;
 import org.redbus.arrivaltime.ArrivalTime;
-import org.redbus.arrivaltime.ArrivalTimeAccessor;
+import org.redbus.arrivaltime.ArrivalTimeHelper;
 import org.redbus.arrivaltime.IArrivalTimeResponseListener;
 import org.redbus.stopdb.ServiceBitmap;
-import org.redbus.stopdb.StopDbAccessor;
+import org.redbus.stopdb.StopDbHelper;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 
 import android.app.AlarmManager;
@@ -67,25 +67,22 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 	private String broadcastStopName;
 	private Intent broadcastIntent;
 	
+	public static void createTemporalAlert(ArrivalTimeActivity arrivalTimeActivity, int stopCode, String selectedService) {
+		new TemporalAlert(arrivalTimeActivity, stopCode, selectedService);
+	}
+
 	/**
 	 * Empty constructor for BroadcastReceiver implementation
 	 */
 	public TemporalAlert() {
 	}
 
-	/**
-	 * Constructor for GUI creation
-	 * 
-	 * @param arrivalTimeActivity
-	 * @param stopCode
-	 * @param selectedService
-	 */
-	public TemporalAlert(ArrivalTimeActivity arrivalTimeActivity, int stopCode, String selectedService) {
+	private TemporalAlert(ArrivalTimeActivity arrivalTimeActivity, int stopCode, String selectedService) {
 		this.uiArrivalTimeActivity = arrivalTimeActivity;
 		this.uiStopCode = stopCode;
 		
 		// get the list of services for this stop
-		StopDbAccessor pt = StopDbAccessor.Load(arrivalTimeActivity);
+		StopDbHelper pt = StopDbHelper.Load(arrivalTimeActivity);
 		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
 		if (stopNodeIdx == -1)
 			return;
@@ -207,7 +204,7 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 		if (broadcastStopName == null)
 			return;
 
-		ArrivalTimeAccessor.getBusTimesAsync(broadcastStopCode, 0, null, this);
+		ArrivalTimeHelper.getBusTimesAsync(broadcastStopCode, 0, null, this);
 	}
 
 	private void rescheduleAlarm() {

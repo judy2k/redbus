@@ -29,12 +29,11 @@ import java.util.List;
 
 import org.redbus.R;
 import org.redbus.arrivaltime.ArrivalTime;
-import org.redbus.arrivaltime.ArrivalTimeAccessor;
+import org.redbus.arrivaltime.ArrivalTimeHelper;
 import org.redbus.arrivaltime.IArrivalTimeResponseListener;
-import org.redbus.settings.SettingsAccessor;
-import org.redbus.stopdb.StopDbAccessor;
+import org.redbus.settings.SettingsHelper;
+import org.redbus.stopdb.StopDbHelper;
 import org.redbus.ui.BusyDialog;
-import org.redbus.ui.StopBookmarksActivity;
 import org.redbus.ui.alert.ProximityAlert;
 import org.redbus.ui.alert.TemporalAlert;
 import org.redbus.ui.stopmap.StopMapActivity;
@@ -42,7 +41,6 @@ import org.redbus.ui.stopmap.StopMapActivity;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -91,7 +89,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		if (stopCode != -1)
 			findViewById(android.R.id.empty).setVisibility(View.GONE);
 		
-		SettingsAccessor db = new SettingsAccessor(this);
+		SettingsHelper db = new SettingsHelper(this);
 		try {
 			sorting = db.getGlobalSetting("bustimesort", "arrival");
 			stopName = db.getBookmarkName(stopCode);
@@ -99,7 +97,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 			db.close();
 		}
 		
-		StopDbAccessor pt = StopDbAccessor.Load(this);
+		StopDbHelper pt = StopDbHelper.Load(this);
 		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
 		if (stopNodeIdx != -1) {
 			stopName = pt.lookupStopNameByStopNodeIdx(stopNodeIdx);
@@ -133,7 +131,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	
 			setTitle(stopName + " (" + titleDateFormat.format(displayDate) + ")");
         	busyDialog.show(this, "Retrieving bus times");
-			expectedRequestId = ArrivalTimeAccessor.getBusTimesAsync(stopCode, daysInAdvance, timeInAdvance, this);
+			expectedRequestId = ArrivalTimeHelper.getBusTimesAsync(stopCode, daysInAdvance, timeInAdvance, this);
 		} else {
 			setTitle("Unknown bus stop");
 			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
@@ -197,7 +195,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		TextView clickedService = (TextView) v.findViewById(R.id.bustimes_service);
-		new TemporalAlert(this, stopCode, clickedService.getText().toString());
+		TemporalAlert.createTemporalAlert(this, stopCode, clickedService.getText().toString());
 	}
 
 	
@@ -210,7 +208,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.bustimes_menu, menu);
 		
-        SettingsAccessor db = new SettingsAccessor(this);
+        SettingsHelper db = new SettingsHelper(this);
         try {
         	if (db.isBookmark(stopCode)) {
         		menu.findItem(R.id.bustimes_menu_addbookmark).setEnabled(false);
@@ -281,7 +279,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		if (stopCode == -1) 
 			return;
 		
-		SettingsAccessor db = new SettingsAccessor(this);
+		SettingsHelper db = new SettingsHelper(this);
 		try {
 			db.addBookmark(stopCode, stopName);
 		} finally {
@@ -300,7 +298,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 					.setPositiveButton(android.R.string.ok,
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog, int whichButton) {
-			                        SettingsAccessor db = new SettingsAccessor(ArrivalTimeActivity.this);
+			                        SettingsHelper db = new SettingsHelper(ArrivalTimeActivity.this);
 			                        try {
 			                        	db.renameBookmark(ArrivalTimeActivity.this.stopCode, input.getText().toString());
 			                        } finally {
@@ -321,7 +319,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		.setPositiveButton(android.R.string.ok, 
 				new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int whichButton) {
-	                    SettingsAccessor db = new SettingsAccessor(ArrivalTimeActivity.this);
+	                    SettingsHelper db = new SettingsHelper(ArrivalTimeActivity.this);
 	                    try {
 	                    	db.deleteBookmark(ArrivalTimeActivity.this.stopCode);
 	                    } finally {
@@ -335,7 +333,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	}
 	
 	private void doViewOnMap() {
-		StopDbAccessor pt = StopDbAccessor.Load(ArrivalTimeActivity.this);
+		StopDbHelper pt = StopDbHelper.Load(ArrivalTimeActivity.this);
 		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
 		if (stopNodeIdx != -1)
 			StopMapActivity.showActivity(this, pt.lat[stopNodeIdx], pt.lon[stopNodeIdx]);
@@ -376,7 +374,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	private void doSorting(String newSorting) {
 		this.sorting = newSorting;
 		
-		SettingsAccessor db = new SettingsAccessor(this);
+		SettingsHelper db = new SettingsHelper(this);
 		try {
 			db.setGlobalSetting("bustimesort",  this.sorting);
 		} finally {
@@ -386,11 +384,11 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	}
 	
 	private void doProximityAlert() {
-		new ProximityAlert(this, stopCode);
+		ProximityAlert.createProximityAlert(this, stopCode);
 	}
 	
 	private void doTemporalAlert() {
-		new TemporalAlert(this, stopCode, null);
+		TemporalAlert.createTemporalAlert(this, stopCode, null);
 	}
 }
 

@@ -32,7 +32,7 @@ import org.apache.http.protocol.HTTP;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class StopDbUpdater {
+public class StopDbUpdateHelper {
 	
 	private static final Pattern busUpdateRegex = Pattern.compile("bus2.dat-([0-9]+).gz");
 
@@ -42,7 +42,7 @@ public class StopDbUpdater {
 	{
 		int requestId = RequestId++;
 
-		new AsyncUpdateTask().execute(new UpdateRequest(requestId, UpdateRequest.REQ_CHECKUPDATES, lastUpdateDate, -1, callback));
+		new AsyncUpdateTask().execute(new UpdateRequest(requestId, UpdateRequest.REQ_CHECKUPDATE, lastUpdateDate, -1, callback));
 		
 		return requestId;
 	}
@@ -63,9 +63,9 @@ public class StopDbUpdater {
 
 			try {
 				switch(ur.requestType) {
-				case UpdateRequest.REQ_CHECKUPDATES:
+				case UpdateRequest.REQ_CHECKUPDATE:
 					ur.updateDate = -1;
-					checkUpdates(ur);
+					checkUpdate(ur);
 					break;
 
 				case UpdateRequest.REQ_GETUPDATE:
@@ -81,7 +81,7 @@ public class StopDbUpdater {
 			return ur;
 		}
 		
-		private void checkUpdates(UpdateRequest ur) throws MalformedURLException {			
+		private void checkUpdate(UpdateRequest ur) throws MalformedURLException {			
 			// download the HTML for the project downloads page
 			String downloadsHtml = doGetStringUrl(new URL("http://code.google.com/p/redbus/downloads/list"));
 			if (downloadsHtml == null)
@@ -203,7 +203,7 @@ public class StopDbUpdater {
 
 		protected void onPostExecute(UpdateRequest request) {
 			switch(request.requestType) {
-			case UpdateRequest.REQ_CHECKUPDATES:
+			case UpdateRequest.REQ_CHECKUPDATE:
 				if (request.updateDate == -1) {
 					request.callback.checkUpdateError(request.requestId);
 					return;
@@ -226,7 +226,7 @@ public class StopDbUpdater {
 	
 	public static class UpdateRequest {
 		
-		public static final int REQ_CHECKUPDATES = 0;
+		public static final int REQ_CHECKUPDATE = 0;
 		public static final int REQ_GETUPDATE = 1;
 		
 		public UpdateRequest(int requestId, int requestType, long lastUpdateDate, long updateDate, IStopDbUpdateResponseListener callback)

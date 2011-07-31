@@ -39,7 +39,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Xml;
 
-public class ArrivalTimeAccessor {
+public class ArrivalTimeHelper {
 	
 	public static final int BUSSTATUS_HTTPERROR = -1;
 	public static final int BUSSTATUS_BADSTOPCODE = -2;
@@ -291,7 +291,7 @@ public class ArrivalTimeAccessor {
 		protected void onPostExecute(BusDataRequest request) {
 			switch(request.requestType) {
 			case BusDataRequest.REQ_BUSTIMES:
-				ArrivalTimeAccessor.getBusTimesResponse(request);			
+				ArrivalTimeHelper.getBusTimesResponse(request);			
 				break;
 			}
 		}

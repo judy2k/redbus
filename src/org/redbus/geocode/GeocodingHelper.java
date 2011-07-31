@@ -21,7 +21,7 @@ package org.redbus.geocode;
 import java.util.List;
 import java.util.Locale;
 
-import org.redbus.stopdb.StopDbAccessor;
+import org.redbus.stopdb.StopDbHelper;
 
 
 import android.content.Context;
@@ -30,7 +30,7 @@ import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class GeocodingAccessor {
+public class GeocodingHelper {
 
 	private static Integer RequestId = new Integer(0);
 
@@ -52,7 +52,7 @@ public class GeocodingAccessor {
 			GeocodingRequest gr = params[0];
 			gr.addresses = null;
 			
-			StopDbAccessor pt = StopDbAccessor.Load(gr.ctx);
+			StopDbHelper pt = StopDbHelper.Load(gr.ctx);
 			
 			try {
 				Geocoder geocoder = new Geocoder(gr.ctx, Locale.UK);

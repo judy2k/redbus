@@ -2,7 +2,6 @@ package org.redbus.ui;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 
 public class BusyDialog {

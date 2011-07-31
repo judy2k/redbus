@@ -40,15 +40,15 @@ import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import org.redbus.R;
-import org.redbus.settings.SettingsAccessor;
+import org.redbus.settings.SettingsHelper;
 
 import android.content.Context;
 import android.util.Log;
 
 
-public class StopDbAccessor {
+public class StopDbHelper {
 
-	private static StopDbAccessor pointTree = null;
+	private static StopDbHelper pointTree = null;
 	private static Integer syncObj = new Integer(0);
 	private static String filesPath = "/data/data/org.redbus/files";
 
@@ -74,7 +74,7 @@ public class StopDbAccessor {
 	public int upperRightLat;
 	public int upperRightLon;
 
-	public static StopDbAccessor Load(Context ctx)
+	public static StopDbHelper Load(Context ctx)
 	{
 		synchronized (syncObj) {
 			if (pointTree == null) {
@@ -107,7 +107,7 @@ public class StopDbAccessor {
 
 					// now, load the on-disk file
 					stopsStream = new FileInputStream(file);
-					pointTree = new StopDbAccessor(stopsStream, (int) file.length());
+					pointTree = new StopDbHelper(stopsStream, (int) file.length());
 
 				} catch (IOException e) {
 					Log.println(Log.ERROR,"redbus","Error reading stops");
@@ -120,7 +120,7 @@ public class StopDbAccessor {
 					}
 
 					// zap the LASTUPDATE from the db so we redownload it
-					SettingsAccessor db = new SettingsAccessor(ctx);
+					SettingsHelper db = new SettingsHelper(ctx);
 					try {
 						db.deleteGlobalSetting("LASTUPDATE");
 					} catch (Throwable t) {
@@ -287,7 +287,7 @@ public class StopDbAccessor {
 
 
 
-	private StopDbAccessor(InputStream is, int length) throws IOException
+	private StopDbHelper(InputStream is, int length) throws IOException
 	{
 		// read the entire stream into a memory buffer
 		byte[] b = new byte[length];

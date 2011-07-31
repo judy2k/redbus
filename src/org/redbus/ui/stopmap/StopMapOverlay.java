@@ -19,7 +19,7 @@
 package org.redbus.ui.stopmap;
 
 import org.redbus.stopdb.ServiceBitmap;
-import org.redbus.stopdb.StopDbAccessor;
+import org.redbus.stopdb.StopDbHelper;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -57,7 +57,7 @@ public class StopMapOverlay extends Overlay {
 	private boolean showServiceLabels;
 	private Canvas bitmapRedCanvas;
 	private Projection projection;
-	private StopDbAccessor pointTree;
+	private StopDbHelper pointTree;
 	private Point stopCircle = new Point();
 	private int lat_tl;
 	private int lon_tl;
@@ -122,7 +122,7 @@ public class StopMapOverlay extends Overlay {
 		}
 
 		// get other necessaries
-		this.pointTree = StopDbAccessor.Load(stopMapActivity);
+		this.pointTree = StopDbHelper.Load(stopMapActivity);
 		this.projection = view.getProjection();
 		this.showServiceLabels = view.getZoomLevel() > 16;				
 		int canvasWidth = canvas.getWidth();

@@ -20,7 +20,7 @@ package org.redbus.ui.stopmap;
 
 import org.redbus.R;
 import org.redbus.stopdb.ServiceBitmap;
-import org.redbus.stopdb.StopDbAccessor;
+import org.redbus.stopdb.StopDbHelper;
 
 import android.app.AlertDialog;
 import android.view.View;
@@ -41,7 +41,7 @@ public class StopMapPopup implements OnClickListener {
 		this.stopMapActivity = stopMapActivity;
 		this.stopCode = stopCode;
 		
-		StopDbAccessor pt = StopDbAccessor.Load(stopMapActivity);
+		StopDbHelper pt = StopDbHelper.Load(stopMapActivity);
 		int nodeIdx = pt.lookupStopNodeIdxByStopCode(stopCode);	
 		if (nodeIdx == -1)
 			return;

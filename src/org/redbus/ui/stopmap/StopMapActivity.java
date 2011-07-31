@@ -22,17 +22,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.redbus.R;
-import org.redbus.geocode.GeocodingAccessor;
+import org.redbus.geocode.GeocodingHelper;
 import org.redbus.geocode.IGeocodingResponseListener;
-import org.redbus.settings.SettingsAccessor;
+import org.redbus.settings.SettingsHelper;
 import org.redbus.stopdb.ServiceBitmap;
-import org.redbus.stopdb.StopDbAccessor;
+import org.redbus.stopdb.StopDbHelper;
 import org.redbus.ui.BusyDialog;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -211,7 +210,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 
 	public boolean onStopMapTap(GeoPoint point, MapView mapView)
 	{
-		StopDbAccessor pt = StopDbAccessor.Load(this);
+		StopDbHelper pt = StopDbHelper.Load(this);
 		final int nearestStopNodeIdx = pt.findNearest(point.getLatitudeE6(), point.getLongitudeE6());
 		final int stopCode = pt.lookupStopCodeByStopNodeIdx(nearestStopNodeIdx);
 		final double stopLat = pt.lat[nearestStopNodeIdx] / 1E6;
@@ -264,7 +263,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int whichButton) {
 							busyDialog.show(StopMapActivity.this, "Finding location...");
-							StopMapActivity.this.expectedRequestId = GeocodingAccessor.geocode(StopMapActivity.this, input.getText().toString(), StopMapActivity.this);
+							StopMapActivity.this.expectedRequestId = GeocodingHelper.geocode(StopMapActivity.this, input.getText().toString(), StopMapActivity.this);
 						}
 					})
 			.setNegativeButton(android.R.string.cancel, null)
@@ -286,7 +285,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
 						ServiceBitmap filter = new ServiceBitmap().clearAll();
-						StopDbAccessor pt = StopDbAccessor.Load(StopMapActivity.this);
+						StopDbHelper pt = StopDbHelper.Load(StopMapActivity.this);
 						for(String serviceStr: input.getText().toString().split("[ ]+")) {
 							if (pt.serviceNameToServiceBit.containsKey(serviceStr.toUpperCase()))
 								filter.setBit(pt.serviceNameToServiceBit.get(serviceStr.toUpperCase()));
@@ -300,7 +299,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	}
 	
 	public void doFilterServices(int stopCode) {
-		StopDbAccessor pt = StopDbAccessor.Load(this);		
+		StopDbHelper pt = StopDbHelper.Load(this);		
 		int nodeIdx = pt.lookupStopNodeIdxByStopCode(stopCode);
 		if (nodeIdx == -1)
 			return;
@@ -317,7 +316,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	}
 	
 	public void doStreetView(int stopCode) {
-		StopDbAccessor pt = StopDbAccessor.Load(this);		
+		StopDbHelper pt = StopDbHelper.Load(this);		
 		int nodeIdx = pt.lookupStopNodeIdxByStopCode(stopCode);
 		if (nodeIdx == -1)
 			return;
@@ -332,13 +331,13 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	}
 	
 	public void doAddBookmark(int stopCode) {
-		StopDbAccessor pt = StopDbAccessor.Load(this);		
+		StopDbHelper pt = StopDbHelper.Load(this);		
 		int nodeIdx = pt.lookupStopNodeIdxByStopCode(stopCode);
 		if (nodeIdx == -1)
 			return;
 		String stopName = pt.lookupStopNameByStopNodeIdx(nodeIdx);
 
-		SettingsAccessor db = new SettingsAccessor(this);
+		SettingsHelper db = new SettingsHelper(this);
 		try {
 			db.addBookmark(stopCode, stopName);
 		} finally {
