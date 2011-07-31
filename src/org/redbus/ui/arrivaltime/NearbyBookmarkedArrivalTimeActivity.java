@@ -104,19 +104,25 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity {
     
     private void locationUpdated(Location location)
     {
-            
             // Now get the ones near us
             int x = (int)(location.getLatitude() * 1E6);
             int y = (int)(location.getLongitude() * 1E6);
             
-            Toast.makeText(getBaseContext(), 
-            "Location changed : Lat: " + x + 
-            " Lng: " + y, 
-            Toast.LENGTH_SHORT).show();     
-
             StopDbHelper pt = StopDbHelper.Load(this);
             
-            ArrayList<Integer> nearby = pt.getStopsWithinRadius((int)x, (int)y, bookmarkIds, 1.0);
+            ArrayList<Integer> nearby = pt.getStopsWithinRadius((int)x, (int)y, bookmarkIds, 0.008);
+            
+            // Just put in a debug string for now
+            String toastTemp = "Nearby:";
+            for(Integer stop : nearby)
+            {
+            	String name = pt.lookupStopNameByStopNodeIdx(pt.lookupStopNodeIdxByStopCode(stop));
+            	toastTemp = toastTemp + "\n"+name;
+            }
+            
+            Toast.makeText(getBaseContext(), 
+                    toastTemp, 
+                    Toast.LENGTH_SHORT).show(); 
             
     }
 
