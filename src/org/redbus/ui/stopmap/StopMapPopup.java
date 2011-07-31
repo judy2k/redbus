@@ -68,6 +68,7 @@ public class StopMapPopup implements OnClickListener {
 		switch(v.getId()) {
 		case R.id.stoppopup_streetview:
 			stopMapActivity.doStreetView(stopCode);
+			// Do not dismiss - perhaps user wants further action
 			break;
 			
 		case R.id.stoppopup_filter:
@@ -77,6 +78,7 @@ public class StopMapPopup implements OnClickListener {
 			
 		case R.id.stoppopup_viewtimes:
 			stopMapActivity.doShowArrivalTimes(stopCode);
+			dialog.dismiss();
 			break;
 			
 		case R.id.stoppopup_cancel:
@@ -85,6 +87,7 @@ public class StopMapPopup implements OnClickListener {
 			
 		case R.id.stoppopup_addbookmark:
 			stopMapActivity.doAddBookmark(stopCode);
+			dialog.dismiss();
 			break;
 		}
 	}
