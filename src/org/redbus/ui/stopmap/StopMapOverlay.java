@@ -147,7 +147,7 @@ public class StopMapOverlay extends Overlay {
 		// if we're showing service labels, just draw directly onto the supplied canvas
 		if (showServiceLabels) {
 			this.bitmapRedCanvas = canvas;
-			drawStops(tl, br, false);
+			drawStops(tl, br);
 			return;
 		}
 
@@ -159,7 +159,7 @@ public class StopMapOverlay extends Overlay {
 		
 		// draw!
 		if (oldBitmapRedBuffer == null) {
-			drawStops(tl, br, false);
+			drawStops(tl, br);
 		} else {
 			Point oldTlPix = projection.toPixels(oldtl, null);
 			Point oldBrPix = projection.toPixels(oldbr, null);
@@ -173,7 +173,7 @@ public class StopMapOverlay extends Overlay {
 
 				GeoPoint _tl = projection.fromPixels(-stopRadius, canvasHeight);
 				GeoPoint _br = projection.fromPixels(x, 0);
-				drawStops(_tl, _br, false);
+				drawStops(_tl, _br);
 			} else if (oldBrPix.x < canvasWidth) { // moving to the right
 				int x = oldBrPix.x;
 				if (x < 0)
@@ -182,7 +182,7 @@ public class StopMapOverlay extends Overlay {
 
 				GeoPoint _tl = projection.fromPixels(x, canvasHeight);
 				GeoPoint _br = projection.fromPixels(canvasWidth + stopRadius, 0);
-				drawStops(_tl, _br, false);
+				drawStops(_tl, _br);
 			}
 
 			// FIXME: can also skip drawing the overlapped X area!
@@ -196,7 +196,7 @@ public class StopMapOverlay extends Overlay {
 
 				GeoPoint _tl = projection.fromPixels(0, y);
 				GeoPoint _br = projection.fromPixels(canvasWidth + stopRadius, 0);
-				drawStops(_tl, _br, false);
+				drawStops(_tl, _br);
 			} else if (oldTlPix.y < canvasHeight) { // moving up
 				int y = oldTlPix.y;
 				if (y < 0)
@@ -205,7 +205,7 @@ public class StopMapOverlay extends Overlay {
 
 				GeoPoint _tl = projection.fromPixels(-stopRadius, canvasHeight);
 				GeoPoint _br = projection.fromPixels(canvasWidth, y);
-				drawStops(_tl, _br, false);
+				drawStops(_tl, _br);
 			}
 		}
 
@@ -221,7 +221,7 @@ public class StopMapOverlay extends Overlay {
 			canvas.drawBitmap(showServicesBitmap, 0, 0, null);
 	}
 	
-	private void drawStops(GeoPoint tl, GeoPoint br, boolean drawGray) {
+	private void drawStops(GeoPoint tl, GeoPoint br) {
 		this.lat_tl = tl.getLatitudeE6();
 		this.lon_tl = tl.getLongitudeE6();
 		this.lat_br = br.getLatitudeE6();
@@ -266,15 +266,13 @@ public class StopMapOverlay extends Overlay {
 			
 			Bitmap bmp = normalStopBitmap;
 			Canvas canvas = bitmapRedCanvas;
-			boolean showService = showServiceLabels;
-			if (!validServices)
-				showService = false;
-			
-			projection.toPixels(new GeoPoint(lat, lon), stopCircle);				
-			canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
-			if (showService) {
-				ServiceBitmap nodeServiceMap = pointTree.lookupServiceBitmapByStopNodeIdx(stopNodeIdx);
-				canvas.drawText(pointTree.formatServices(nodeServiceMap.andWith(serviceFilter), 3), stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
+			if (validServices) {				
+				projection.toPixels(new GeoPoint(lat, lon), stopCircle);				
+				canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
+				if (showServiceLabels) {
+					ServiceBitmap nodeServiceMap = pointTree.lookupServiceBitmapByStopNodeIdx(stopNodeIdx);
+					canvas.drawText(pointTree.formatServices(nodeServiceMap.andWith(serviceFilter), 3), stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
+				}
 			}
 		}
 	}
