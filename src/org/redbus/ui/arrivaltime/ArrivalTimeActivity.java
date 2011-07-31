@@ -66,7 +66,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	private String stopName = "";	
 	private String sorting = "";
 
-	private ProgressDialog busyDialog = null;
+	private BusyDialog busyDialog = null;
 	private int expectedRequestId = -1;
 
 	private static final SimpleDateFormat titleDateFormat = new SimpleDateFormat("EEE dd MMM HH:mm");
@@ -83,9 +83,9 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
 		setContentView(R.layout.bustimes);
 		registerForContextMenu(getListView());
+		busyDialog = new BusyDialog(this);
 		
 		stopCode = (int) getIntent().getLongExtra("StopCode", -1);
 		if (stopCode != -1)
@@ -112,6 +112,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	
 	@Override
 	protected void onDestroy() {
+		busyDialog.dismiss();
 		busyDialog = null;
 		super.onDestroy();		
 	}
@@ -131,7 +132,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 				displayDate = new Date();
 	
 			setTitle(stopName + " (" + titleDateFormat.format(displayDate) + ")");
-        	busyDialog = BusyDialog.show(this, this, busyDialog, "Retrieving bus times");
+        	busyDialog.show(this, "Retrieving bus times");
 			expectedRequestId = ArrivalTimeAccessor.getBusTimesAsync(stopCode, daysInAdvance, timeInAdvance, this);
 		} else {
 			setTitle("Unknown bus stop");
@@ -149,7 +150,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		if (requestId != expectedRequestId)
 			return;
 		
-		BusyDialog.dismiss(busyDialog);
+		busyDialog.dismiss();
 		hideStatusBoxes();
 
 		setListAdapter(new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, new ArrayList<ArrivalTime>()));
@@ -165,7 +166,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		if (requestId != expectedRequestId)
 			return;
 		
-		BusyDialog.dismiss(busyDialog);
+		busyDialog.dismiss();
 		hideStatusBoxes();
 		
 		if (sorting.equalsIgnoreCase("service")) {

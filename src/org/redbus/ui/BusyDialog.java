@@ -2,21 +2,30 @@ package org.redbus.ui;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 
 public class BusyDialog {
 	
-	public static ProgressDialog show(Context ctx, OnCancelListener onCancel, ProgressDialog oldPd, String reason) {
-		dismiss(oldPd);
+	private ProgressDialog pd;
+	private Context ctx;
+	
+	public BusyDialog(Context ctx) {
+		this.ctx = ctx;
+	}
+	
+	public ProgressDialog show(OnCancelListener onCancel, String reason) {
+		dismiss();
 		return ProgressDialog.show(ctx, "", reason, true, true, onCancel);
 	}
 
-	public static void dismiss(ProgressDialog pd) {
+	public void dismiss() {
 		if (pd != null) {
 			try {
 				pd.dismiss();
 			} catch (Throwable t) {
 			}
 		}
+		pd = null;
 	}
 }

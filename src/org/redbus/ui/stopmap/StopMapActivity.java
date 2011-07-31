@@ -62,7 +62,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	private StopMapOverlay stopOverlay;
 	private ServiceBitmap serviceFilter = new ServiceBitmap();
 
-	private ProgressDialog busyDialog = null;
+	private BusyDialog busyDialog = null;
 	private int expectedRequestId = -1;
 	
 	private final int StopTapRadiusMetres = 50;
@@ -89,6 +89,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	public void onCreate(Bundle savedInstanceState) { 
 		super.onCreate(savedInstanceState); 
 		setContentView(R.layout.stop_map);
+		busyDialog = new BusyDialog(this);
 
 		mapView = (MapView) findViewById(R.id.mapview);
 		mapView.setBuiltInZoomControls(true);
@@ -150,6 +151,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	
 	@Override
 	protected void onDestroy() {
+		busyDialog.dismiss();
 		busyDialog = null;
 		super.onDestroy();
 	}
@@ -261,7 +263,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			.setPositiveButton(android.R.string.ok,
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int whichButton) {
-							busyDialog = BusyDialog.show(StopMapActivity.this, StopMapActivity.this, busyDialog, "Finding location...");
+							busyDialog.show(StopMapActivity.this, "Finding location...");
 							StopMapActivity.this.expectedRequestId = GeocodingAccessor.geocode(StopMapActivity.this, input.getText().toString(), StopMapActivity.this);
 						}
 					})
@@ -371,7 +373,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		if (requestId != expectedRequestId)
 			return;
 		
-		BusyDialog.dismiss(busyDialog);
+		busyDialog.dismiss();
 		
 		new AlertDialog.Builder(this).setTitle("Error").
 			setMessage("Unable to find location: " + message).
@@ -383,7 +385,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		if (requestId != expectedRequestId)
 			return;
 		
-		BusyDialog.dismiss(busyDialog);
+		busyDialog.dismiss();
 		if (addresses_.size() == 1) {
 			Address address = addresses_.get(0);
 			GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
