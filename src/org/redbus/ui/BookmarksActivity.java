@@ -64,7 +64,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	private BusyDialog busyDialog = null;
 	private int expectedRequestId = -1;
 
-	private long bookmarkId = -1;
+	private long stopCode = -1;
 	private String bookmarkName = null;
 	private boolean isManualUpdateCheck = false;
 
@@ -112,24 +112,24 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-		bookmarkId = menuInfo.id;
+		stopCode = menuInfo.id;
 		bookmarkName = ((TextView) menuInfo.targetView.findViewById(R.id.stopbookmarks_name)).getText().toString();
 
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_item_menu_bustimes:
-			doShowArrivalTimes((int) bookmarkId);
+			doShowArrivalTimes((int) stopCode);
 			return true;
 
 		case R.id.stopbookmarks_item_menu_showonmap:
-			doShowOnMap((int) bookmarkId);
+			doShowOnMap((int) stopCode);
 			return true;
 
 		case R.id.stopbookmarks_item_menu_rename:
-			doRenameBookmark((int) bookmarkId);
+			doRenameBookmark((int) stopCode);
 			return true;
 
 		case R.id.stopbookmarks_item_menu_delete:
-			doDeleteBookmark((int) bookmarkId);
+			doDeleteBookmark((int) stopCode);
 			return true;	
 		}
 

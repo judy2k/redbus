@@ -368,6 +368,9 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		}
 	}	
 
+	
+	
+	
 	public void geocodeResponseError(int requestId, String message) {
 		if (requestId != expectedRequestId)
 			return;

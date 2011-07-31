@@ -85,27 +85,33 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		registerForContextMenu(getListView());
 		busyDialog = new BusyDialog(this);
 		
+		// get the stop code from the intent
 		stopCode = (int) getIntent().getLongExtra("StopCode", -1);
 		if (stopCode != -1)
 			findViewById(android.R.id.empty).setVisibility(View.GONE);
 		
-		SettingsHelper db = new SettingsHelper(this);
+		// lookup sorting and stop bookmark name if we have one.
+		SettingsHelper settings = new SettingsHelper(this);
 		try {
-			sorting = db.getGlobalSetting("bustimesort", "arrival");
-			stopName = db.getBookmarkName(stopCode);
+			sorting = settings.getGlobalSetting("bustimesort", "arrival");
+			stopName = settings.getBookmarkName(stopCode);
 		} finally {
-			db.close();
+			settings.close();
 		}
 		
-		StopDbHelper pt = StopDbHelper.Load(this);
-		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
-		if (stopNodeIdx != -1) {
-			stopName = pt.lookupStopNameByStopNodeIdx(stopNodeIdx);
-		} else {
+		// look up name from stopdb if we don't have a bookmark
+		if (stopName == null) {
+			StopDbHelper stopDb = StopDbHelper.Load(this);
+			int stopNodeIdx = stopDb.lookupStopNodeIdxByStopCode((int) stopCode);
+			if (stopNodeIdx != -1)
+				stopName = stopDb.lookupStopNameByStopNodeIdx(stopNodeIdx);
+		}
+		
+		// default to empty string if we really can't find it.
+		if (stopName == null)
 			stopName = "";
-		}
 		
-		update();
+		doRefreshArrivalTimes();
 	}
 	
 	@Override
@@ -118,90 +124,12 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	public void onCancel(DialogInterface dialog) {
 		expectedRequestId = -1;
 	}
-	
-	private void update() {
-		update(0, null);
-	}
-
-	private void update(int daysInAdvance, Date timeInAdvance) {
-		if (stopCode != -1) {
-			Date displayDate = timeInAdvance;
-			if (displayDate == null)
-				displayDate = new Date();
-	
-			setTitle(stopName + " (" + titleDateFormat.format(displayDate) + ")");
-        	busyDialog.show(this, "Retrieving bus times");
-			expectedRequestId = ArrivalTimeHelper.getBusTimesAsync(stopCode, daysInAdvance, timeInAdvance, this);
-		} else {
-			setTitle("Unknown bus stop");
-			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
-		}
-	}
-
-	private void hideStatusBoxes() {
-		findViewById(R.id.bustimes_nodepartures).setVisibility(View.GONE);
-		findViewById(R.id.bustimes_error).setVisibility(View.GONE);
-		findViewById(android.R.id.empty).setVisibility(View.GONE);
-	}
-
-	public void getBusTimesError(int requestId, int code, String message) {
-		if (requestId != expectedRequestId)
-			return;
-		
-		busyDialog.dismiss();
-		hideStatusBoxes();
-
-		setListAdapter(new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, new ArrayList<ArrivalTime>()));
-		findViewById(R.id.bustimes_error).setVisibility(View.VISIBLE);
-
-		new AlertDialog.Builder(this).setTitle("Error").
-			setMessage("Unable to download bus times: " + message).
-			setPositiveButton(android.R.string.ok, null).
-			show();
-	}
-
-	public void getBusTimesSuccess(int requestId, List<ArrivalTime> busTimes) {
-		if (requestId != expectedRequestId)
-			return;
-		
-		busyDialog.dismiss();
-		hideStatusBoxes();
-		
-		if (sorting.equalsIgnoreCase("service")) {
-			Collections.sort(busTimes, new Comparator<ArrivalTime>() {
-				public int compare(ArrivalTime arg0, ArrivalTime arg1) {
-					if (arg0.baseService != arg1.baseService)
-						return arg0.baseService - arg1.baseService;
-					return arg0.service.compareTo(arg1.service);
-				}
-			});
-		} else if (sorting.equalsIgnoreCase("arrival")) {
-			Collections.sort(busTimes, new Comparator<ArrivalTime>() {
-				public int compare(ArrivalTime arg0, ArrivalTime arg1) {
-					if ((arg0.arrivalAbsoluteTime != null) && (arg1.arrivalAbsoluteTime != null)) {
-						// bus data never seems to span to the next day, so this string comparison should always work
-						return arg0.arrivalAbsoluteTime.compareTo(arg1.arrivalAbsoluteTime);
-					}
-					return arg0.arrivalSortingIndex - arg1.arrivalSortingIndex;
-				}
-			});
-		}
-
-		setListAdapter(new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, busTimes));
-		if (busTimes.isEmpty())
-			findViewById(R.id.bustimes_nodepartures).setVisibility(View.VISIBLE);
-	}
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		TextView clickedService = (TextView) v.findViewById(R.id.bustimes_service);
-		TemporalAlert.createTemporalAlert(this, stopCode, clickedService.getText().toString());
+		doTemporalAlert(clickedService.getText().toString());
 	}
-
-	
-
-
-
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -264,17 +192,43 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 			return true;
 		
 		case R.id.bustimes_menu_temporalalert:
-			doTemporalAlert();
+			doTemporalAlert(null);
 			return true;			
 		}
 
 		return false;
 	}
+
+	private void hideStatusBoxes() {
+		findViewById(R.id.bustimes_nodepartures).setVisibility(View.GONE);
+		findViewById(R.id.bustimes_error).setVisibility(View.GONE);
+		findViewById(android.R.id.empty).setVisibility(View.GONE);
+	}
+
+	
+	
+	
+	
 	
 	private void doRefreshArrivalTimes() {
-		update();		
+		doRefreshArrivalTimes(0, null);		
 	}
 	
+	private void doRefreshArrivalTimes(int daysInAdvance, Date timeInAdvance) {
+		if (stopCode != -1) {
+			Date displayDate = timeInAdvance;
+			if (displayDate == null)
+				displayDate = new Date();
+	
+			setTitle(stopName + " (" + titleDateFormat.format(displayDate) + ")");
+        	busyDialog.show(this, "Retrieving bus times");
+			expectedRequestId = ArrivalTimeHelper.getBusTimesAsync(stopCode, daysInAdvance, timeInAdvance, this);
+		} else {
+			setTitle("Unknown bus stop");
+			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
+		}
+	}
+
 	private void doAddBookmark() {
 		if (stopCode == -1) 
 			return;
@@ -305,7 +259,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 			                        	db.close();
 			                        }
 			                        stopName = input.getText().toString();
-			                        update();
+			                        doRefreshArrivalTimes();
 								}
 							})
 					.setNegativeButton(android.R.string.cancel, null)
@@ -325,7 +279,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	                    } finally {
 	                    	db.close();
 	                    }
-	                    ArrivalTimeActivity.this.update();
+	                    ArrivalTimeActivity.this.doRefreshArrivalTimes();
 	                }
 				})
 		.setNegativeButton(android.R.string.cancel, null)
@@ -364,7 +318,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 						public void onClick(DialogInterface dialog, int whichButton) {
 							calendar.set(Calendar.HOUR_OF_DAY, hourPicker.getSelectedItemPosition());
 							calendar.set(Calendar.MINUTE, minPicker.getSelectedItemPosition() * 15);
-							update(0, calendar.getTime());
+							doRefreshArrivalTimes(0, calendar.getTime());
 						}
 					})
 			.setNegativeButton(android.R.string.cancel, null)
@@ -380,15 +334,65 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		} finally {
 			db.close();
 		}
-		update();
+		doRefreshArrivalTimes();
 	}
 	
 	private void doProximityAlert() {
 		ProximityAlert.createProximityAlert(this, stopCode);
 	}
 	
-	private void doTemporalAlert() {
+	private void doTemporalAlert(String selectedService) {
 		TemporalAlert.createTemporalAlert(this, stopCode, null);
+	}
+	
+	
+
+	public void getBusTimesError(int requestId, int code, String message) {
+		if (requestId != expectedRequestId)
+			return;
+		
+		busyDialog.dismiss();
+		hideStatusBoxes();
+
+		setListAdapter(new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, new ArrayList<ArrivalTime>()));
+		findViewById(R.id.bustimes_error).setVisibility(View.VISIBLE);
+
+		new AlertDialog.Builder(this).setTitle("Error").
+			setMessage("Unable to download bus times: " + message).
+			setPositiveButton(android.R.string.ok, null).
+			show();
+	}
+
+	public void getBusTimesSuccess(int requestId, List<ArrivalTime> busTimes) {
+		if (requestId != expectedRequestId)
+			return;
+		
+		busyDialog.dismiss();
+		hideStatusBoxes();
+		
+		if (sorting.equalsIgnoreCase("service")) {
+			Collections.sort(busTimes, new Comparator<ArrivalTime>() {
+				public int compare(ArrivalTime arg0, ArrivalTime arg1) {
+					if (arg0.baseService != arg1.baseService)
+						return arg0.baseService - arg1.baseService;
+					return arg0.service.compareTo(arg1.service);
+				}
+			});
+		} else if (sorting.equalsIgnoreCase("arrival")) {
+			Collections.sort(busTimes, new Comparator<ArrivalTime>() {
+				public int compare(ArrivalTime arg0, ArrivalTime arg1) {
+					if ((arg0.arrivalAbsoluteTime != null) && (arg1.arrivalAbsoluteTime != null)) {
+						// bus data never seems to span to the next day, so this string comparison should always work
+						return arg0.arrivalAbsoluteTime.compareTo(arg1.arrivalAbsoluteTime);
+					}
+					return arg0.arrivalSortingIndex - arg1.arrivalSortingIndex;
+				}
+			});
+		}
+
+		setListAdapter(new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, busTimes));
+		if (busTimes.isEmpty())
+			findViewById(R.id.bustimes_nodepartures).setVisibility(View.VISIBLE);
 	}
 }
 
