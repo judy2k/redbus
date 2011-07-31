@@ -153,7 +153,7 @@ public class ProximityAlert extends BroadcastReceiver implements DialogInterface
 		Intent i = new Intent(context, StopMapActivity.class);
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_ONE_SHOT);
 
-		Notification notification = new Notification(R.drawable.icon, text, System.currentTimeMillis());
+		Notification notification = new Notification(R.drawable.icon38, text, System.currentTimeMillis());
 		notification.defaults |= Notification.DEFAULT_ALL;
 		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		notification.setLatestEventInfo(context, "Bus alarm!", text, contentIntent);

@@ -215,7 +215,7 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 			Intent i = new Intent(broadcastContext, ArrivalTimeActivity.class);
 			PendingIntent contentIntent = PendingIntent.getActivity(broadcastContext, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 
-			Notification notification = new Notification(R.drawable.icon, "Bus alarm aborted!", System.currentTimeMillis());
+			Notification notification = new Notification(R.drawable.icon38, "Bus alarm aborted!", System.currentTimeMillis());
 			notification.defaults |= Notification.DEFAULT_ALL;
 			notification.flags |= Notification.FLAG_AUTO_CANCEL;
 			notification.setLatestEventInfo(broadcastContext, "Bus alarm aborted!", "Bus did not arrive within 40 mins; cancelling alarm", contentIntent);
@@ -265,7 +265,7 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 				i.putExtra("StopName", broadcastStopName);
 				PendingIntent contentIntent = PendingIntent.getActivity(broadcastContext, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 
-				Notification notification = new Notification(R.drawable.icon, text, System.currentTimeMillis());
+				Notification notification = new Notification(R.drawable.icon38, text, System.currentTimeMillis());
 				notification.defaults |= Notification.DEFAULT_ALL;
 				notification.flags |= Notification.FLAG_AUTO_CANCEL;
 				notification.setLatestEventInfo(broadcastContext, "Bus alarm!", text, contentIntent);
