@@ -40,7 +40,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.pm.PackageInfo;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -54,15 +53,12 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
 
 public class BookmarksActivity extends ListActivity implements IStopDbUpdateResponseListener, OnCancelListener
 {	
-	public static final String[] columnNames = new String[] { SettingsHelper.ID, SettingsHelper.BOOKMARKS_COL_STOPNAME };
-	public static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
 	private static final String bookmarksXmlFile = "/sdcard/redbus-stops.xml";
 	
 	private BusyDialog busyDialog = null;
@@ -81,48 +77,14 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         registerForContextMenu(getListView());
         busyDialog = new BusyDialog(this);
         
-        // display changes popup
-        SettingsHelper db = new SettingsHelper(this);
-        try {
-        	PackageInfo pi = getPackageManager().getPackageInfo("org.redbus", 0);
-        	if (!db.getGlobalSetting("PREVIOUSVERSIONCODE", "").equals(Integer.toString(pi.versionCode))) {
-        		new AlertDialog.Builder(this).
-        			setIcon(null).
-        			setTitle("v" + pi.versionName + " changes").
-	    			setMessage(R.string.newversiontext).
-	    			setPositiveButton(android.R.string.ok, null).
-	    			show();        	
-        		db.setGlobalSetting("PREVIOUSVERSIONCODE", Integer.toString(pi.versionCode));
-        	}
-        	
-        	// get update details
-        	long nextUpdateCheck = Long.parseLong(db.getGlobalSetting("NEXTUPDATECHECK", "0"));
-			long lastUpdateDate = Long.parseLong(db.getGlobalSetting("LASTUPDATE", "-1"));
-        	
-            // are we being called from a click on a notification?
-            if (getIntent().getBooleanExtra("DoManualUpdate", false)) {
-            	busyDialog.show(BookmarksActivity.this, "Checking for updates...");
-        		isManualUpdateCheck = true;
-        		expectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
-            } else {
-            	// otherwise, we do an background update check
-	        	if (nextUpdateCheck <= new Date().getTime() / 1000) {
-	        		isManualUpdateCheck = false;
-	        		expectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
-	        	}
-            }
-        } catch (Throwable t) {
-        	// ignore
-        } finally {
-        	db.close();
-        }
+        displayChangelogOnNewVersion();
 	}
 
 	@Override
 	protected void onResume() 
 	{
 		super.onResume();
-		update();
+		Utils.updateBookmarksListAdaptor(this);
 	}
 	
 	@Override
@@ -136,28 +98,11 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		expectedRequestId = -1;
 	}
 	
-	private void update()
-	{
-        SettingsHelper db = new SettingsHelper(this);
-        try {
-        	SimpleCursorAdapter oldAdapter = ((SimpleCursorAdapter) getListAdapter());
-        	if (oldAdapter != null) {
-        		stopManagingCursor(oldAdapter.getCursor());
-        		oldAdapter.getCursor().close();
-        	}
-	        Cursor listContentsCursor = db.getBookmarks();
-	        startManagingCursor(listContentsCursor);
-	        setListAdapter(new SimpleCursorAdapter(this, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds));
-        } finally {
-        	db.close();
-        }
-	}
-
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		ArrivalTimeActivity.showActivity(this, (int) id);
+		doShowArrivalTimes((int) id);
 	}
-
+	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 	    MenuInflater inflater = getMenuInflater();
@@ -221,6 +166,9 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		return false;
 	}
 	
+	
+	
+	
 	private void doShowArrivalTimes(int stopCode) {
 		ArrivalTimeActivity.showActivity(this, stopCode);		
 	}
@@ -249,7 +197,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		                        } finally {
 		                        	db.close();
 		                        }
-		                        BookmarksActivity.this.update();
+		                		Utils.updateBookmarksListAdaptor(BookmarksActivity.this);
 							}
 						})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -271,7 +219,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
                         } finally {
                         	db.close();
                         }
-                        BookmarksActivity.this.update();
+                		Utils.updateBookmarksListAdaptor(BookmarksActivity.this);
                     }
 				})
 		.setNegativeButton(android.R.string.cancel, null)
@@ -327,7 +275,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         SettingsHelper db = new SettingsHelper(this);
         if (db.restore(bookmarksXmlFile)) {
 	        Toast.makeText(this, "Bookmarks restored from " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
-	        update();
+    		Utils.updateBookmarksListAdaptor(this);
         }
 	}
 	
@@ -347,16 +295,50 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		isManualUpdateCheck = true;
 		expectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
 	}
+
+
 	
 	
 	
 	
 	
 	
-	
-	
-	
-	
+	private void displayChangelogOnNewVersion() {
+        SettingsHelper db = new SettingsHelper(this);
+        try {
+        	PackageInfo pi = getPackageManager().getPackageInfo("org.redbus", 0);
+        	if (!db.getGlobalSetting("PREVIOUSVERSIONCODE", "").equals(Integer.toString(pi.versionCode))) {
+        		new AlertDialog.Builder(this).
+        			setIcon(null).
+        			setTitle("v" + pi.versionName + " changes").
+	    			setMessage(R.string.newversiontext).
+	    			setPositiveButton(android.R.string.ok, null).
+	    			show();        	
+        		db.setGlobalSetting("PREVIOUSVERSIONCODE", Integer.toString(pi.versionCode));
+        	}
+        	
+        	// get update details
+        	long nextUpdateCheck = Long.parseLong(db.getGlobalSetting("NEXTUPDATECHECK", "0"));
+			long lastUpdateDate = Long.parseLong(db.getGlobalSetting("LASTUPDATE", "-1"));
+        	
+            // are we being called from a click on a notification?
+            if (getIntent().getBooleanExtra("DoManualUpdate", false)) {
+            	busyDialog.show(BookmarksActivity.this, "Checking for updates...");
+        		isManualUpdateCheck = true;
+        		expectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
+            } else {
+            	// otherwise, we do an background update check
+	        	if (nextUpdateCheck <= new Date().getTime() / 1000) {
+	        		isManualUpdateCheck = false;
+	        		expectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
+	        	}
+            }
+        } catch (Throwable t) {
+        	// ignore
+        } finally {
+        	db.close();
+        }
+	}
 
 	private void setNextUpdateTime(boolean wasSuccessful) {	
         SettingsHelper db = new SettingsHelper(this);
