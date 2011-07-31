@@ -90,7 +90,6 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		// used during recursive drawStops() to control stack allocation size
 		private boolean drawGray;
 		private boolean showServiceLabels;
-//		private Canvas bitmapGreyCanvas;
 		private Canvas bitmapRedCanvas;
 		private Projection projection;
 		private StopDbAccessor pointTree;
@@ -105,18 +104,13 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		private Paint blackBrush;
 		private Bitmap normalStopBitmap;
 		private Paint normalStopPaint;
-//		private Bitmap filteredStopBitmap;
-//		private Paint filteredStopPaint;
 		
 		private Bitmap showMoreStopsBitmap;
 		private Bitmap showServicesBitmap;
 		
 		// the double buffering buffers
-//		private Bitmap bitmapBufferGrey1;
 		private Bitmap bitmapBufferRed1;
-//		private Bitmap bitmapBufferGrey2;
 		private Bitmap bitmapBufferRed2;
-//		private Bitmap oldBitmapGreyBuffer;
 		private Bitmap oldBitmapRedBuffer;
 
 		private static final String showMoreStopsText = "Zoom in to see more stops";
@@ -133,16 +127,6 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			normalStopBitmap.eraseColor(Color.TRANSPARENT);
 			Canvas stopCanvas = new Canvas(normalStopBitmap);
 			stopCanvas.drawOval(new RectF(0,0,stopRadius*2,stopRadius*2), normalStopPaint);
-			
-			/*
-			filteredStopPaint = new Paint();
-			filteredStopPaint.setARGB(250, 195, 195, 195);
-			filteredStopPaint.setAntiAlias(true);
-			filteredStopBitmap = Bitmap.createBitmap(stopRadius*2, stopRadius*2, Config.ARGB_8888);
-			filteredStopBitmap.eraseColor(Color.TRANSPARENT);
-			stopCanvas = new Canvas(filteredStopBitmap);
-			stopCanvas.drawOval(new RectF(0, 0, stopRadius*2, stopRadius*2), filteredStopPaint);
-			*/
 
 			Rect bounds = new Rect();
 			normalStopPaint.getTextBounds(showMoreStopsText, 0, showMoreStopsText.length(), bounds);
@@ -166,9 +150,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 
 			// create the bitmaps now we know the size of what we're drawing into!
 			if (bitmapBufferRed1 == null) {
-//				bitmapBufferGrey1 = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Config.ARGB_8888);
 				bitmapBufferRed1 = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Config.ARGB_8888);
-//				bitmapBufferGrey2 = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Config.ARGB_8888);
 				bitmapBufferRed2 = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Config.ARGB_8888);
 			}
 
@@ -176,7 +158,6 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			this.pointTree = StopDbAccessor.Load(StopMapActivity.this);
 			this.projection = view.getProjection();
 			this.showServiceLabels = view.getZoomLevel() > 16;				
-//			boolean hasSomeGrey = !serviceFilter.areAllSet;
 			int canvasWidth = canvas.getWidth();
 			int canvasHeight = canvas.getHeight();
 			GeoPoint tl = projection.fromPixels(0, canvasHeight);
@@ -184,34 +165,21 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			GeoPoint bl = projection.fromPixels(0,0);
 
 			// figure out which is the current buffer
-//			Bitmap curBitmapGreyBuffer = bitmapBufferGrey1;
 			Bitmap curBitmapRedBuffer = bitmapBufferRed1;
-			if (oldBitmapRedBuffer == bitmapBufferRed1) {
-//				curBitmapGreyBuffer = bitmapBufferGrey2;	
+			if (oldBitmapRedBuffer == bitmapBufferRed1)
 				curBitmapRedBuffer = bitmapBufferRed2;	
-			}
-//			if (hasSomeGrey) {
-//				bitmapGreyCanvas = new Canvas(curBitmapGreyBuffer);
-//				curBitmapGreyBuffer.eraseColor(Color.TRANSPARENT);
-//			}
 			bitmapRedCanvas = new Canvas(curBitmapRedBuffer);
 			curBitmapRedBuffer.eraseColor(Color.TRANSPARENT);
 
 			// check if the projection has radically changed
 			float projectionCheck = projection.metersToEquatorPixels(20);
-			if (projectionCheck != oldProjectionCheck) {
-//				oldBitmapGreyBuffer = null;
+			if (projectionCheck != oldProjectionCheck)
 				oldBitmapRedBuffer = null;
-			}
 			oldProjectionCheck = projectionCheck;
 			
 			// if we're showing service labels, just draw directly onto the supplied canvas
 			if (showServiceLabels) {
-//				this.bitmapGreyCanvas = canvas;
 				this.bitmapRedCanvas = canvas;
-
-//				if (hasSomeGrey)
-//					drawStops(tl, br, true);
 				drawStops(tl, br, false);
 				return;
 			}
@@ -219,15 +187,11 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			// draw the old bitmap onto the new one in the right place
 			if (oldBitmapRedBuffer != null) {
 				Point oldBlPix = projection.toPixels(oldbl, null);
-//				if (hasSomeGrey)
-//					this.bitmapGreyCanvas.drawBitmap(oldBitmapGreyBuffer, oldBlPix.x, oldBlPix.y, null);
 				this.bitmapRedCanvas.drawBitmap(oldBitmapRedBuffer, oldBlPix.x, oldBlPix.y, null);
 			}
 			
 			// draw!
 			if (oldBitmapRedBuffer == null) {
-//				if (hasSomeGrey)
-//					drawStops(tl, br, true);
 				drawStops(tl, br, false);
 			} else {
 				Point oldTlPix = projection.toPixels(oldtl, null);
@@ -242,8 +206,6 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 
 					GeoPoint _tl = projection.fromPixels(-stopRadius, canvasHeight);
 					GeoPoint _br = projection.fromPixels(x, 0);
-//					if (hasSomeGrey)
-//						drawStops(_tl, _br, true);
 					drawStops(_tl, _br, false);
 				} else if (oldBrPix.x < canvasWidth) { // moving to the right
 					int x = oldBrPix.x;
@@ -253,8 +215,6 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 
 					GeoPoint _tl = projection.fromPixels(x, canvasHeight);
 					GeoPoint _br = projection.fromPixels(canvasWidth + stopRadius, 0);
-//					if (hasSomeGrey)
-//						drawStops(_tl, _br, true);
 					drawStops(_tl, _br, false);
 				}
 
@@ -269,8 +229,6 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 
 					GeoPoint _tl = projection.fromPixels(0, y);
 					GeoPoint _br = projection.fromPixels(canvasWidth + stopRadius, 0);
-//					if (hasSomeGrey)
-//						drawStops(_tl, _br, true);
 					drawStops(_tl, _br, false);
 				} else if (oldTlPix.y < canvasHeight) { // moving up
 					int y = oldTlPix.y;
@@ -280,17 +238,12 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 
 					GeoPoint _tl = projection.fromPixels(-stopRadius, canvasHeight);
 					GeoPoint _br = projection.fromPixels(canvasWidth, y);
-//					if (hasSomeGrey)
-//						drawStops(_tl, _br, true);
 					drawStops(_tl, _br, false);
 				}
 			}
 
 			// blit the final bitmap onto the destination canvas
-//			if (hasSomeGrey)
-//				canvas.drawBitmap(curBitmapGreyBuffer, 0, 0, null);
 			canvas.drawBitmap(curBitmapRedBuffer, 0, 0, null);
-//			oldBitmapGreyBuffer = curBitmapGreyBuffer;
 			oldBitmapRedBuffer = curBitmapRedBuffer;
 			oldtl = tl;
 			oldbr = br;
@@ -299,103 +252,6 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			// draw service label info text last
 			if (!showServiceLabels)
 				canvas.drawBitmap(showServicesBitmap, 0, 0, null);
-
-			
-			/*
-
-			// if we're zoomed out too far, switch to just iterating all stops and skipping to preserve speed.
-			if (view.getZoomLevel() < 15) {
-				int skip = 2;
-				if (view.getZoomLevel() == 13)
-					skip = 4;
-				if (view.getZoomLevel() == 12)
-					skip = 6;
-				if (view.getZoomLevel() < 12)
-					skip = 8;
-
-				Point stopCircle = new Point();
-				int redIdx = 0;
-				int greyIdx = 0;
-				int redSkip = skip;
-				int greySkip = skip;
-				final int stopCount = pt.lat.length;
-				for(int stopNodeIdx = 0; stopNodeIdx < stopCount; stopNodeIdx++) {
-					boolean validServices = ((pt.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
-											((pt.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
-
-					Bitmap bmp = normalStopBitmap;
-					if (validServices) {
-						if (shadow)
-							continue;
-
-						if ((redIdx++ % redSkip) != 0)
-							continue;
-					} else {
-						if (!shadow)
-							continue;
-
-						if ((greyIdx++ % greySkip) != 0)
-							continue;
-
-						bmp = filteredStopBitmap;
-					}
-					
-					int lat = pt.lat[stopNodeIdx];
-					int lon = pt.lon[stopNodeIdx];
-					if ((lat < tlx) || (lon < tly) || (lat > brx) || (lon > bry))
-						continue;
-
-					projection.toPixels(new GeoPoint(lat, lon), stopCircle);
-					canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
-				}
-				
-				if (!shadow)
-					canvas.drawBitmap(showMoreStopsBitmap, 0, 0, nullPaint);
-				return;
-			}
-
-			// For some reason, draw is called LOTS of times. Only requery the DB if
-			// the co-ords change, OR if the point tree itself has changed
-			if ((pt != cachedPt) || (tlx != oldtlx) || (tly != oldtly) || (brx != oldbrx) || (bry != oldbry)) {
-				cachedStopNodeIdxs = pt.findRect(tlx,tly,brx,bry);
-				cachedPt = pt;
-				oldtlx = tlx; oldtly = tly; oldbrx = brx; oldbry = bry;
-			}
-
-			// Prevent zoomed out view looking like abstract art
-			// with too many labels drawn...				
-
-			// For each node, draw a circle and optionally service number list
-			Point stopCircle = new Point();
-			for (int stopNodeIdx: cachedStopNodeIdxs) {
-				boolean validServices = ((pt.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
-										((pt.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
-				
-				Bitmap bmp = normalStopBitmap;
-				boolean showService = showServiceLabels;
-				if (validServices) {
-					if (shadow)
-						continue;
-				} else {
-					if (!shadow)
-						continue;
-
-					bmp = filteredStopBitmap;
-					showService = false;
-				}
-
-				projection.toPixels(new GeoPoint(pt.lat[stopNodeIdx],pt.lon[stopNodeIdx]), stopCircle);				
-				canvas.drawBitmap(bmp, (float) stopCircle.x - stopRadius, (float) stopCircle.y - stopRadius, null);
-				if (showService) {
-					BusServiceMap nodeServiceMap = pt.lookupServiceMapByStopNodeIdx(stopNodeIdx);
-					canvas.drawText(formatServices(pt, nodeServiceMap.andWith(serviceFilter), 3), stopCircle.x+stopRadius, stopCircle.y+stopRadius, normalStopPaint);
-				}
-			}
-
-			// draw service label info text last
-			if ((!showServiceLabels) && (!shadow))
-				canvas.drawBitmap(showServicesBitmap, 0, 0, null);
-			*/
 		}
 		
 		private void drawStops(GeoPoint tl, GeoPoint br, boolean drawGray) {
@@ -452,9 +308,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 					if (!drawGray)
 						return;
 				
-//					bmp = filteredStopBitmap;
 					showService = false;
-//					canvas = bitmapGreyCanvas;
 				}
 				
 				projection.toPixels(new GeoPoint(lat, lon), stopCircle);				
@@ -626,7 +480,6 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	
 	public void invalidate()
 	{
-//		this.stopOverlay.oldBitmapGreyBuffer = null;
 		this.stopOverlay.oldBitmapRedBuffer = null;
 		this.mapView.invalidate();
 	}
