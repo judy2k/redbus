@@ -19,6 +19,7 @@
 package org.redbus.ui;
 
 import org.redbus.R;
+import org.redbus.ui.arrivaltime.NearbyBookmarkedArrivalTimeActivity;
 import org.redbus.ui.stopmap.StopMapActivity;
 
 import android.app.TabActivity;
@@ -40,6 +41,10 @@ public class RedbusTabView extends TabActivity {
 
 	    tabHost.addTab(tabHost.newTabSpec("map").setIndicator("Map")
 	                  .setContent(new Intent().setClass(this, StopMapActivity.class)));
+	    
+	    tabHost.addTab(tabHost.newTabSpec("nearby").setIndicator("Nearby")
+                .setContent(new Intent().setClass(this, NearbyBookmarkedArrivalTimeActivity.class)));
+
 	    
 	}
 }

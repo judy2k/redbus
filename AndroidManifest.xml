@@ -34,6 +34,8 @@
 				<action android:name="android.intent.action.MAIN" />
 			</intent-filter>
 		</activity>
+		<activity android:name=".ui.arrivaltime.NearbyBookmarkedArrivalTimeActivity" android:label="Nearby arrivals" />
+		
 		
 		<!--  Alias for launcher shortcut backwards compatibility -->
 		<activity-alias android:name="BusTimesActivity"

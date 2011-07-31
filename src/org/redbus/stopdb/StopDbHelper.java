@@ -211,6 +211,26 @@ public class StopDbHelper {
 		ArrayList<Integer> stops = new ArrayList<Integer>();		
 		return searchRect(xtl,ytl,xbr,ybr,rootRecordNum,stops,0);
 	}
+	
+    // Given a location and a list of stop codes return ones
+    // within radius. Uses a linear search, but as wanted
+    // stops list will be small this doesn't matter.
+    public ArrayList<Integer> getStopsWithinRadius(int x, int y,
+                                                   ArrayList<Integer> stops,
+                                                   double radius)
+    {
+            ArrayList<Integer> stopsWithinRange = new ArrayList<Integer>();
+            
+            for(Integer stop : stops)
+            {
+                    double distance = distance(lookupStopNodeIdxByStopCode(stop), x, y);
+                    if (distance < radius)
+                            stopsWithinRange.add(stop);
+            }
+            
+            return stopsWithinRange;
+    }
+
 
 	public int lookupStopNodeIdxByStopCode(int stopCode)
 	{
