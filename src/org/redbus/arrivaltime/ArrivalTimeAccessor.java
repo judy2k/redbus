@@ -16,7 +16,7 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.arrivaltime;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,7 +39,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Xml;
 
-public class BusDataHelper {
+public class ArrivalTimeAccessor {
 	
 	public static final int BUSSTATUS_HTTPERROR = -1;
 	public static final int BUSSTATUS_BADSTOPCODE = -2;
@@ -51,7 +51,7 @@ public class BusDataHelper {
 
 	private static Integer RequestId = new Integer(0);
 
-	public static int getBusTimesAsync(long stopCode, int daysInAdvance, Date timeInAdvance, BusDataResponseListener callback)
+	public static int getBusTimesAsync(long stopCode, int daysInAdvance, Date timeInAdvance, IArrivalTimeResponseListener callback)
 	{
 		int requestId = RequestId++;
 		
@@ -62,6 +62,10 @@ public class BusDataHelper {
 		
 		return requestId;
 	}
+	
+	
+	
+	
 	
 	private static URL buildURL(long stopCode, int daysInAdvance, Object timeInAdvance, int departureCount)
 	{
@@ -106,9 +110,9 @@ public class BusDataHelper {
 			return;
 		}
 		
-		HashMap<String, BusTime> wasDiverted = new HashMap<String, BusTime>();
-		HashMap<String, BusTime> hasTime = new HashMap<String, BusTime>();
-		ArrayList<BusTime> busTimes = new ArrayList<BusTime>();
+		HashMap<String, ArrivalTime> wasDiverted = new HashMap<String, ArrivalTime>();
+		HashMap<String, ArrivalTime> hasTime = new HashMap<String, ArrivalTime>();
+		ArrayList<ArrivalTime> busTimes = new ArrayList<ArrivalTime>();
 		try {
 			XmlPullParser parser = Xml.newPullParser();
 			parser.setInput(new StringReader(request.content));
@@ -118,7 +122,7 @@ public class BusDataHelper {
 				case XmlPullParser.START_TAG:
 					String tagName = parser.getName();
 					if (tagName == "pre") {
-						BusTime bt = parseStopTime(parser);
+						ArrivalTime bt = parseStopTime(parser);
 						if (bt.isDiverted) {
 							if (wasDiverted.containsKey(bt.service))
 								continue;
@@ -131,7 +135,7 @@ public class BusDataHelper {
 				}
 			}
 			
-			for(BusTime bt: wasDiverted.values())
+			for(ArrivalTime bt: wasDiverted.values())
 				if (!hasTime.containsKey(bt.service))
 					busTimes.add(bt);
 			
@@ -144,7 +148,7 @@ public class BusDataHelper {
 		request.callback.getBusTimesSuccess(request.requestId, busTimes);
 	}
 	
-	private static BusTime parseStopTime(XmlPullParser parser) 
+	private static ArrivalTime parseStopTime(XmlPullParser parser) 
 		throws XmlPullParserException, IOException
 	{
 		String rawDestination = parser.nextText();
@@ -226,7 +230,7 @@ public class BusDataHelper {
 				arrivalMinutesLeft = Integer.parseInt(rawTime);
 		}
 
-		return new BusTime(service, destination, isDiverted, lowFloorBus, arrivalEstimated, arrivalIsDue, arrivalMinutesLeft, arrivalAbsoluteTime);
+		return new ArrivalTime(service, destination, isDiverted, lowFloorBus, arrivalEstimated, arrivalIsDue, arrivalMinutesLeft, arrivalAbsoluteTime);
 	}
 	
 	private static class AsyncHttpRequestTask extends AsyncTask<BusDataRequest, Integer, BusDataRequest> {
@@ -287,7 +291,7 @@ public class BusDataHelper {
 		protected void onPostExecute(BusDataRequest request) {
 			switch(request.requestType) {
 			case BusDataRequest.REQ_BUSTIMES:
-				BusDataHelper.getBusTimesResponse(request);			
+				ArrivalTimeAccessor.getBusTimesResponse(request);			
 				break;
 			}
 		}
@@ -297,7 +301,7 @@ public class BusDataHelper {
 		
 		public static final int REQ_BUSTIMES = 0;
 		
-		public BusDataRequest(int requestId, URL url, int requestType, BusDataResponseListener callback)
+		public BusDataRequest(int requestId, URL url, int requestType, IArrivalTimeResponseListener callback)
 		{
 			this.requestId = requestId;
 			this.url = url;
@@ -308,7 +312,7 @@ public class BusDataHelper {
 		public int requestId;
 		public URL url;
 		public int requestType;
-		public BusDataResponseListener callback;
+		public IArrivalTimeResponseListener callback;
 		public String content = null;
 	}
 }

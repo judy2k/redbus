@@ -1,7 +1,14 @@
-package org.redbus;
+package org.redbus.alarm;
 
 import java.util.HashMap;
 import java.util.List;
+
+import org.redbus.BusTimesActivity;
+import org.redbus.R;
+import org.redbus.R.drawable;
+import org.redbus.arrivaltime.ArrivalTime;
+import org.redbus.arrivaltime.ArrivalTimeAccessor;
+import org.redbus.arrivaltime.IArrivalTimeResponseListener;
 
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -13,7 +20,7 @@ import android.content.Intent;
 import android.os.SystemClock;
 
 public class TemporalAlarmReceiver extends BroadcastReceiver implements
-		BusDataResponseListener {
+		IArrivalTimeResponseListener {
 
 	private Context context;
 	private Intent intent;
@@ -34,7 +41,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 		if (stopName == null)
 			return;
 
-		BusDataHelper.getBusTimesAsync(stopCode, 0, null, this);
+		ArrivalTimeAccessor.getBusTimesAsync(stopCode, 0, null, this);
 	}
 
 	private void rescheduleAlarm() {
@@ -64,7 +71,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 		rescheduleAlarm();
 	}
 
-	public void getBusTimesSuccess(int requestId, List<BusTime> busTimes) {
+	public void getBusTimesSuccess(int requestId, List<ArrivalTime> busTimes) {
 		String[] requestedServices = intent.getStringArrayExtra("Services");
 		int timeout = intent.getIntExtra("TimeoutSecs", -1);
 		if ((requestedServices == null) || (timeout == -1))
@@ -73,7 +80,7 @@ public class TemporalAlarmReceiver extends BroadcastReceiver implements
 		for (String curService : requestedServices)
 			requestedServicesLookup.put(curService.toLowerCase(), new Boolean(true));
 
-		for (BusTime curTime : busTimes) {
+		for (ArrivalTime curTime : busTimes) {
 			if (requestedServicesLookup.containsKey(curTime.service.toLowerCase()) && 
 					(curTime.arrivalAbsoluteTime == null) &&
 					((curTime.arrivalMinutesLeft * 60) <= timeout)) {

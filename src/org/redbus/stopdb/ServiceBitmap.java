@@ -16,24 +16,24 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.stopdb;
 
-public class BusServiceMap {
+public class ServiceBitmap {
 
 	public long bits0;
 	public long bits1;
 	public boolean areAllSet;
 	
-	public BusServiceMap(long bits0, long bits1) {
+	public ServiceBitmap(long bits0, long bits1) {
 		this.bits0 = bits0;
 		this.bits1 = bits1;
 	}
 	
-	public BusServiceMap() {
+	public ServiceBitmap() {
 		setAll();
 	}
 
-	public BusServiceMap orWith(BusServiceMap newValues) {
+	public ServiceBitmap orWith(ServiceBitmap newValues) {
 		bits0 |= newValues.bits0;
 		bits1 |= newValues.bits1;
 
@@ -41,7 +41,7 @@ public class BusServiceMap {
 		return this;
 	}
 	
-	public BusServiceMap andWith(BusServiceMap newValues) {
+	public ServiceBitmap andWith(ServiceBitmap newValues) {
 		bits0 &= newValues.bits0;
 		bits1 &= newValues.bits1;
 
@@ -49,7 +49,7 @@ public class BusServiceMap {
 		return this;
 	}
 	
-	public BusServiceMap setTo(BusServiceMap newValues) {
+	public ServiceBitmap setTo(ServiceBitmap newValues) {
 		bits0 = newValues.bits0;
 		bits1 = newValues.bits1;
 
@@ -57,7 +57,7 @@ public class BusServiceMap {
 		return this;
 	}
 	
-	public BusServiceMap setBit(int bit) {
+	public ServiceBitmap setBit(int bit) {
 		switch(bit / 64) {
 		case 0:
 			bits0 |= 1L << (bit % 64);
@@ -81,7 +81,7 @@ public class BusServiceMap {
 		return false;
 	}
 
-	public boolean areSomeSet(BusServiceMap testValues) {
+	public boolean areSomeSet(ServiceBitmap testValues) {
 		if ((bits0 & testValues.bits0) != 0)
 			return true;
 		if ((bits1 & testValues.bits1) != 0)
@@ -90,7 +90,7 @@ public class BusServiceMap {
 		return false;
 	}
 	
-	public BusServiceMap setAll() {
+	public ServiceBitmap setAll() {
 		bits0 = -1L;
 		bits1 = -1L;
 
@@ -98,7 +98,7 @@ public class BusServiceMap {
 		return this;
 	}
 
-	public BusServiceMap clearAll() {
+	public ServiceBitmap clearAll() {
 		bits0 = 0L;
 		bits1 = 0L;
 

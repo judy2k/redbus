@@ -22,8 +22,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Date;
 
+import org.redbus.settings.SettingsDbAccessor;
+import org.redbus.stopdb.IStopDbUpdateResponseListener;
+import org.redbus.stopdb.StopDbAccessor;
+import org.redbus.stopdb.StopDbUpdater;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlSerializer;
+
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
@@ -56,9 +61,9 @@ import android.widget.Toast;
 import android.util.Log;
 import android.util.Xml;
 
-public class StopBookmarksActivity extends ListActivity implements BusStopDatabaseUpdateResponseListener
+public class StopBookmarksActivity extends ListActivity implements IStopDbUpdateResponseListener
 {	
-	public static final String[] columnNames = new String[] { LocalDBHelper.ID, LocalDBHelper.BOOKMARKS_COL_STOPNAME };
+	public static final String[] columnNames = new String[] { SettingsDbAccessor.ID, SettingsDbAccessor.BOOKMARKS_COL_STOPNAME };
 	public static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
 	private static final String bookmarksXmlFile = "/sdcard/redbus-stops.xml";
 	
@@ -78,7 +83,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
         registerForContextMenu(getListView());
         
         // display changes popup
-        LocalDBHelper db = new LocalDBHelper(this);
+        SettingsDbAccessor db = new SettingsDbAccessor(this);
         try {
         	PackageInfo pi = getPackageManager().getPackageInfo("org.redbus", 0);
         	if (!db.getGlobalSetting("PREVIOUSVERSIONCODE", "").equals(Integer.toString(pi.versionCode))) {
@@ -99,12 +104,12 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
             if (getIntent().getBooleanExtra("DoManualUpdate", false)) {
     			displayBusy("Checking for updates...");
         		isManualUpdateCheck = true;
-        		expectedRequestId = BusStopDatabaseUpdateHelper.checkForUpdates(lastUpdateDate, this);
+        		expectedRequestId = StopDbUpdater.checkForUpdates(lastUpdateDate, this);
             } else {
             	// otherwise, we do an background update check
 	        	if (nextUpdateCheck <= new Date().getTime() / 1000) {
 	        		isManualUpdateCheck = false;
-	        		expectedRequestId = BusStopDatabaseUpdateHelper.checkForUpdates(lastUpdateDate, this);
+	        		expectedRequestId = StopDbUpdater.checkForUpdates(lastUpdateDate, this);
 	        	}
             }
         } catch (Throwable t) {
@@ -124,7 +129,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 	
 	private void update()
 	{
-        LocalDBHelper db = new LocalDBHelper(this);
+        SettingsDbAccessor db = new SettingsDbAccessor(this);
         try {
         	SimpleCursorAdapter oldAdapter = ((SimpleCursorAdapter) getListAdapter());
         	if (oldAdapter != null)
@@ -160,7 +165,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 			return true;
 
 		case R.id.stopbookmarks_item_menu_showonmap:
-			PointTree pt = PointTree.getPointTree(this);
+			StopDbAccessor pt = StopDbAccessor.Load(this);
 			int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) bookmarkId);
 			if (stopNodeIdx != -1)
 				StopMapActivity.showActivity(this, pt.lat[stopNodeIdx], pt.lon[stopNodeIdx]);
@@ -176,7 +181,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 					.setPositiveButton(android.R.string.ok,
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog, int whichButton) {
-			                        LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this);
+			                        SettingsDbAccessor db = new SettingsDbAccessor(StopBookmarksActivity.this);
 			                        try {
 			                        	db.renameBookmark(StopBookmarksActivity.this.bookmarkId, input.getText().toString());
 			                        } finally {
@@ -196,7 +201,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 				.setPositiveButton(android.R.string.ok, 
 						new DialogInterface.OnClickListener() {
 		                    public void onClick(DialogInterface dialog, int whichButton) {
-		                        LocalDBHelper db = new LocalDBHelper(StopBookmarksActivity.this);
+		                        SettingsDbAccessor db = new SettingsDbAccessor(StopBookmarksActivity.this);
 		                        try {
 		                        	db.deleteBookmark(StopBookmarksActivity.this.bookmarkId);
 		                        } finally {
@@ -249,7 +254,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 											.show();
 									return;
 								}
-								PointTree pt = PointTree.getPointTree(StopBookmarksActivity.this);
+								StopDbAccessor pt = StopDbAccessor.Load(StopBookmarksActivity.this);
 								int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
 								if (stopNodeIdx != -1) {
 									BusTimesActivity.showActivity(StopBookmarksActivity.this, (int) stopCode);
@@ -267,7 +272,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 			return true;				
 			
 		case R.id.stopbookmarks_menu_backup: {
-	        LocalDBHelper db = new LocalDBHelper(this);
+	        SettingsDbAccessor db = new SettingsDbAccessor(this);
 	        Cursor c = null;
 	        FileWriter output = null;
 	        try {
@@ -307,7 +312,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 		}
 			
 		case R.id.stopbookmarks_menu_restore: {
-	        LocalDBHelper db = new LocalDBHelper(this);
+	        SettingsDbAccessor db = new SettingsDbAccessor(this);
 	        FileReader inputFile = null;
 	        try {
 	        	inputFile = new FileReader(bookmarksXmlFile);
@@ -346,7 +351,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 		
 		case R.id.stopbookmarks_menu_checkupdates: {
 	        // display changes popup
-	        LocalDBHelper db = new LocalDBHelper(this);
+	        SettingsDbAccessor db = new SettingsDbAccessor(this);
 			long lastUpdateDate = -1;
 	        try {
 				lastUpdateDate = Long.parseLong(db.getGlobalSetting("LASTUPDATE", "-1"));
@@ -358,7 +363,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 	        
 			displayBusy("Checking for updates...");
     		isManualUpdateCheck = true;
-    		expectedRequestId = BusStopDatabaseUpdateHelper.checkForUpdates(lastUpdateDate, this);
+    		expectedRequestId = StopDbUpdater.checkForUpdates(lastUpdateDate, this);
     		return true;
 		}
 		}
@@ -387,7 +392,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 	}
 	
 	private void setNextUpdateTime(boolean wasSuccessful) {	
-        LocalDBHelper db = new LocalDBHelper(this);
+        SettingsDbAccessor db = new SettingsDbAccessor(this);
         try {
         	int retryCount = Integer.parseInt(db.getGlobalSetting("UPDATECHECKRETRIES", "0"));
         	if ((retryCount < 3) && (!wasSuccessful)) {
@@ -456,7 +461,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 						new DialogInterface.OnClickListener() {
 		                    public void onClick(DialogInterface dialog, int whichButton) {
 		            			displayBusy("Downloading bus data update...");
-		                    	expectedRequestId = BusStopDatabaseUpdateHelper.getUpdate(updateDateF, StopBookmarksActivity.this);
+		                    	expectedRequestId = StopDbUpdater.getUpdate(updateDateF, StopBookmarksActivity.this);
 		                    }
 						})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -480,7 +485,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 		dismissBusy();
 
 		try {
-			PointTree.saveNewDatabase(updateData);
+			StopDbAccessor.saveRawDb(updateData);
 		} catch (Throwable t) {
 			Log.e("BusStopDatabaseUpdateHelper", "onPostExecute", t);
 			Toast.makeText(this, "Failed to download update; please try again later", Toast.LENGTH_SHORT).show();
@@ -489,7 +494,7 @@ public class StopBookmarksActivity extends ListActivity implements BusStopDataba
 
 		Toast.makeText(this, "Update downloaded, and installed successfully...", Toast.LENGTH_SHORT).show();
 		
-        LocalDBHelper db = new LocalDBHelper(this);
+        SettingsDbAccessor db = new SettingsDbAccessor(this);
         try {
         	db.setGlobalSetting("LASTUPDATE", Long.toString(updateDate));
         } catch (Exception e) {

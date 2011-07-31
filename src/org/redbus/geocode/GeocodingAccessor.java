@@ -16,10 +16,13 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.geocode;
 
 import java.util.List;
 import java.util.Locale;
+
+import org.redbus.stopdb.StopDbAccessor;
+
 
 import android.content.Context;
 import android.location.Address;
@@ -27,11 +30,11 @@ import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class GeocodingHelper {
+public class GeocodingAccessor {
 
 	private static Integer RequestId = new Integer(0);
 
-	public static int geocode(Context ctx, String location, GeocodingResponseListener callback)
+	public static int geocode(Context ctx, String location, IGeocodingResponseListener callback)
 	{
 		int requestId = RequestId++;
 		
@@ -40,13 +43,16 @@ public class GeocodingHelper {
 		return requestId;
 	}
 	
+	
+	
+	
 	private static class AsyncGeocodeRequestTask extends AsyncTask<GeocodingRequest, Integer, GeocodingRequest> {
 		
 		protected GeocodingRequest doInBackground(GeocodingRequest... params) {
 			GeocodingRequest gr = params[0];
 			gr.addresses = null;
 			
-			PointTree pt = PointTree.getPointTree(gr.ctx);
+			StopDbAccessor pt = StopDbAccessor.Load(gr.ctx);
 			
 			try {
 				Geocoder geocoder = new Geocoder(gr.ctx, Locale.UK);
@@ -69,7 +75,7 @@ public class GeocodingHelper {
 	
 	private static class GeocodingRequest {
 		
-		public GeocodingRequest(int requestId, Context ctx, String location, GeocodingResponseListener callback)
+		public GeocodingRequest(int requestId, Context ctx, String location, IGeocodingResponseListener callback)
 		{
 			this.requestId = requestId;
 			this.ctx = ctx;
@@ -80,7 +86,7 @@ public class GeocodingHelper {
 		public int requestId;
 		public Context ctx;
 		public String location;
-		public GeocodingResponseListener callback;
+		public IGeocodingResponseListener callback;
 		public List<Address> addresses = null;
 	}
 }

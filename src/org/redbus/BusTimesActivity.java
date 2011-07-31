@@ -27,6 +27,16 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import org.redbus.alarm.ProximityAlarmReceiver;
+import org.redbus.alarm.TemporalAlarmReceiver;
+import org.redbus.arrivaltime.ArrivalTime;
+import org.redbus.arrivaltime.ArrivalTimeAccessor;
+import org.redbus.arrivaltime.IArrivalTimeResponseListener;
+import org.redbus.settings.SettingsDbAccessor;
+import org.redbus.stopdb.ServiceBitmap;
+import org.redbus.stopdb.StopDbAccessor;
+
+
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.ListActivity;
@@ -56,7 +66,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BusTimesActivity extends ListActivity implements BusDataResponseListener {
+public class BusTimesActivity extends ListActivity implements IArrivalTimeResponseListener {
 
 	private long stopCode = -1;
 	private String stopName = "";	
@@ -96,7 +106,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		if (stopCode != -1)
 			findViewById(android.R.id.empty).setVisibility(View.GONE);
 		
-		LocalDBHelper db = new LocalDBHelper(this);
+		SettingsDbAccessor db = new SettingsDbAccessor(this);
 		try {
 			sorting = db.getGlobalSetting("bustimesort", "arrival");
 			stopName = db.getBookmarkName(stopCode);
@@ -104,7 +114,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			db.close();
 		}
 		
-		PointTree pt = PointTree.getPointTree(this);
+		StopDbAccessor pt = StopDbAccessor.Load(this);
 		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
 		if (stopNodeIdx != -1) {
 			stopName = pt.lookupStopNameByStopNodeIdx(stopNodeIdx);
@@ -134,7 +144,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			setTitle(stopName + " (" + titleDateFormat.format(displayDate) + ")");
 			displayBusy("Retrieving bus times");
 
-			expectedRequestId = BusDataHelper.getBusTimesAsync(stopCode, daysInAdvance, timeInAdvance, this);
+			expectedRequestId = ArrivalTimeAccessor.getBusTimesAsync(stopCode, daysInAdvance, timeInAdvance, this);
 		} else {
 			setTitle("Unknown bus stop");
 			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
@@ -174,7 +184,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		dismissBusy();
 		hideStatusBoxes();
 
-		setListAdapter(new BusTimesAdapter(this, R.layout.bustimes_item, new ArrayList<BusTime>()));
+		setListAdapter(new BusTimesAdapter(this, R.layout.bustimes_item, new ArrayList<ArrivalTime>()));
 		findViewById(R.id.bustimes_error).setVisibility(View.VISIBLE);
 
 		new AlertDialog.Builder(this).setTitle("Error").
@@ -183,7 +193,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			show();
 	}
 
-	public void getBusTimesSuccess(int requestId, List<BusTime> busTimes) {
+	public void getBusTimesSuccess(int requestId, List<ArrivalTime> busTimes) {
 		if (requestId != expectedRequestId)
 			return;
 		
@@ -191,16 +201,16 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		hideStatusBoxes();
 		
 		if (sorting.equalsIgnoreCase("service")) {
-			Collections.sort(busTimes, new Comparator<BusTime>() {
-				public int compare(BusTime arg0, BusTime arg1) {
+			Collections.sort(busTimes, new Comparator<ArrivalTime>() {
+				public int compare(ArrivalTime arg0, ArrivalTime arg1) {
 					if (arg0.baseService != arg1.baseService)
 						return arg0.baseService - arg1.baseService;
 					return arg0.service.compareTo(arg1.service);
 				}
 			});
 		} else if (sorting.equalsIgnoreCase("arrival")) {
-			Collections.sort(busTimes, new Comparator<BusTime>() {
-				public int compare(BusTime arg0, BusTime arg1) {
+			Collections.sort(busTimes, new Comparator<ArrivalTime>() {
+				public int compare(ArrivalTime arg0, ArrivalTime arg1) {
 					if ((arg0.arrivalAbsoluteTime != null) && (arg1.arrivalAbsoluteTime != null)) {
 						// bus data never seems to span to the next day, so this string comparison should always work
 						return arg0.arrivalAbsoluteTime.compareTo(arg1.arrivalAbsoluteTime);
@@ -275,11 +285,11 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 	
 	private void addTemporalAlert(String selectedService) {
 		// get the list of services for this stop
-		PointTree pt = PointTree.getPointTree(this);
+		StopDbAccessor pt = StopDbAccessor.Load(this);
 		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
 		if (stopNodeIdx == -1)
 			return;
-		BusServiceMap serviceMap = pt.lookupServiceMapByStopNodeIdx(stopNodeIdx);
+		ServiceBitmap serviceMap = pt.lookupServiceBitmapByStopNodeIdx(stopNodeIdx);
 		
 		ArrayList<String> servicesList = pt.getServiceNames(serviceMap);
 		final String[] services = servicesList.toArray(new String[servicesList.size()]);
@@ -384,7 +394,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 			.setTitle("Set alarm")
 			.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
-					PointTree pt = PointTree.getPointTree(BusTimesActivity.this);
+					StopDbAccessor pt = StopDbAccessor.Load(BusTimesActivity.this);
 					int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
 					if (stopNodeIdx == -1)
 						return;
@@ -425,7 +435,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.bustimes_menu, menu);
 		
-        LocalDBHelper db = new LocalDBHelper(this);
+        SettingsDbAccessor db = new SettingsDbAccessor(this);
         try {
         	if (db.isBookmark(stopCode)) {
         		menu.findItem(R.id.bustimes_menu_addbookmark).setEnabled(false);
@@ -450,7 +460,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 		case R.id.bustimes_menu_addbookmark:
 			if (stopCode != -1) {
-				LocalDBHelper db = new LocalDBHelper(this);
+				SettingsDbAccessor db = new SettingsDbAccessor(this);
 				try {
 					db.addBookmark(stopCode, stopName);
 				} finally {
@@ -470,7 +480,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 						.setPositiveButton(android.R.string.ok,
 								new DialogInterface.OnClickListener() {
 									public void onClick(DialogInterface dialog, int whichButton) {
-				                        LocalDBHelper db = new LocalDBHelper(BusTimesActivity.this);
+				                        SettingsDbAccessor db = new SettingsDbAccessor(BusTimesActivity.this);
 				                        try {
 				                        	db.renameBookmark(BusTimesActivity.this.stopCode, input.getText().toString());
 				                        } finally {
@@ -492,7 +502,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 				.setPositiveButton(android.R.string.ok, 
 						new DialogInterface.OnClickListener() {
 			                public void onClick(DialogInterface dialog, int whichButton) {
-			                    LocalDBHelper db = new LocalDBHelper(BusTimesActivity.this);
+			                    SettingsDbAccessor db = new SettingsDbAccessor(BusTimesActivity.this);
 			                    try {
 			                    	db.deleteBookmark(BusTimesActivity.this.stopCode);
 			                    } finally {
@@ -508,7 +518,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 
 
 		case R.id.bustimes_menu_viewonmap:
-			PointTree pt = PointTree.getPointTree(BusTimesActivity.this);
+			StopDbAccessor pt = StopDbAccessor.Load(BusTimesActivity.this);
 			int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
 			if (stopNodeIdx != -1)
 				StopMapActivity.showActivity(this, pt.lat[stopNodeIdx], pt.lon[stopNodeIdx]);
@@ -564,7 +574,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		case R.id.bustimes_menu_sorting_arrival: {
 			sorting = "arrival";
 			
-			LocalDBHelper db = new LocalDBHelper(this);
+			SettingsDbAccessor db = new SettingsDbAccessor(this);
 			try {
 				db.setGlobalSetting("bustimesort",  sorting);
 			} finally {
@@ -577,7 +587,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		case R.id.bustimes_menu_sorting_service: {
 			sorting = "service";
 			
-			LocalDBHelper db = new LocalDBHelper(this);
+			SettingsDbAccessor db = new SettingsDbAccessor(this);
 			try {
 				db.setGlobalSetting("bustimesort",  sorting);
 			} finally {
@@ -600,11 +610,11 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 		return false;
 	}
 
-	private class BusTimesAdapter extends ArrayAdapter<BusTime> {
-		private List<BusTime> items;
+	private class BusTimesAdapter extends ArrayAdapter<ArrivalTime> {
+		private List<ArrivalTime> items;
 		private int textViewResourceId;
 
-		public BusTimesAdapter(Context context, int textViewResourceId, List<BusTime> items) {
+		public BusTimesAdapter(Context context, int textViewResourceId, List<ArrivalTime> items) {
 			super(context, textViewResourceId, items);
 
 			this.textViewResourceId = textViewResourceId;
@@ -619,7 +629,7 @@ public class BusTimesActivity extends ListActivity implements BusDataResponseLis
 				v = vi.inflate(textViewResourceId, null);
 			}
 
-			BusTime busTime = items.get(position);
+			ArrivalTime busTime = items.get(position);
 			if (busTime != null) {
 				TextView serviceView = (TextView) v.findViewById(R.id.bustimes_service);
 				TextView destinationView = (TextView) v.findViewById(R.id.bustimes_destination);

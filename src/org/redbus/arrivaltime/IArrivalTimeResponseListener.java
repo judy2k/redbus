@@ -16,11 +16,12 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.arrivaltime;
 
 import java.util.List;
 
-public interface BusDataResponseListener {
+
+public interface IArrivalTimeResponseListener {
 	public void getBusTimesError(int requestId, int code, String message);
-	public void getBusTimesSuccess(int requestId, List<BusTime> busTimes);
+	public void getBusTimesSuccess(int requestId, List<ArrivalTime> busTimes);
 }

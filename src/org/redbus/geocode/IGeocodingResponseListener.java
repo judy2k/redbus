@@ -16,12 +16,13 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.geocode;
 
-public interface BusStopDatabaseUpdateResponseListener {
-	public void checkUpdatesError(int requestId);
-	public void checkUpdatesSuccess(int requestId, long updateDate);
-	
-	public void getUpdateError(int requestId);
-	public void getUpdateSuccess(int requestId, long updateDate, byte[] updateData);
+import java.util.List;
+
+import android.location.Address;
+
+public interface IGeocodingResponseListener {
+	public void geocodeResponseError(int requestId, String message);
+	public void geocodeResponseSucccess(int requestId, List<Address> addresses);
 }

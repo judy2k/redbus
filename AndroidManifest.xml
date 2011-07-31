@@ -41,10 +41,10 @@
 				<action android:name="android.intent.action.MAIN" />
 			</intent-filter>
 		</activity>    	
-		<activity android:name="StopMapActivity" android:label="Map" />
+		<activity android:name=".StopMapActivity" android:label="Map" />
 		<uses-library android:name="com.google.android.maps" />
-		<receiver android:name=".TemporalAlarmReceiver"/>
-		<receiver android:name=".ProximityAlarmReceiver"/>
+		<receiver android:name=".alarm.TemporalAlarmReceiver"/>
+		<receiver android:name=".alarm.ProximityAlarmReceiver"/>
 		<receiver android:name=".AlertNotificationPressedReceiver"/>
 	</application>
 

@@ -18,6 +18,8 @@
 
 package org.redbus;
 
+import org.redbus.settings.SettingsDbAccessor;
+
 import android.app.ListActivity;
 import android.content.Intent;
 import android.database.Cursor;
@@ -48,7 +50,7 @@ public class CreateShortcutActivity extends ListActivity {
 	// FIXME - This duplicates StopBookmarksActivity.update()
 	private void update()
 	{
-        LocalDBHelper db = new LocalDBHelper(this);
+        SettingsDbAccessor db = new SettingsDbAccessor(this);
         try {
         	SimpleCursorAdapter oldAdapter = ((SimpleCursorAdapter) getListAdapter());
         	if (oldAdapter != null)

@@ -22,7 +22,7 @@
 //       - Android only gives an InputStream to a resource - ideally we need Random access.
 //       - Read data into memory for now.
 
-package org.redbus;
+package org.redbus.stopdb;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -39,17 +39,43 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
+import org.redbus.R;
+import org.redbus.R.raw;
+import org.redbus.settings.SettingsDbAccessor;
+
 import android.content.Context;
 import android.util.Log;
 
 
-public class PointTree {
+public class StopDbAccessor {
 
-	private static PointTree pointTree = null;
+	private static StopDbAccessor pointTree = null;
 	private static Integer syncObj = new Integer(0);
 	private static String filesPath = "/data/data/org.redbus/files";
 
-	public static PointTree getPointTree(Context ctx)
+	public static final int SERVICE_MAP_LONG_COUNT = 2;
+	public static final int KDTREE_RECORD_SIZE = 28;
+	public static final int METADATA_RECORD_SIZE = 20;
+
+	private byte[] stopMetadata;
+	public short[] left;
+	public short[] right;
+	public int[] lat;
+	public int[] lon;
+	public long[] serviceMap0;
+	public long[] serviceMap1;
+	public int rootRecordNum;
+	private Map<Integer, Integer> nodeIdxByStopCode;
+	final HashMap<Integer, Integer> serviceBitToSortIndex = new HashMap<Integer, Integer>();
+	public HashMap<String, Integer> serviceNameToServiceBit = new HashMap<String, Integer>();
+	private String[] serviceBitToServiceName;
+
+	public int lowerLeftLat;
+	public int lowerLeftLon;
+	public int upperRightLat;
+	public int upperRightLon;
+
+	public static StopDbAccessor Load(Context ctx)
 	{
 		synchronized (syncObj) {
 			if (pointTree == null) {
@@ -61,7 +87,7 @@ public class PointTree {
 						dir.mkdir();
 				} catch (Exception ex) {
 				}
-				
+
 				File file = new File(dir, "bus2.dat");
 				try {
 					// first of all, if the file doesn't exist on disk, extract it from our resources and save it out to there
@@ -82,7 +108,7 @@ public class PointTree {
 
 					// now, load the on-disk file
 					stopsStream = new FileInputStream(file);
-					pointTree = new PointTree(stopsStream, (int) file.length());
+					pointTree = new StopDbAccessor(stopsStream, (int) file.length());
 
 				} catch (IOException e) {
 					Log.println(Log.ERROR,"redbus","Error reading stops");
@@ -93,18 +119,18 @@ public class PointTree {
 						file.delete();
 					} catch (Throwable t) {
 					}
-					
-					// zap the LASTUPDATE from the db so we redownload it
-			        LocalDBHelper db = new LocalDBHelper(ctx);
-			        try {
-			        	db.deleteGlobalSetting("LASTUPDATE");
-			        } catch (Throwable t) {
-			        	// ignore
-			        } finally {
-			        	db.close();
-			        }
 
-					
+					// zap the LASTUPDATE from the db so we redownload it
+					SettingsDbAccessor db = new SettingsDbAccessor(ctx);
+					try {
+						db.deleteGlobalSetting("LASTUPDATE");
+					} catch (Throwable t) {
+						// ignore
+					} finally {
+						db.close();
+					}
+
+
 				} finally {
 					try {
 						if (stopsStream != null)
@@ -123,7 +149,7 @@ public class PointTree {
 		}
 	}
 
-	public static void saveNewDatabase(byte[] gzippedDatabase) throws IOException
+	public static void saveRawDb(byte[] gzippedDatabase) throws IOException
 	{
 		synchronized (syncObj) {
 			FileOutputStream outStream = null;
@@ -134,7 +160,7 @@ public class PointTree {
 					dir.mkdir();
 			} catch (Exception ex) {
 			}
-			
+
 			File outFile = new File(dir, "bus2.dat.new");
 			File dbFile = new File(dir, "bus2.dat");
 			try {
@@ -179,29 +205,74 @@ public class PointTree {
 		}
 	}
 
-	public static final int SERVICE_MAP_LONG_COUNT = 2;
-	public static final int KDTREE_RECORD_SIZE = 28;
-	public static final int METADATA_RECORD_SIZE = 20;
+	// Return nodes within a certain rectangle - top-left/bottom-right
+	public ArrayList<Integer> findRect(int xtl, int ytl,
+			int xbr, int ybr)
+	{
+		ArrayList<Integer> stops = new ArrayList<Integer>();		
+		return searchRect(xtl,ytl,xbr,ybr,rootRecordNum,stops,0);
+	}
 
-	private byte[] stopMetadata;
-	public short[] left;
-	public short[] right;
-	public int[] lat;
-	public int[] lon;
-	public long[] serviceMap0;
-	public long[] serviceMap1;
-	public int rootRecordNum;
-	private Map<Integer, Integer> nodeIdxByStopCode;
-	final HashMap<Integer, Integer> serviceBitToSortIndex = new HashMap<Integer, Integer>();
-	public HashMap<String, Integer> serviceNameToServiceBit = new HashMap<String, Integer>();
-	private String[] serviceBitToServiceName;
+	public int lookupStopNodeIdxByStopCode(int stopCode)
+	{
+		Integer node = nodeIdxByStopCode.get(new Integer(stopCode));
+		if (node == null)
+			return -1;
+		if (node.intValue() >= lat.length)
+			return -1;
+		return node.intValue();
+	}
 
-	public int lowerLeftLat;
-	public int lowerLeftLon;
-	public int upperRightLat;
-	public int upperRightLon;
+	public String lookupStopNameByStopNodeIdx(int stopNodeIdx)
+	{
+		int off = stopNodeIdx * METADATA_RECORD_SIZE;
+		try {
+			return new String(stopMetadata, off + 4, 16, "utf-8").trim();
+		} catch (Throwable t) {
+			return "???";
+		}
+	}
 
-	private PointTree(InputStream is, int length) throws IOException
+	public int lookupStopCodeByStopNodeIdx(int stopNodeIdx) 
+	{
+		int off = stopNodeIdx * METADATA_RECORD_SIZE;
+		return readInt(stopMetadata, off);
+	}
+
+	public ServiceBitmap lookupServiceBitmapByStopNodeIdx(int stopNodeIdx)
+	{
+		return new ServiceBitmap(serviceMap0[stopNodeIdx], serviceMap1[stopNodeIdx]);
+	}
+
+	public ArrayList<String> getServiceNames(ServiceBitmap serviceMap)
+	{
+		int maxEntries = serviceBitToServiceName.length;
+		String[] tmp = new String[maxEntries];
+		for(int i=0; i< maxEntries; i++)
+			if (serviceMap.isBitSet(i))
+				tmp[serviceBitToSortIndex.get(i)] = serviceBitToServiceName[i];
+
+		ArrayList<String> result = new ArrayList<String>();
+		for(String cur: tmp) {
+			if (cur == null)
+				continue;
+			result.add(cur);
+		}
+		return result;
+	}
+
+	// Public interface to this class - finds the node nearest to the supplied
+	// co-ords
+
+	public int findNearest(int x, int y)
+	{	
+		return this.searchNearest(rootRecordNum,-1,x,y,0);
+	}
+
+
+
+
+	private StopDbAccessor(InputStream is, int length) throws IOException
 	{
 		// read the entire stream into a memory buffer
 		byte[] b = new byte[length];
@@ -314,21 +385,21 @@ public class PointTree {
 	private int readInt(byte[] b, int off)
 	{
 		return ((((int) b[off+0]) & 0xff) << 24) |
-		((((int) b[off+1]) & 0xff) << 16) |
-		((((int) b[off+2]) & 0xff) <<  8) |
-		(((int) b[off+3]) & 0xff);
+				((((int) b[off+1]) & 0xff) << 16) |
+				((((int) b[off+2]) & 0xff) <<  8) |
+				(((int) b[off+3]) & 0xff);
 	}
 
 	private long readLong(byte[] b, int off)
 	{
 		return ((((long) b[off+0]) & 0xff) << 56) |
-		((((long) b[off+1]) & 0xff) << 48) |
-		((((long) b[off+2]) & 0xff) << 40) |
-		((((long) b[off+3]) & 0xff) << 32) |
-		((((long) b[off+4]) & 0xff) << 24) |
-		((((long) b[off+5]) & 0xff) << 16) |
-		((((long) b[off+6]) & 0xff) <<  8) |
-		(((long) b[off+7]) & 0xff);
+				((((long) b[off+1]) & 0xff) << 48) |
+				((((long) b[off+2]) & 0xff) << 40) |
+				((((long) b[off+3]) & 0xff) << 32) |
+				((((long) b[off+4]) & 0xff) << 24) |
+				((((long) b[off+5]) & 0xff) << 16) |
+				((((long) b[off+6]) & 0xff) <<  8) |
+				(((long) b[off+7]) & 0xff);
 	}
 
 	// Could use Android location class to do this, but kept in here from prototype.
@@ -390,14 +461,6 @@ public class PointTree {
 		return best;
 	}
 
-	// Public interface to this class - finds the node nearest to the supplied
-	// co-ords
-
-	public int findNearest(int x, int y)
-	{	
-		return this.searchNearest(rootRecordNum,-1,x,y,0);
-	}
-
 	private ArrayList<Integer> searchRect(int xtl, int ytl,
 			int xbr, int ybr,
 			int here,
@@ -440,61 +503,5 @@ public class PointTree {
 		}
 
 		return stops;
-			}
-
-	// Return nodes within a certain rectangle - top-left/bottom-right
-	public ArrayList<Integer> findRect(int xtl, int ytl,
-			int xbr, int ybr)
-			{
-		ArrayList<Integer> stops = new ArrayList<Integer>();		
-		return searchRect(xtl,ytl,xbr,ybr,rootRecordNum,stops,0);
-			}
-
-	public int lookupStopNodeIdxByStopCode(int stopCode)
-	{
-		Integer node = nodeIdxByStopCode.get(new Integer(stopCode));
-		if (node == null)
-			return -1;
-		if (node.intValue() >= lat.length)
-			return -1;
-		return node.intValue();
-	}
-
-	public String lookupStopNameByStopNodeIdx(int stopNodeIdx)
-	{
-		int off = stopNodeIdx * METADATA_RECORD_SIZE;
-		try {
-			return new String(stopMetadata, off + 4, 16, "utf-8").trim();
-		} catch (Throwable t) {
-			return "???";
-		}
-	}
-
-	public int lookupStopCodeByStopNodeIdx(int stopNodeIdx) 
-	{
-		int off = stopNodeIdx * METADATA_RECORD_SIZE;
-		return readInt(stopMetadata, off);
-	}
-
-	public BusServiceMap lookupServiceMapByStopNodeIdx(int stopNodeIdx)
-	{
-		return new BusServiceMap(serviceMap0[stopNodeIdx], serviceMap1[stopNodeIdx]);
-	}
-
-	public ArrayList<String> getServiceNames(BusServiceMap serviceMap)
-	{
-		int maxEntries = serviceBitToServiceName.length;
-		String[] tmp = new String[maxEntries];
-		for(int i=0; i< maxEntries; i++)
-			if (serviceMap.isBitSet(i))
-				tmp[serviceBitToSortIndex.get(i)] = serviceBitToServiceName[i];
-
-		ArrayList<String> result = new ArrayList<String>();
-		for(String cur: tmp) {
-			if (cur == null)
-				continue;
-			result.add(cur);
-		}
-		return result;
 	}
 }

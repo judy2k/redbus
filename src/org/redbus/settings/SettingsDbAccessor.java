@@ -16,14 +16,14 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.settings;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.Cursor;
 
-public class LocalDBHelper 
+public class SettingsDbAccessor 
 {
 	public static final String BOOKMARKS_TABLE = "Bookmarks";
 	public static final String SETTINGS_TABLE = "Settings";
@@ -37,7 +37,7 @@ public class LocalDBHelper
 
 	private SQLiteDatabase db;
 	
-	public LocalDBHelper(Context context)
+	public SettingsDbAccessor(Context context)
 	{
 		db = new LocalDBOpenHelper(context).getWritableDatabase();
 	}

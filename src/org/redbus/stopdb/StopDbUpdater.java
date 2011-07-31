@@ -16,7 +16,7 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.stopdb;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,16 +28,17 @@ import java.util.regex.Pattern;
 
 import org.apache.http.protocol.HTTP;
 
+
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class BusStopDatabaseUpdateHelper {
+public class StopDbUpdater {
 	
 	private static final Pattern busUpdateRegex = Pattern.compile("bus2.dat-([0-9]+).gz");
 
 	private static Integer RequestId = new Integer(0);
 
-	public static int checkForUpdates(long lastUpdateDate, BusStopDatabaseUpdateResponseListener callback)
+	public static int checkForUpdates(long lastUpdateDate, IStopDbUpdateResponseListener callback)
 	{
 		int requestId = RequestId++;
 
@@ -46,7 +47,7 @@ public class BusStopDatabaseUpdateHelper {
 		return requestId;
 	}
 
-	public static int getUpdate(long updateDate, BusStopDatabaseUpdateResponseListener callback)
+	public static int getUpdate(long updateDate, IStopDbUpdateResponseListener callback)
 	{
 		int requestId = RequestId++;
 
@@ -228,7 +229,7 @@ public class BusStopDatabaseUpdateHelper {
 		public static final int REQ_CHECKUPDATES = 0;
 		public static final int REQ_GETUPDATE = 1;
 		
-		public UpdateRequest(int requestId, int requestType, long lastUpdateDate, long updateDate, BusStopDatabaseUpdateResponseListener callback)
+		public UpdateRequest(int requestId, int requestType, long lastUpdateDate, long updateDate, IStopDbUpdateResponseListener callback)
 		{
 			this.requestId = requestId;
 			this.requestType = requestType;
@@ -242,6 +243,6 @@ public class BusStopDatabaseUpdateHelper {
 		public long lastUpdateDate;
 		public long updateDate;
 		public byte[] updateData;
-		public BusStopDatabaseUpdateResponseListener callback;
+		public IStopDbUpdateResponseListener callback;
 	}
 }

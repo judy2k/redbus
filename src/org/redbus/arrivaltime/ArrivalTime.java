@@ -16,9 +16,9 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.arrivaltime;
 
-public class BusTime 
+public class ArrivalTime 
 {	
 	public String service;
 	public int baseService;
@@ -33,7 +33,7 @@ public class BusTime
 	public int arrivalSortingIndex;
 
 	
-	public BusTime(String service, String destination, boolean isDiverted, boolean lowFloorBus, boolean arrivalEstimated, boolean arrivalIsDue, int arrivalMinutesLeft, String arrivalAbsoluteTime) 
+	public ArrivalTime(String service, String destination, boolean isDiverted, boolean lowFloorBus, boolean arrivalEstimated, boolean arrivalIsDue, int arrivalMinutesLeft, String arrivalAbsoluteTime) 
 	{
 		this.service = service;
 		this.baseService = Integer.parseInt(service.replaceAll("[^0-9]", "").trim());
