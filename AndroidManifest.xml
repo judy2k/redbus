@@ -20,11 +20,25 @@
         	</intent-filter>
 		</activity>
         
-		<activity-alias android:label="Edinburgh bus stop" android:name="CreateShortcutActivity" android:targetActivity=".ui.CreateShortcutActivity">
+		<activity-alias android:label="Edinburgh bus stop" 
+		android:name="CreateShortcutActivity" 
+		android:targetActivity=".ui.CreateShortcutActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.CREATE_SHORTCUT" />
+				<category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
 		</activity-alias>
 		
 		<activity android:name=".ui.arrivaltime.ArrivalTimeActivity" android:label="Bus Times" >
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+			</intent-filter>
 		</activity>
+		
+		<!--  Alias for launcher shortcut backwards compatibility -->
+		<activity-alias android:name="BusTimesActivity"
+		android:targetActivity=".ui.arrivaltime.ArrivalTimeActivity">
+		</activity-alias>
 		
 		<activity android:name=".ui.stopmap.StopMapActivity" android:label="Map" />
 		<activity android:name=".ui.BookmarksActivity" android:label="Edinburgh Bus Tracker" />
