@@ -45,7 +45,7 @@ public class RedbusTabView extends TabActivity {
 	    
 	    tabHost.addTab(tabHost.newTabSpec("nearby").setIndicator("Nearby")
                 .setContent(new Intent().setClass(this, NearbyBookmarkedArrivalTimeActivity.class)));
-	}	
+	}
 	
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event) {
