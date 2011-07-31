@@ -14,19 +14,16 @@
 		
 		
 		
-		<activity-alias android:targetActivity=".ui.RedbusTabView" android:name="StopBookmarksActivity"></activity-alias><activity android:theme="@android:style/Theme.Dialog" android:label="Create shortcut" android:name=".ui.CreateShortcutActivity">
+		<activity-alias android:targetActivity=".ui.RedbusTabView" android:name="StopBookmarksActivity"></activity-alias><activity android:theme="@android:style/Theme.Dialog" android:name=".ui.CreateShortcutActivity" android:label="Bus Bookmark">
         	<intent-filter>
-				<action android:name="android.intent.action.MAIN"/>
+        		<action android:name="android.intent.action.CREATE_SHORTCUT"></action>
+        		<category android:name="android.intent.category.DEFAULT"></category>
         	</intent-filter>
 		</activity>
         
 		<activity-alias android:label="Edinburgh bus stop" 
 		android:name="CreateShortcutActivity" 
 		android:targetActivity=".ui.CreateShortcutActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.CREATE_SHORTCUT" />
-				<category android:name="android.intent.category.DEFAULT" />
-			</intent-filter>
 		</activity-alias>
 		
 		<activity android:name=".ui.arrivaltime.ArrivalTimeActivity" android:label="Bus Times" >
