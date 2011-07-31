@@ -13,9 +13,9 @@ public class BusyDialog {
 		this.ctx = ctx;
 	}
 	
-	public ProgressDialog show(OnCancelListener onCancel, String reason) {
+	public void show(OnCancelListener onCancel, String reason) {
 		dismiss();
-		return ProgressDialog.show(ctx, "", reason, true, true, onCancel);
+		pd = ProgressDialog.show(ctx, "", reason, true, true, onCancel);
 	}
 
 	public void dismiss() {

@@ -4,15 +4,15 @@
 	
 	<application android:label="@string/app_name" android:icon="@drawable/icon">
 	    
-	   	<activity-alias android:name="RedbusTabView" android:label="Edinburgh Bus Tracker" android:targetActivity=".ui.RedbusTabView">
-		</activity-alias>
-		
-		<activity android:label="Edinburgh Bus Tracker" android:name=".ui.RedbusTabView">
+	   	<activity android:label="Edinburgh Bus Tracker" android:name=".ui.RedbusTabView">
 			  <intent-filter>
 				<action android:name="android.intent.action.MAIN"></action>
 				<category android:name="android.intent.category.LAUNCHER"></category>
 			</intent-filter>
-		</activity>
+		</activity><activity-alias android:name="RedbusTabView" android:label="Edinburgh Bus Tracker" android:targetActivity=".ui.RedbusTabView">
+		</activity-alias>
+		
+		
 		
 		<activity android:theme="@android:style/Theme.Dialog" android:label="Create shortcut" android:name=".ui.CreateShortcutActivity">
         	<intent-filter>
