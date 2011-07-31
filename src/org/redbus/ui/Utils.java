@@ -14,18 +14,15 @@ public class Utils
 
 	public static void updateBookmarksListAdaptor(ListActivity la)
 	{
-        SettingsHelper db = new SettingsHelper(la);
-        try {
-        	SimpleCursorAdapter oldAdapter = ((SimpleCursorAdapter) la.getListAdapter());
-        	if (oldAdapter != null) {
-        		la.stopManagingCursor(oldAdapter.getCursor());
-        		oldAdapter.getCursor().close();
-        	}
+    	SimpleCursorAdapter cursorAdapter = (SimpleCursorAdapter) la.getListAdapter();
+    	if (cursorAdapter == null) {
+            SettingsHelper db = new SettingsHelper(la);
 	        Cursor listContentsCursor = db.getBookmarks();
 	        la.startManagingCursor(listContentsCursor);
 	        la.setListAdapter(new SimpleCursorAdapter(la, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds));
-        } finally {
-        	db.close();
-        }
+    	} else {
+    		Cursor oldCursor = cursorAdapter.getCursor();
+    		oldCursor.requery();
+    	}
 	}
 }
