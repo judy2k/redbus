@@ -67,10 +67,10 @@ public class ProximityAlert extends BroadcastReceiver implements DialogInterface
 		View dialogView = arrivalTimeActivity.getLayoutInflater().inflate(R.layout.addproximityalert, null);		
 
 		// setup distance selector
-		Spinner distanceSpinner = (Spinner) dialogView.findViewById(R.id.addproximityalert_distance);
+		uiDistanceSpinner = (Spinner) dialogView.findViewById(R.id.addproximityalert_distance);
 		ArrayAdapter<String> timeAdapter = new ArrayAdapter<String>(arrivalTimeActivity, android.R.layout.simple_spinner_item, proximityAlarmStrings);
 		timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		distanceSpinner.setAdapter(timeAdapter);
+		uiDistanceSpinner.setAdapter(timeAdapter);
 
 		// show the dialog!
 		new AlertDialog.Builder(arrivalTimeActivity)

@@ -342,7 +342,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	}
 	
 	private void doTemporalAlert(String selectedService) {
-		TemporalAlert.createTemporalAlert(this, stopCode, null);
+		TemporalAlert.createTemporalAlert(this, stopCode, stopName, null);
 	}
 	
 	

@@ -67,8 +67,8 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 	private String broadcastStopName;
 	private Intent broadcastIntent;
 	
-	public static void createTemporalAlert(ArrivalTimeActivity arrivalTimeActivity, int stopCode, String selectedService) {
-		new TemporalAlert(arrivalTimeActivity, stopCode, selectedService);
+	public static void createTemporalAlert(ArrivalTimeActivity arrivalTimeActivity, int stopCode, String stopName, String selectedService) {
+		new TemporalAlert(arrivalTimeActivity, stopCode, stopName, selectedService);
 	}
 
 	/**
@@ -77,9 +77,10 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 	public TemporalAlert() {
 	}
 
-	private TemporalAlert(ArrivalTimeActivity arrivalTimeActivity, int stopCode, String selectedService) {
+	private TemporalAlert(ArrivalTimeActivity arrivalTimeActivity, int stopCode, String stopName, String selectedService) {
 		this.uiArrivalTimeActivity = arrivalTimeActivity;
 		this.uiStopCode = stopCode;
+		this.uiStopName = stopName;
 		
 		// get the list of services for this stop
 		StopDbHelper pt = StopDbHelper.Load(arrivalTimeActivity);
@@ -89,35 +90,35 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 		ServiceBitmap serviceMap = pt.lookupServiceBitmapByStopNodeIdx(stopNodeIdx);
 		
 		ArrayList<String> servicesList = pt.getServiceNames(serviceMap);
-		String[] services = servicesList.toArray(new String[servicesList.size()]);
-		boolean[] selectedServices = new boolean[services.length];
+		uiServices = servicesList.toArray(new String[servicesList.size()]);
+		uiSelectedServices = new boolean[uiServices.length];
 
 		// preselect the clicked-on service
 		if (selectedService != null) {
-			for(int i=0; i< services.length; i++) {
-				if (selectedService.equalsIgnoreCase(services[i])) {
-					selectedServices[i] = true;
+			for(int i=0; i< uiServices.length; i++) {
+				if (selectedService.equalsIgnoreCase(uiServices[i])) {
+					uiSelectedServices[i] = true;
 					break;
 				}
 			}
 		} else {
-			if (selectedServices.length > 0)
-				selectedServices[0] = true;
+			if (uiSelectedServices.length > 0)
+				uiSelectedServices[0] = true;
 		}
 
 		// load the view
 		View dialogView = arrivalTimeActivity.getLayoutInflater().inflate(R.layout.addtemporalalert, null);		
 
 		// setup services selector
-		final Button servicesButton = (Button) dialogView.findViewById(R.id.addtemporalalert_services);
-		updateServicesList(servicesButton, services, selectedServices);
-		servicesButton.setOnClickListener(this);
+		uiServicesButton = (Button) dialogView.findViewById(R.id.addtemporalalert_services);
+		updateServicesList(uiServicesButton, uiServices, uiSelectedServices);
+		uiServicesButton.setOnClickListener(this);
 
 		// setup time selector
-		Spinner timeSpinner = (Spinner) dialogView.findViewById(R.id.addtemporalalert_time);
+		uiTimeSpinner = (Spinner) dialogView.findViewById(R.id.addtemporalalert_time);
 		ArrayAdapter<String> timeAdapter = new ArrayAdapter<String>(arrivalTimeActivity, android.R.layout.simple_spinner_item, temporalAlarmStrings);
 		timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		timeSpinner.setAdapter(timeAdapter);
+		uiTimeSpinner.setAdapter(timeAdapter);
 
 		// show the dialog!
 		new AlertDialog.Builder(arrivalTimeActivity)
