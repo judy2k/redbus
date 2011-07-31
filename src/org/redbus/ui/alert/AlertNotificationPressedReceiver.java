@@ -18,8 +18,6 @@
 
 package org.redbus.ui.alert;
 
-import org.redbus.BusTimesActivity;
-
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -31,9 +29,9 @@ public class AlertNotificationPressedReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-		nm.cancel(BusTimesActivity.ALERT_NOTIFICATION_ID);
+		nm.cancel(AlertUtils.ALERT_NOTIFICATION_ID);
 
-		BusTimesActivity.cancelAlerts(context);
+		AlertUtils.cancelAlerts(context);
 		Toast.makeText(context, "Alarm cancelled!", Toast.LENGTH_SHORT).show();
 	}
 }

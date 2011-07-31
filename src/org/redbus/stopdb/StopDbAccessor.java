@@ -41,7 +41,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.redbus.R;
 import org.redbus.R.raw;
-import org.redbus.settings.SettingsDbAccessor;
+import org.redbus.settings.SettingsAccessor;
 
 import android.content.Context;
 import android.util.Log;
@@ -121,7 +121,7 @@ public class StopDbAccessor {
 					}
 
 					// zap the LASTUPDATE from the db so we redownload it
-					SettingsDbAccessor db = new SettingsDbAccessor(ctx);
+					SettingsAccessor db = new SettingsAccessor(ctx);
 					try {
 						db.deleteGlobalSetting("LASTUPDATE");
 					} catch (Throwable t) {

@@ -21,13 +21,13 @@ package org.redbus.ui.stopmap;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.redbus.BusTimesActivity;
 import org.redbus.R;
 import org.redbus.geocode.GeocodingAccessor;
 import org.redbus.geocode.IGeocodingResponseListener;
-import org.redbus.settings.SettingsDbAccessor;
+import org.redbus.settings.SettingsAccessor;
 import org.redbus.stopdb.ServiceBitmap;
 import org.redbus.stopdb.StopDbAccessor;
+import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 
 
 import android.app.AlertDialog;
@@ -109,9 +109,9 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			lat = 55946052;
 			lng = -3188879;
 			
-			setMyLocationStatus(true);
+			updateMyLocationStatus(true);
 		} else {
-			setMyLocationStatus(false);
+			updateMyLocationStatus(false);
 		}
 
 		stopOverlay = new StopMapOverlay(this);
@@ -136,13 +136,13 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 
 	@Override
 	public void onPause() {
-		setMyLocationStatus(false);
+		updateMyLocationStatus(false);
 		super.onPause();
 	}
 
 	@Override
 	public void onResume() {
-		setMyLocationStatus(true);
+		updateMyLocationStatus(true);
 		super.onResume();
 		Toast.makeText(this, "Finding your location...", Toast.LENGTH_SHORT).show();
 	}	
@@ -179,19 +179,24 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.stopmap_menu_search:
-			return doSearchForLocation();
+			doSearchForLocation();
+			return true;
 
 		case R.id.stopmap_menu_showall:
-			return doShowAllServices();
+			doShowAllServices();
+			return true;
 
 		case R.id.stopmap_menu_filterservices:
-			return doFilterServices();
+			doFilterServices();
+			return true;
 
 		case R.id.stopmap_menu_satellite_or_map:
-			return doSetMapType();
+			doSetMapType();
+			return true;
 			
 		case R.id.stopmap_menu_mylocation:
-			return doSetMyLocation();
+			doSetMyLocation();
+			return true;
 		}
 		
 		return false;
@@ -224,7 +229,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	public boolean onStopMapTouchEvent(MotionEvent e, MapView mapView) {
 		// disable my location if user drags the map
 		if (e.getAction() == MotionEvent.ACTION_MOVE)
-			setMyLocationStatus(false);			
+			updateMyLocationStatus(false);			
 		return false;
 	}
 
@@ -243,7 +248,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	
 	
 	
-	private boolean doSearchForLocation() {
+	private void doSearchForLocation() {
 		final EditText input = new EditText(this);
 		new AlertDialog.Builder(this)
 			.setTitle("Enter a location or postcode")
@@ -257,17 +262,14 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 					})
 			.setNegativeButton(android.R.string.cancel, null)
 			.show();
-		
-		return true;		
 	}
 	
-	private boolean doShowAllServices() {
+	private void doShowAllServices() {
 		serviceFilter.setAll();
 		StopMapActivity.this.invalidate();
-		return true;
 	}
 	
-	private boolean doFilterServices() {
+	private void doFilterServices() {
 		final EditText input = new EditText(this);
 
 		new AlertDialog.Builder(this)
@@ -276,21 +278,18 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			.setPositiveButton(android.R.string.ok, 
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-						ServiceBitmap serviceFilter = new ServiceBitmap().clearAll();
+						ServiceBitmap filter = new ServiceBitmap().clearAll();
 						StopDbAccessor pt = StopDbAccessor.Load(StopMapActivity.this);
 						for(String serviceStr: input.getText().toString().split("[ ]+")) {
 							if (pt.serviceNameToServiceBit.containsKey(serviceStr.toUpperCase()))
-								serviceFilter.setBit(pt.serviceNameToServiceBit.get(serviceStr.toUpperCase()));
+								filter.setBit(pt.serviceNameToServiceBit.get(serviceStr.toUpperCase()));
 						}
-						serviceFilter.setTo(serviceFilter);
-						// Zoom out map to show a larger part of the city
-						mapController.setZoom(12);
-						StopMapActivity.this.invalidate();
+						
+						updateServiceFilter(filter);
 					}
 				})
 			.setNegativeButton(android.R.string.cancel, null)
 			.show();
-		return true;		
 	}
 	
 	public void doFilterServices(int stopCode) {
@@ -298,21 +297,16 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		int nodeIdx = pt.lookupStopNodeIdxByStopCode(stopCode);
 		if (nodeIdx == -1)
 			return;
-		ServiceBitmap nodeServiceMap = pt.lookupServiceBitmapByStopNodeIdx(nodeIdx);
-
-		serviceFilter.setTo(nodeServiceMap);
-		mapController.setZoom(12);
-		StopMapActivity.this.invalidate();
+		
+		updateServiceFilter(pt.lookupServiceBitmapByStopNodeIdx(nodeIdx));
 	}
 	
-	private boolean doSetMapType() {
+	private void doSetMapType() {
 		mapView.setSatellite(!mapView.isSatellite());
-		return true;
 	}
 	
-	private boolean doSetMyLocation() {
-		setMyLocationStatus(true);
-		return true;
+	private void doSetMyLocation() {
+		updateMyLocationStatus(true);
 	}
 	
 	public void doStreetView(int stopCode) {
@@ -327,7 +321,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	}
 	
 	public void doShowArrivalTimes(int stopCode) {
-		BusTimesActivity.showActivity(StopMapActivity.this, stopCode);
+		ArrivalTimeActivity.showActivity(StopMapActivity.this, stopCode);
 	}
 	
 	public void doAddBookmark(int stopCode) {
@@ -337,7 +331,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			return;
 		String stopName = pt.lookupStopNameByStopNodeIdx(nodeIdx);
 
-		SettingsDbAccessor db = new SettingsDbAccessor(this);
+		SettingsAccessor db = new SettingsAccessor(this);
 		try {
 			db.addBookmark(stopCode, stopName);
 		} finally {
@@ -348,9 +342,13 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	
 	
 	
+	private void updateServiceFilter(ServiceBitmap filter) {
+		serviceFilter.setTo(filter);
+		mapController.setZoom(12);
+		StopMapActivity.this.invalidate();		
+	}
 	
-	
-	private void setMyLocationStatus(boolean status) {
+	private void updateMyLocationStatus(boolean status) {
 		if (status) {
 			myLocationOverlay.runOnFirstFix(new Runnable() {
 				public void run() {

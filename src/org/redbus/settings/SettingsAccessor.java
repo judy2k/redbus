@@ -23,7 +23,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.Cursor;
 
-public class SettingsDbAccessor 
+public class SettingsAccessor 
 {
 	public static final String BOOKMARKS_TABLE = "Bookmarks";
 	public static final String SETTINGS_TABLE = "Settings";
@@ -37,7 +37,7 @@ public class SettingsDbAccessor
 
 	private SQLiteDatabase db;
 	
-	public SettingsDbAccessor(Context context)
+	public SettingsAccessor(Context context)
 	{
 		db = new SettingsDbOpenHelper(context).getWritableDatabase();
 	}

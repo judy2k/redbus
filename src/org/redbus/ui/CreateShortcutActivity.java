@@ -18,13 +18,13 @@
 
 package org.redbus.ui;
 
-import org.redbus.BusTimesActivity;
 import org.redbus.R;
 import org.redbus.StopBookmarksActivity;
 import org.redbus.R.drawable;
 import org.redbus.R.id;
 import org.redbus.R.layout;
-import org.redbus.settings.SettingsDbAccessor;
+import org.redbus.settings.SettingsAccessor;
+import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 
 import android.app.ListActivity;
 import android.content.Intent;
@@ -56,7 +56,7 @@ public class CreateShortcutActivity extends ListActivity {
 	// FIXME - This duplicates StopBookmarksActivity.update()
 	private void update()
 	{
-        SettingsDbAccessor db = new SettingsDbAccessor(this);
+        SettingsAccessor db = new SettingsAccessor(this);
         try {
         	SimpleCursorAdapter oldAdapter = ((SimpleCursorAdapter) getListAdapter());
         	if (oldAdapter != null)
@@ -82,7 +82,7 @@ public class CreateShortcutActivity extends ListActivity {
 	
     private void setupShortcut(String name, long stopCode) {
     	Intent shortcutIntent = new Intent(Intent.ACTION_MAIN);
-    	shortcutIntent.setClass(this, BusTimesActivity.class);
+    	shortcutIntent.setClass(this, ArrivalTimeActivity.class);
         shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         shortcutIntent.putExtra("StopCode", stopCode);

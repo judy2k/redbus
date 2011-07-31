@@ -4,6 +4,13 @@
 	
 	<application android:label="@string/app_name" android:icon="@drawable/icon">
 	    
+	   	<activity-alias android:name="RedbusTabView" android:targetActivity=".ui.RedbusTabView" android:label="Edinburgh Bus Tracker">
+			  <intent-filter>
+				<action android:name="android.intent.action.MAIN"></action>
+				<category android:name="android.intent.category.LAUNCHER"></category>
+			</intent-filter>
+		</activity-alias>
+		
 		<activity android:name=".ui.RedbusTabView" android:label="Edinburgh Bus Tracker">
 			  <intent-filter>
 				<action android:name="android.intent.action.MAIN"></action>
@@ -22,33 +29,30 @@
               android:label="Create shortcut"
               android:theme="@android:style/Theme.Dialog">
         	<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
+				<action android:name="android.intent.action.MAIN"/>
         	</intent-filter>
 		</activity>
         
-		<activity-alias android:name="CreateShortcutActivity"
-			android:targetActivity=".ui.CreateShortcutActivity"
-			android:label="Edinburgh bus stop">
+		<activity-alias android:label="Edinburgh bus stop" android:name="CreateShortcutActivity" android:targetActivity=".ui.CreateShortcutActivity">
 			<intent-filter>
-				<action android:name="android.intent.action.CREATE_SHORTCUT" />
-				<category android:name="android.intent.category.DEFAULT" />
+				<action android:name="android.intent.action.CREATE_SHORTCUT"/>
+				<category android:name="android.intent.category.DEFAULT"/>
 			</intent-filter>
 		</activity-alias>
 		
-		
-		<activity android:name="BusTimesActivity" android:label="Bus Times" >
+		<activity android:name=".ui.arrivaltime.ArrivalTimeActivity" android:label="Bus Times" >
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 			</intent-filter>
 		</activity>    	
 		<activity android:name=".ui.stopmap.StopMapActivity" android:label="Map" />
 		<uses-library android:name="com.google.android.maps" />
-		<receiver android:name=".alarm.TemporalAlertReceiver"/>
-		<receiver android:name=".alarm.ProximityAlertReceiver"/>
+		<receiver android:name=".ui.alert.TemporalAlert"/>
+		<receiver android:name=".ui.alert.ProximityAlert"/>
 		<receiver android:name=".ui.alert.AlertNotificationPressedReceiver"/>
 	</application>
 
-	<uses-sdk android:minSdkVersion="3" />
+	<uses-sdk android:minSdkVersion="3"/>
 	<supports-screens android:smallScreens="true" />
 	<supports-screens android:largeScreens="true" />
 	<supports-screens android:resizeable="true" />
