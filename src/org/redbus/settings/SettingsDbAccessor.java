@@ -39,7 +39,7 @@ public class SettingsDbAccessor
 	
 	public SettingsDbAccessor(Context context)
 	{
-		db = new LocalDBOpenHelper(context).getWritableDatabase();
+		db = new SettingsDbOpenHelper(context).getWritableDatabase();
 	}
 	
 	public void close()
@@ -172,7 +172,7 @@ public class SettingsDbAccessor
 
 
 
-	private static class LocalDBOpenHelper extends SQLiteOpenHelper {
+	private static class SettingsDbOpenHelper extends SQLiteOpenHelper {
 	    public static final String DATABASE_NAME = "rEdBusDB.db";
 	    public static final int DATABASE_VERSION = 2;
 	    
@@ -186,7 +186,7 @@ public class SettingsDbAccessor
 	    	CREATE_SETTINGS_TABLE_SQL
 	    };
 
-	    public LocalDBOpenHelper(Context context) {
+	    public SettingsDbOpenHelper(Context context) {
 			super(context, DATABASE_NAME, null, DATABASE_VERSION);
 		}
 
