@@ -14,7 +14,7 @@
 		
 		
 		
-		<activity android:theme="@android:style/Theme.Dialog" android:label="Create shortcut" android:name=".ui.CreateShortcutActivity">
+		<activity-alias android:targetActivity=".ui.RedbusTabView" android:name="StopBookmarksActivity"></activity-alias><activity android:theme="@android:style/Theme.Dialog" android:label="Create shortcut" android:name=".ui.CreateShortcutActivity">
         	<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>
         	</intent-filter>
@@ -32,6 +32,7 @@
 		<receiver android:name=".ui.alert.TemporalAlert"/>
 		<receiver android:name=".ui.alert.ProximityAlert"/>
 		<receiver android:name=".ui.alert.AlertNotificationPressedReceiver"/>
+		
 	</application>
 
 	<uses-sdk android:minSdkVersion="3"/>
