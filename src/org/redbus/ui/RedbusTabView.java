@@ -43,8 +43,8 @@ public class RedbusTabView extends TabActivity {
 	    tabHost.addTab(tabHost.newTabSpec("map").setIndicator("Map")
 	                  .setContent(new Intent().setClass(this, StopMapActivity.class)));
 	    
-	    tabHost.addTab(tabHost.newTabSpec("nearby").setIndicator("Nearby")
-                .setContent(new Intent().setClass(this, NearbyBookmarkedArrivalTimeActivity.class)));
+//	    tabHost.addTab(tabHost.newTabSpec("nearby").setIndicator("Nearby")
+//                .setContent(new Intent().setClass(this, NearbyBookmarkedArrivalTimeActivity.class)));
 	}
 	
 	@Override
