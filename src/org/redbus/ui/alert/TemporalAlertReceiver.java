@@ -1,4 +1,4 @@
-package org.redbus.alert;
+package org.redbus.ui.alert;
 
 import java.util.HashMap;
 import java.util.List;

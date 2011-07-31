@@ -1,9 +1,9 @@
-package org.redbus.alert;
+package org.redbus.ui.alert;
 
 import org.redbus.BusTimesActivity;
 import org.redbus.R;
-import org.redbus.StopMapActivity;
 import org.redbus.R.drawable;
+import org.redbus.ui.stopmap.StopMapActivity;
 
 import android.app.Notification;
 import android.app.NotificationManager;

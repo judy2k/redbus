@@ -18,6 +18,8 @@
 
 package org.redbus;
 
+import org.redbus.ui.stopmap.StopMapActivity;
+
 import android.app.TabActivity;
 import android.content.Intent;
 import android.content.res.Resources;

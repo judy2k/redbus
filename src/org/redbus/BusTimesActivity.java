@@ -27,15 +27,16 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import org.redbus.alert.AlertNotificationPressedReceiver;
-import org.redbus.alert.ProximityAlertReceiver;
-import org.redbus.alert.TemporalAlertReceiver;
 import org.redbus.arrivaltime.ArrivalTime;
 import org.redbus.arrivaltime.ArrivalTimeAccessor;
 import org.redbus.arrivaltime.IArrivalTimeResponseListener;
 import org.redbus.settings.SettingsDbAccessor;
 import org.redbus.stopdb.ServiceBitmap;
 import org.redbus.stopdb.StopDbAccessor;
+import org.redbus.ui.alert.AlertNotificationPressedReceiver;
+import org.redbus.ui.alert.ProximityAlertReceiver;
+import org.redbus.ui.alert.TemporalAlertReceiver;
+import org.redbus.ui.stopmap.StopMapActivity;
 
 
 import android.app.AlarmManager;

@@ -26,6 +26,7 @@ import org.redbus.settings.SettingsDbAccessor;
 import org.redbus.stopdb.IStopDbUpdateResponseListener;
 import org.redbus.stopdb.StopDbAccessor;
 import org.redbus.stopdb.StopDbUpdater;
+import org.redbus.ui.stopmap.StopMapActivity;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlSerializer;
 

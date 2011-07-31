@@ -268,6 +268,25 @@ public class StopDbAccessor {
 	{	
 		return this.searchNearest(rootRecordNum,-1,x,y,0);
 	}
+	
+	public String formatServices(ServiceBitmap servicesMap, int maxServices)
+	{
+		ArrayList<String> services = this.getServiceNames(servicesMap);
+
+		// Where is string.join()?
+		StringBuilder sb = new StringBuilder();
+		for(int j = 0; j < services.size(); j++) {
+			if ((maxServices != -1) && (j >= maxServices)) {
+				sb.append("...");
+				break;
+			}
+			sb.append(services.get(j));
+			sb.append(" ");
+		}	
+		
+		return sb.toString();
+	}
+	
 
 
 
