@@ -25,6 +25,7 @@ import org.redbus.ui.stopmap.StopMapActivity;
 import android.app.TabActivity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.widget.TabHost;
 
 public class RedbusTabView extends TabActivity {
@@ -44,7 +45,18 @@ public class RedbusTabView extends TabActivity {
 	    
 	    tabHost.addTab(tabHost.newTabSpec("nearby").setIndicator("Nearby")
                 .setContent(new Intent().setClass(this, NearbyBookmarkedArrivalTimeActivity.class)));
-
-	    
+	}	
+	
+	@Override
+	public boolean dispatchKeyEvent(KeyEvent event) {
+		// make the back button switch to bookmarks tab unless we're already on bookmarks tab
+	    if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+	    	if (getTabHost().getCurrentTab() != 0) {
+	    		getTabHost().setCurrentTab(0);
+		        return true;	    		
+	    	}
+	    }
+		
+		return super.dispatchKeyEvent(event);
 	}
 }
