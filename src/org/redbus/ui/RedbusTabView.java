@@ -19,7 +19,6 @@
 package org.redbus.ui;
 
 import org.redbus.R;
-import org.redbus.StopBookmarksActivity;
 import org.redbus.ui.stopmap.StopMapActivity;
 
 import android.app.TabActivity;

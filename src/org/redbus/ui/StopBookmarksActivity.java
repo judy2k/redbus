@@ -16,17 +16,22 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.redbus;
+package org.redbus.ui;
 
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Date;
 
+import org.redbus.R;
+import org.redbus.R.drawable;
+import org.redbus.R.id;
+import org.redbus.R.layout;
+import org.redbus.R.menu;
+import org.redbus.R.string;
 import org.redbus.settings.SettingsAccessor;
 import org.redbus.stopdb.IStopDbUpdateResponseListener;
 import org.redbus.stopdb.StopDbAccessor;
 import org.redbus.stopdb.StopDbUpdater;
-import org.redbus.ui.BusyDialog;
 import org.redbus.ui.alert.AlertUtils;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 import org.redbus.ui.stopmap.StopMapActivity;
@@ -131,6 +136,10 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
 		update();
 	}
 	
+	public void onCancel(DialogInterface dialog) {
+		expectedRequestId = -1;
+	}
+	
 	private void update()
 	{
         SettingsAccessor db = new SettingsAccessor(this);
@@ -150,7 +159,7 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		ArrivalTimeActivity.showActivity(this, id);
+		ArrivalTimeActivity.showActivity(this, (int) id);
 	}
 
 	@Override
@@ -167,57 +176,19 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
 
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_item_menu_bustimes:
-			ArrivalTimeActivity.showActivity(this, bookmarkId);
+			doShowArrivalTimes((int) bookmarkId);
 			return true;
 
 		case R.id.stopbookmarks_item_menu_showonmap:
-			StopDbAccessor pt = StopDbAccessor.Load(this);
-			int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) bookmarkId);
-			if (stopNodeIdx != -1)
-				StopMapActivity.showActivity(this, pt.lat[stopNodeIdx], pt.lon[stopNodeIdx]);
+			doShowOnMap((int) bookmarkId);
 			return true;
 
 		case R.id.stopbookmarks_item_menu_rename:
-			final EditText input = new EditText(this);
-			input.setText(bookmarkName);
-
-			new AlertDialog.Builder(this)
-					.setTitle("Rename bookmark")
-					.setView(input)
-					.setPositiveButton(android.R.string.ok,
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int whichButton) {
-			                        SettingsAccessor db = new SettingsAccessor(StopBookmarksActivity.this);
-			                        try {
-			                        	db.renameBookmark(StopBookmarksActivity.this.bookmarkId, input.getText().toString());
-			                        } finally {
-			                        	db.close();
-			                        }
-			                        StopBookmarksActivity.this.update();
-								}
-							})
-					.setNegativeButton(android.R.string.cancel, null)
-					.show();
+			doRenameBookmark((int) bookmarkId);
 			return true;
 
 		case R.id.stopbookmarks_item_menu_delete:
-			new AlertDialog.Builder(this)
-				.setTitle("Delete bookmark")
-				.setMessage("Are you sure you want to delete this bookmark?")
-				.setPositiveButton(android.R.string.ok, 
-						new DialogInterface.OnClickListener() {
-		                    public void onClick(DialogInterface dialog, int whichButton) {
-		                        SettingsAccessor db = new SettingsAccessor(StopBookmarksActivity.this);
-		                        try {
-		                        	db.deleteBookmark(StopBookmarksActivity.this.bookmarkId);
-		                        } finally {
-		                        	db.close();
-		                        }
-		                        StopBookmarksActivity.this.update();
-		                    }
-						})
-				.setNegativeButton(android.R.string.cancel, null)
-                .show();
+			doDeleteBookmark((int) bookmarkId);
 			return true;	
 		}
 
@@ -233,150 +204,165 @@ public class StopBookmarksActivity extends ListActivity implements IStopDbUpdate
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		final EditText input = new EditText(this);
-		input.setInputType(InputType.TYPE_CLASS_PHONE);
-		input.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
-
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_menu_bustimes:
-			new AlertDialog.Builder(this)
-				.setTitle("Enter stopcode")
-				.setView(input)
-				.setPositiveButton(android.R.string.ok,
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog, int whichButton) {
-								long stopCode = -1;
-								try {
-									stopCode = Long.parseLong(input.getText().toString());
-								} catch (Exception ex) {
-									new AlertDialog.Builder(StopBookmarksActivity.this)
-											.setTitle("Error")
-											.setMessage("The stopcode was invalid; please try again using only numbers")
-											.setPositiveButton(android.R.string.ok, null)
-											.show();
-									return;
-								}
-								StopDbAccessor pt = StopDbAccessor.Load(StopBookmarksActivity.this);
-								int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
-								if (stopNodeIdx != -1) {
-									ArrivalTimeActivity.showActivity(StopBookmarksActivity.this, (int) stopCode);
-								} else {
-									new AlertDialog.Builder(StopBookmarksActivity.this)
-										.setTitle("Error")
-										.setMessage("The stopcode was invalid; please try again")
-										.setPositiveButton(android.R.string.ok, null)
-										.show();
-								}
-							}
-						})
-				.setNegativeButton(android.R.string.cancel, null)
-				.show();
+			doShowBusTimes();
 			return true;				
 			
-		case R.id.stopbookmarks_menu_backup: {
-	        SettingsAccessor db = new SettingsAccessor(this);
-	        Cursor c = null;
-	        FileWriter output = null;
-	        try {
-	        	output = new FileWriter(bookmarksXmlFile);
-	            XmlSerializer serializer = Xml.newSerializer();
-                serializer.setOutput(output);
-                serializer.startDocument("UTF-8", true);
-                serializer.startTag("", "redbus");
-
-		        c = db.getBookmarks();
-		        while(c.moveToNext()) {
-                    serializer.startTag("", "busstop");
-                    serializer.attribute("", "stopcode", Long.toString(c.getLong(0)));
-                    serializer.attribute("", "name", c.getString(1));
-                    serializer.endTag("", "busstop");
-		        }
-                serializer.endTag("", "redbus");
-                serializer.endDocument();
-	        } catch (Throwable t) {
-	        	Log.e("StopBookmarks.Backup", "Backup failed", t);
-	        	return true;
-	        } finally {
-	        	if (output != null) {
-	        		try {
-		        		output.flush();
-	        		} catch (Throwable t) {}
-	        		try {
-		        		output.close();
-	        		} catch (Throwable t) {}
-	        	}
-	        	if (c != null)
-	        		c.close();
-	        	db.close();
-	        }
-	        Toast.makeText(this, "Bookmarks saved to " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
+		case R.id.stopbookmarks_menu_backup:
+			doBookmarksBackup();
 			return true;
-		}
 			
-		case R.id.stopbookmarks_menu_restore: {
-	        SettingsAccessor db = new SettingsAccessor(this);
-	        FileReader inputFile = null;
-	        try {
-	        	inputFile = new FileReader(bookmarksXmlFile);
-	        	
-				XmlPullParser parser = Xml.newPullParser();
-				parser.setInput(inputFile);
-				db.deleteBookmarks();
-
-				while(parser.next() != XmlPullParser.END_DOCUMENT) {
-					switch(parser.getEventType()) {
-					case XmlPullParser.START_TAG:
-						String tagName = parser.getName();
-						if (tagName == "busstop") {
-							long stopCode = Long.parseLong(parser.getAttributeValue(null, "stopcode"));
-							String stopName = parser.getAttributeValue(null, "name");
-							db.addBookmark(stopCode, stopName);
-						}
-					}
-				}
-	        } catch (Throwable t) {
-	        	Log.e("StopBookmarks.Restore", "Restore failed", t);
-	        	return true;
-	        } finally {
-	        	if (inputFile != null) {
-	        		try {
-	        			inputFile.close();
-	        		} catch (Throwable t) {}
-	        	}
-	        	db.close();
-	        }
-	        
-	        Toast.makeText(this, "Bookmarks restored from " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
-	        update();
-			return true;		
-		}
+		case R.id.stopbookmarks_menu_restore:
+			doBookmarksRestore();
+			return true;
 		
-		case R.id.stopbookmarks_menu_checkupdates: {
-	        // display changes popup
-	        SettingsAccessor db = new SettingsAccessor(this);
-			long lastUpdateDate = -1;
-	        try {
-				lastUpdateDate = Long.parseLong(db.getGlobalSetting("LASTUPDATE", "-1"));
-	        } catch (Exception e) {
-	        	return true;
-	        } finally {
-	        	db.close();
-	        }
-	        
-			busyDialog = BusyDialog.show(this, this, busyDialog, "Checking for updates...");
-    		isManualUpdateCheck = true;
-    		expectedRequestId = StopDbUpdater.checkForUpdates(lastUpdateDate, this);
-    		return true;
-		}
+		case R.id.stopbookmarks_menu_checkupdates:
+			doCheckStopDbUpdate();
+			return true;
 		}
 
 		return false;
 	}
 	
-	public void onCancel(DialogInterface dialog) {
-		expectedRequestId = -1;
+	private void doShowArrivalTimes(int stopCode) {
+		ArrivalTimeActivity.showActivity(this, stopCode);		
 	}
 	
+	private void doShowOnMap(int stopCode) {
+		StopDbAccessor pt = StopDbAccessor.Load(this);
+		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode(stopCode);
+		if (stopNodeIdx != -1)
+			StopMapActivity.showActivity(this, pt.lat[stopNodeIdx], pt.lon[stopNodeIdx]);
+	}
+	
+	private void doRenameBookmark(int stopCode) {
+		final int localStopCode = stopCode;
+		final EditText input = new EditText(this);
+		input.setText(bookmarkName);
+
+		new AlertDialog.Builder(this)
+				.setTitle("Rename bookmark")
+				.setView(input)
+				.setPositiveButton(android.R.string.ok,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int whichButton) {
+		                        SettingsAccessor db = new SettingsAccessor(StopBookmarksActivity.this);
+		                        try {
+		                        	db.renameBookmark(localStopCode, input.getText().toString());
+		                        } finally {
+		                        	db.close();
+		                        }
+		                        StopBookmarksActivity.this.update();
+							}
+						})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+	
+	private void doDeleteBookmark(int stopCode) {
+		final int localStopCode = stopCode;
+
+		new AlertDialog.Builder(this)
+		.setTitle("Delete bookmark")
+		.setMessage("Are you sure you want to delete this bookmark?")
+		.setPositiveButton(android.R.string.ok, 
+				new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        SettingsAccessor db = new SettingsAccessor(StopBookmarksActivity.this);
+                        try {
+                        	db.deleteBookmark(localStopCode);
+                        } finally {
+                        	db.close();
+                        }
+                        StopBookmarksActivity.this.update();
+                    }
+				})
+		.setNegativeButton(android.R.string.cancel, null)
+        .show();
+	}
+	
+	private void doShowBusTimes() {
+		final EditText input = new EditText(this);
+		input.setInputType(InputType.TYPE_CLASS_PHONE);
+		input.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
+
+		new AlertDialog.Builder(this)
+		.setTitle("Enter stopcode")
+		.setView(input)
+		.setPositiveButton(android.R.string.ok,
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						long stopCode = -1;
+						try {
+							stopCode = Long.parseLong(input.getText().toString());
+						} catch (Exception ex) {
+							new AlertDialog.Builder(StopBookmarksActivity.this)
+									.setTitle("Error")
+									.setMessage("The stopcode was invalid; please try again using only numbers")
+									.setPositiveButton(android.R.string.ok, null)
+									.show();
+							return;
+						}
+						StopDbAccessor pt = StopDbAccessor.Load(StopBookmarksActivity.this);
+						int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
+						if (stopNodeIdx != -1) {
+							ArrivalTimeActivity.showActivity(StopBookmarksActivity.this, (int) stopCode);
+						} else {
+							new AlertDialog.Builder(StopBookmarksActivity.this)
+								.setTitle("Error")
+								.setMessage("The stopcode was invalid; please try again")
+								.setPositiveButton(android.R.string.ok, null)
+								.show();
+						}
+					}
+				})
+		.setNegativeButton(android.R.string.cancel, null)
+		.show();
+	}
+	
+	private void doBookmarksBackup() {
+        SettingsAccessor db = new SettingsAccessor(this);
+        if (db.backup(bookmarksXmlFile))
+        	Toast.makeText(this, "Bookmarks saved to " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
+	}
+	
+	private void doBookmarksRestore() {
+        SettingsAccessor db = new SettingsAccessor(this);
+        if (db.restore(bookmarksXmlFile)) {
+	        Toast.makeText(this, "Bookmarks restored from " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
+	        update();
+        }
+	}
+	
+	private void doCheckStopDbUpdate() {
+        // display changes popup
+        SettingsAccessor db = new SettingsAccessor(this);
+		long lastUpdateDate = -1;
+        try {
+			lastUpdateDate = Long.parseLong(db.getGlobalSetting("LASTUPDATE", "-1"));
+        } catch (Exception e) {
+        	return;
+        } finally {
+        	db.close();
+        }
+        
+		busyDialog = BusyDialog.show(this, this, busyDialog, "Checking for updates...");
+		isManualUpdateCheck = true;
+		expectedRequestId = StopDbUpdater.checkForUpdates(lastUpdateDate, this);
+
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
 	private void setNextUpdateTime(boolean wasSuccessful) {	
         SettingsAccessor db = new SettingsAccessor(this);
         try {

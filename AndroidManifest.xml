@@ -27,7 +27,7 @@
 		</activity>
 		
 		<activity android:name=".ui.stopmap.StopMapActivity" android:label="Map" />
-		<activity android:name="StopBookmarksActivity" android:label="Edinburgh Bus Tracker" />
+		<activity android:name=".ui.StopBookmarksActivity" android:label="Edinburgh Bus Tracker" />
 		<uses-library android:name="com.google.android.maps" />
 		<receiver android:name=".ui.alert.TemporalAlert"/>
 		<receiver android:name=".ui.alert.ProximityAlert"/>

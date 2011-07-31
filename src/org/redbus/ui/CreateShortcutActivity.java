@@ -19,7 +19,6 @@
 package org.redbus.ui;
 
 import org.redbus.R;
-import org.redbus.StopBookmarksActivity;
 import org.redbus.settings.SettingsAccessor;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 

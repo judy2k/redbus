@@ -18,10 +18,18 @@
 
 package org.redbus.settings;
 
+import java.io.FileReader;
+import java.io.FileWriter;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlSerializer;
+
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.Cursor;
+import android.util.Log;
+import android.util.Xml;
 
 public class SettingsAccessor 
 {
@@ -168,6 +176,80 @@ public class SettingsAccessor
 	public void deleteBusStopSettings(long stopCode)
 	{
 		db.execSQL("DELETE FROM Settings WHERE StopCode = ?", new Object[] { stopCode});
+	}
+	
+	public boolean backup(String filename) {
+        Cursor c = null;
+        FileWriter output = null;
+        try {
+        	output = new FileWriter(filename);
+            XmlSerializer serializer = Xml.newSerializer();
+            serializer.setOutput(output);
+            serializer.startDocument("UTF-8", true);
+            serializer.startTag("", "redbus");
+
+	        c = getBookmarks();
+	        while(c.moveToNext()) {
+                serializer.startTag("", "busstop");
+                serializer.attribute("", "stopcode", Long.toString(c.getLong(0)));
+                serializer.attribute("", "name", c.getString(1));
+                serializer.endTag("", "busstop");
+	        }
+            serializer.endTag("", "redbus");
+            serializer.endDocument();
+        } catch (Throwable t) {
+        	Log.e("StopBookmarks.Backup", "Backup failed", t);
+        	return false;
+        } finally {
+        	if (output != null) {
+        		try {
+	        		output.flush();
+        		} catch (Throwable t) {}
+        		try {
+	        		output.close();
+        		} catch (Throwable t) {}
+        	}
+        	if (c != null)
+        		c.close();
+        	db.close();
+        }
+        
+        return true;
+	}
+	
+	public boolean restore(String filename) {
+        FileReader inputFile = null;
+        try {
+        	inputFile = new FileReader(filename);
+        	
+			XmlPullParser parser = Xml.newPullParser();
+			parser.setInput(inputFile);
+			deleteBookmarks();
+
+			while(parser.next() != XmlPullParser.END_DOCUMENT) {
+				switch(parser.getEventType()) {
+				case XmlPullParser.START_TAG:
+					String tagName = parser.getName();
+					if (tagName == "busstop") {
+						long stopCode = Long.parseLong(parser.getAttributeValue(null, "stopcode"));
+						String stopName = parser.getAttributeValue(null, "name");
+						addBookmark(stopCode, stopName);
+					}
+				}
+			}
+        } catch (Throwable t) {
+        	Log.e("StopBookmarks.Restore", "Restore failed", t);
+        	return false;
+        } finally {
+        	if (inputFile != null) {
+        		try {
+        			inputFile.close();
+        		} catch (Throwable t) {}
+        	}
+        	db.close();
+        }
+        
+        return true;
 	}
 
 

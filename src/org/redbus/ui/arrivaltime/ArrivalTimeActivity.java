@@ -28,13 +28,13 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.redbus.R;
-import org.redbus.StopBookmarksActivity;
 import org.redbus.arrivaltime.ArrivalTime;
 import org.redbus.arrivaltime.ArrivalTimeAccessor;
 import org.redbus.arrivaltime.IArrivalTimeResponseListener;
 import org.redbus.settings.SettingsAccessor;
 import org.redbus.stopdb.StopDbAccessor;
 import org.redbus.ui.BusyDialog;
+import org.redbus.ui.StopBookmarksActivity;
 import org.redbus.ui.alert.ProximityAlert;
 import org.redbus.ui.alert.TemporalAlert;
 import org.redbus.ui.stopmap.StopMapActivity;
@@ -74,9 +74,9 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	private static final String[] hourStrings = new String[] { "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23" };
 	private static final String[] minStrings = new String[] { "00", "15", "30", "45" };
 	
-	public static void showActivity(Context context, long stopCode) {
+	public static void showActivity(Context context, int stopCode) {
 		Intent i = new Intent(context, ArrivalTimeActivity.class);
-		i.putExtra("StopCode", stopCode);
+		i.putExtra("StopCode", (long) stopCode);
 		context.startActivity(i);
 	}
 
