@@ -6,11 +6,10 @@
 	<string name="bookmarkhelp">&quot;No bookmarks\n\nPress the 'map' button above to view a map of stops.\n\nFrom the map touch a stop on the map to display times, and then press menu to add a bookmark.&quot;</string>
 	<string name="futureboo">&quot;Lothian's website no longer supports future departures beyond the current day :(&quot;</string>
 	<string name="newversiontext">&quot;Changes:\n
-* Fix Honeycomb crash.\n
-* Fix bookmark arrival times not showing bookmark name.\n	
-* Fix homescreen icon not working until removed+re-added (sorry!).\n
-* Fix map not moving to your location when My Location selected.\n
-* Redraw icon in SVG.\n
-* Total code refactoring to ease new feature development.\n
-* Homescreen shortcuts are now supported.\n&quot;</string>
+* Fix arrival time alerts.\n
+* Allow arrival time alerts to be delayed.\n	
+* Add warn when nearby stop button to map view.\n
+* Manually entering a stopcode now has an "add bookmark" checkbox.\n
+* Tweak tyres on logo to be visible on a dark background (Edinburgh doesn't (yet) have hoverbuses unfortunately).\n
+* Increase width of service name in arrival times view to stop linewrap.\n&quot;</string>
 </resources>

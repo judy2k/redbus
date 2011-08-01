@@ -7,7 +7,7 @@
   	<TableRow>
 		<TextView 	android:id="@+id/bustimes_service" 
 					android:textAppearance="@style/textappearance_service"
-					android:width="60px" />
+					android:width="80px" />
 					
 		<TextView 	android:id="@+id/bustimes_destination" 
 					android:layout_gravity="center_vertical" />
