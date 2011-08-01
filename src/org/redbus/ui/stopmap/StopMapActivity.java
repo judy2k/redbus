@@ -28,6 +28,7 @@ import org.redbus.settings.SettingsHelper;
 import org.redbus.stopdb.ServiceBitmap;
 import org.redbus.stopdb.StopDbHelper;
 import org.redbus.ui.BusyDialog;
+import org.redbus.ui.Common;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 
 
@@ -337,16 +338,8 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			return;
 		String stopName = pt.lookupStopNameByStopNodeIdx(nodeIdx);
 
-		SettingsHelper db = new SettingsHelper(this);
-		try {
-			db.addBookmark(stopCode, stopName);
-		} finally {
-			db.close();
-		}
-		Toast.makeText(StopMapActivity.this, "Added bookmark", Toast.LENGTH_SHORT).show();
+		new Common().doAddBookmark(this, stopCode, stopName);
 	}
-	
-	
 	
 	private void updateServiceFilter(ServiceBitmap filter) {
 		serviceFilter.setTo(filter);

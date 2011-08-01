@@ -34,6 +34,8 @@ import org.redbus.arrivaltime.IArrivalTimeResponseListener;
 import org.redbus.settings.SettingsHelper;
 import org.redbus.stopdb.StopDbHelper;
 import org.redbus.ui.BusyDialog;
+import org.redbus.ui.Common;
+import org.redbus.ui.ICommonResultReceiver;
 import org.redbus.ui.alert.ProximityAlert;
 import org.redbus.ui.alert.TemporalAlert;
 import org.redbus.ui.stopmap.StopMapActivity;
@@ -58,7 +60,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeResponseListener, OnCancelListener {
+public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeResponseListener, OnCancelListener, ICommonResultReceiver {
 
 	private int stopCode = -1;
 	private String stopName = "";	
@@ -160,15 +162,15 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 			return true;
 
 		case R.id.bustimes_menu_addbookmark:
-			doAddBookmark();
+			new Common().doAddBookmark(this, stopCode, stopName);
 			return true;
 			
 		case R.id.bustimes_menu_renamebookmark:
-			doRenameBookmark();
+			new Common().doRenameBookmark(this, stopCode, stopName, this);
 			return true;
 
 		case R.id.bustimes_menu_deletebookmark:
-			doDeleteBookmark();
+			new Common().doDeleteBookmark(this, stopCode, this);
 			return true;
 
 		case R.id.bustimes_menu_viewonmap:
@@ -227,63 +229,6 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 			setTitle("Unknown bus stop");
 			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
 		}
-	}
-
-	private void doAddBookmark() {
-		if (stopCode == -1) 
-			return;
-		
-		SettingsHelper db = new SettingsHelper(this);
-		try {
-			db.addBookmark(stopCode, stopName);
-		} finally {
-			db.close();
-		}
-		Toast.makeText(this, "Added bookmark", Toast.LENGTH_SHORT).show();
-	}
-	
-	private void doRenameBookmark() {
-		 final EditText input = new EditText(this);
-			input.setText(stopName);
-
-			new AlertDialog.Builder(this)
-					.setTitle("Rename bookmark")
-					.setView(input)
-					.setPositiveButton(android.R.string.ok,
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int whichButton) {
-			                        SettingsHelper db = new SettingsHelper(ArrivalTimeActivity.this);
-			                        try {
-			                        	db.renameBookmark(ArrivalTimeActivity.this.stopCode, input.getText().toString());
-			                        } finally {
-			                        	db.close();
-			                        }
-			                        stopName = input.getText().toString();
-			                        doRefreshArrivalTimes();
-								}
-							})
-					.setNegativeButton(android.R.string.cancel, null)
-					.show();
-	}
-	
-	private void doDeleteBookmark() {
-		new AlertDialog.Builder(this)
-		.setTitle("Delete bookmark")
-		.setMessage("Are you sure you want to delete this bookmark?")
-		.setPositiveButton(android.R.string.ok, 
-				new DialogInterface.OnClickListener() {
-	                public void onClick(DialogInterface dialog, int whichButton) {
-	                    SettingsHelper db = new SettingsHelper(ArrivalTimeActivity.this);
-	                    try {
-	                    	db.deleteBookmark(ArrivalTimeActivity.this.stopCode);
-	                    } finally {
-	                    	db.close();
-	                    }
-	                    ArrivalTimeActivity.this.doRefreshArrivalTimes();
-	                }
-				})
-		.setNegativeButton(android.R.string.cancel, null)
-        .show();
 	}
 	
 	private void doViewOnMap() {
@@ -393,6 +338,16 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		setListAdapter(new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, busTimes));
 		if (busTimes.isEmpty())
 			findViewById(R.id.bustimes_nodepartures).setVisibility(View.VISIBLE);
+	}
+
+	public void OnBookmarkRenamedOK(int stopCode) {
+		SettingsHelper settings = new SettingsHelper(this);
+		stopName = settings.getBookmarkName(stopCode);
+        doRefreshArrivalTimes();
+	}
+
+	public void OnBookmarkDeletedOK(int stopCode) {
+        doRefreshArrivalTimes();
 	}
 }
 

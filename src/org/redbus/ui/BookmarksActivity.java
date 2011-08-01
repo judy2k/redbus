@@ -57,7 +57,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
 
-public class BookmarksActivity extends ListActivity implements IStopDbUpdateResponseListener, OnCancelListener
+public class BookmarksActivity extends ListActivity implements IStopDbUpdateResponseListener, OnCancelListener, ICommonResultReceiver
 {	
 	private static final String bookmarksXmlFile = "/sdcard/redbus-stops.xml";
 	
@@ -125,12 +125,12 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 			return true;
 
 		case R.id.stopbookmarks_item_menu_rename:
-			doRenameBookmark((int) stopCode);
+			new Common().doRenameBookmark(this, (int) stopCode, bookmarkName, this);
 			return true;
 
 		case R.id.stopbookmarks_item_menu_delete:
-			doDeleteBookmark((int) stopCode);
-			return true;	
+			new Common().doDeleteBookmark(this, (int) stopCode, this);
+			return true;
 		}
 
 		return super.onContextItemSelected(item);
@@ -178,52 +178,6 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode(stopCode);
 		if (stopNodeIdx != -1)
 			StopMapActivity.showActivity(this, pt.lat[stopNodeIdx], pt.lon[stopNodeIdx]);
-	}
-	
-	private void doRenameBookmark(int stopCode) {
-		final int localStopCode = stopCode;
-		final EditText input = new EditText(this);
-		input.setText(bookmarkName);
-
-		new AlertDialog.Builder(this)
-				.setTitle("Rename bookmark")
-				.setView(input)
-				.setPositiveButton(android.R.string.ok,
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog, int whichButton) {
-		                        SettingsHelper db = new SettingsHelper(BookmarksActivity.this);
-		                        try {
-		                        	db.renameBookmark(localStopCode, input.getText().toString());
-		                        } finally {
-		                        	db.close();
-		                        }
-		                		Common.updateBookmarksListAdaptor(BookmarksActivity.this);
-							}
-						})
-				.setNegativeButton(android.R.string.cancel, null)
-				.show();
-	}
-	
-	private void doDeleteBookmark(int stopCode) {
-		final int localStopCode = stopCode;
-
-		new AlertDialog.Builder(this)
-		.setTitle("Delete bookmark")
-		.setMessage("Are you sure you want to delete this bookmark?")
-		.setPositiveButton(android.R.string.ok, 
-				new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        SettingsHelper db = new SettingsHelper(BookmarksActivity.this);
-                        try {
-                        	db.deleteBookmark(localStopCode);
-                        } finally {
-                        	db.close();
-                        }
-                		Common.updateBookmarksListAdaptor(BookmarksActivity.this);
-                    }
-				})
-		.setNegativeButton(android.R.string.cancel, null)
-        .show();
 	}
 	
 	private void doShowBusTimes() {
@@ -451,5 +405,13 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         } finally {
         	db.close();
         }
+	}
+
+	public void OnBookmarkRenamedOK(int stopCode) {
+    	Common.updateBookmarksListAdaptor(this);
+	}
+
+	public void OnBookmarkDeletedOK(int stopCode) {
+    	Common.updateBookmarksListAdaptor(this);
 	}
 }

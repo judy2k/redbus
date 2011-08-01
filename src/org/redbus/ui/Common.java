@@ -3,15 +3,20 @@ package org.redbus.ui;
 import org.redbus.R;
 import org.redbus.settings.SettingsHelper;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
+import android.widget.EditText;
 import android.widget.SimpleCursorAdapter;
+import android.widget.Toast;
 
 public class Common 
 {
 	private static final String[] columnNames = new String[] { SettingsHelper.ID, SettingsHelper.BOOKMARKS_COL_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
-
+	
 	public static void updateBookmarksListAdaptor(ListActivity la)
 	{
     	SimpleCursorAdapter cursorAdapter = (SimpleCursorAdapter) la.getListAdapter();
@@ -23,5 +28,68 @@ public class Common
     	} else {
     		cursorAdapter.getCursor().requery();
     	}
+	}
+		
+	public void doAddBookmark(Context ctx, int stopCode, String stopName) {
+		if (stopCode == -1) 
+			return;
+		
+		SettingsHelper db = new SettingsHelper(ctx);
+		try {
+			db.addBookmark(stopCode, stopName);
+		} finally {
+			db.close();
+		}
+		Toast.makeText(ctx, "Added bookmark", Toast.LENGTH_SHORT).show();
+	}
+
+	public void doRenameBookmark(Context ctx, int stopCode, String bookmarkName, ICommonResultReceiver result) {
+		final int localStopCode = stopCode;
+		final EditText input = new EditText(ctx);
+		final Context localCtx = ctx;
+		final ICommonResultReceiver localResult = result;
+		input.setText(bookmarkName);
+
+		new AlertDialog.Builder(localCtx)
+				.setTitle("Rename bookmark")
+				.setView(input)
+				.setPositiveButton(android.R.string.ok,
+						new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+		                        SettingsHelper db = new SettingsHelper(localCtx);
+		                        try {
+		                        	db.renameBookmark(localStopCode, input.getText().toString());
+		                        } finally {
+		                        	db.close();
+		                        }
+		                        localResult.OnBookmarkRenamedOK(localStopCode);
+							}
+						})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+	
+	public void doDeleteBookmark(Context ctx, int stopCode, ICommonResultReceiver result) {
+		final int localStopCode = stopCode;
+		final Context localCtx = ctx;
+		final ICommonResultReceiver localResult = result;
+
+		new AlertDialog.Builder(ctx)
+				.setTitle("Delete bookmark")
+				.setMessage("Are you sure you want to delete this bookmark?")
+				.setPositiveButton(android.R.string.ok, 
+						new DialogInterface.OnClickListener() {
+		                    public void onClick(DialogInterface dialog, int whichButton) {
+		                        SettingsHelper db = new SettingsHelper(localCtx);
+		                        try {
+		                        	db.deleteBookmark(localStopCode);
+		                        } finally {
+		                        	db.close();
+		                        }
+		                        localResult.OnBookmarkDeletedOK(localStopCode);
+		                    }
+						})
+				.setNegativeButton(android.R.string.cancel, null)
+		        .show();
 	}
 }

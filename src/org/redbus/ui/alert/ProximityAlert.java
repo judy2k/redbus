@@ -33,6 +33,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
@@ -45,12 +46,12 @@ public class ProximityAlert extends BroadcastReceiver implements DialogInterface
 
 	// These are ONLY used during UI construction. cannot be relied on to be set to anything useful in BroadcastReceiver implementation
 	private int uiStopCode;
-	private ArrivalTimeActivity uiArrivalTimeActivity;
+	private Context uiContext;
 	private Spinner uiDistanceSpinner;
 
 	
-	public static void createProximityAlert(ArrivalTimeActivity arrivalTimeActivity, int stopCode) {
-		new ProximityAlert(arrivalTimeActivity, stopCode);
+	public static void createProximityAlert(Context ctx, int stopCode) {
+		new ProximityAlert(ctx, stopCode);
 	}
 	
 	/**
@@ -59,21 +60,22 @@ public class ProximityAlert extends BroadcastReceiver implements DialogInterface
 	public ProximityAlert() {
 	}
 	
-	private ProximityAlert(ArrivalTimeActivity arrivalTimeActivity, int stopCode) {
-		this.uiArrivalTimeActivity = arrivalTimeActivity;
+	private ProximityAlert(Context ctx, int stopCode) {
+		this.uiContext = ctx;
 		this.uiStopCode = stopCode;
 
 		// load the view
-		View dialogView = arrivalTimeActivity.getLayoutInflater().inflate(R.layout.addproximityalert, null);		
+		LayoutInflater layoutInflater = (LayoutInflater) uiContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		View dialogView = layoutInflater.inflate(R.layout.addproximityalert, null);
 
 		// setup distance selector
 		uiDistanceSpinner = (Spinner) dialogView.findViewById(R.id.addproximityalert_distance);
-		ArrayAdapter<String> timeAdapter = new ArrayAdapter<String>(arrivalTimeActivity, android.R.layout.simple_spinner_item, proximityAlarmStrings);
+		ArrayAdapter<String> timeAdapter = new ArrayAdapter<String>(uiContext, android.R.layout.simple_spinner_item, proximityAlarmStrings);
 		timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		uiDistanceSpinner.setAdapter(timeAdapter);
 
 		// show the dialog!
-		new AlertDialog.Builder(arrivalTimeActivity)
+		new AlertDialog.Builder(uiContext)
 			.setView(dialogView)
 			.setTitle("Set alarm")
 			.setPositiveButton(android.R.string.ok, this)
@@ -82,14 +84,14 @@ public class ProximityAlert extends BroadcastReceiver implements DialogInterface
 	}
 	
 	public void onClick(DialogInterface dialog, int which) {
-		StopDbHelper pt = StopDbHelper.Load(uiArrivalTimeActivity);
+		StopDbHelper pt = StopDbHelper.Load(uiContext);
 		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode(uiStopCode);
 		if (stopNodeIdx == -1)
 			return;
 		String stopName = pt.lookupStopNameByStopNodeIdx(stopNodeIdx);
 
 		// cancel any current alerts
-		AlertUtils.cancelAlerts(uiArrivalTimeActivity);
+		AlertUtils.cancelAlerts(uiContext);
 
 		// stop location
 		Location location = new Location("");
@@ -97,22 +99,22 @@ public class ProximityAlert extends BroadcastReceiver implements DialogInterface
 		location.setLongitude(pt.lon[stopNodeIdx] / 1E6);
 
 		// create an intent
-		Intent i = new Intent(uiArrivalTimeActivity, ProximityAlert.class);
+		Intent i = new Intent(uiContext, ProximityAlert.class);
 		i.putExtra("StopCode", (long) uiStopCode);
 		i.putExtra("StopName", stopName);
 		i.putExtra("Location", location);
 		i.putExtra("Distance", proximityAlarmDistances[uiDistanceSpinner.getSelectedItemPosition()]);
 		i.putExtra("StartTime", System.currentTimeMillis());
-		PendingIntent pi = PendingIntent.getBroadcast(uiArrivalTimeActivity, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
+		PendingIntent pi = PendingIntent.getBroadcast(uiContext, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 
 		// weird! Found I needed to add a proximity alert *first* otherwise the GPS on my phone doesn't get a lock with just the requestlocationupdates!?!
-		LocationManager lm = (LocationManager) uiArrivalTimeActivity.getSystemService(Context.LOCATION_SERVICE);
+		LocationManager lm = (LocationManager) uiContext.getSystemService(Context.LOCATION_SERVICE);
 		lm.addProximityAlert(pt.lat[stopNodeIdx], pt.lon[stopNodeIdx], 1, 0, pi);
 		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30 * 1000, 25, pi);
 
-		AlertUtils.addOngoingNotification(uiArrivalTimeActivity);
+		AlertUtils.addOngoingNotification(uiContext);
 
-		Toast.makeText(uiArrivalTimeActivity, "Alarm added!", Toast.LENGTH_SHORT).show();
+		Toast.makeText(uiContext, "Alarm added!", Toast.LENGTH_SHORT).show();
 	}
 
 	@Override

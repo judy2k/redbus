@@ -9,5 +9,6 @@
 	<Button android:id="@+id/stoppopup_filter" android:text="Show routes from this stop" android:layout_width="fill_parent" android:layout_height="wrap_content" />
 	<Button android:id="@+id/stoppopup_streetview" android:text="Streetview" android:layout_width="fill_parent" android:layout_height="wrap_content"/>
 	<Button android:id="@+id/stoppopup_addbookmark" android:text="Add bookmark" android:layout_width="fill_parent" android:layout_height="wrap_content"/>
+	<Button android:id="@+id/stoppopup_proximityalert" android:text="Warn me when nearby" android:layout_width="fill_parent" android:layout_height="wrap_content"/>
 	<Button android:id="@+id/stoppopup_cancel" android:text="Done" android:layout_width="fill_parent" android:layout_height="wrap_content"/>
 </LinearLayout>

@@ -21,6 +21,7 @@ package org.redbus.ui.stopmap;
 import org.redbus.R;
 import org.redbus.stopdb.ServiceBitmap;
 import org.redbus.stopdb.StopDbHelper;
+import org.redbus.ui.alert.ProximityAlert;
 
 import android.app.AlertDialog;
 import android.view.View;
@@ -61,6 +62,7 @@ public class StopMapPopup implements OnClickListener {
 		((Button) v.findViewById(R.id.stoppopup_viewtimes)).setOnClickListener(this);
 		((Button) v.findViewById(R.id.stoppopup_cancel)).setOnClickListener(this);
 		((Button) v.findViewById(R.id.stoppopup_addbookmark)).setOnClickListener(this);
+		((Button) v.findViewById(R.id.stoppopup_proximityalert)).setOnClickListener(this);
 		dialog.show();
 	}
 	
@@ -87,6 +89,11 @@ public class StopMapPopup implements OnClickListener {
 			
 		case R.id.stoppopup_addbookmark:
 			stopMapActivity.doAddBookmark(stopCode);
+			dialog.dismiss();
+			break;
+			
+		case R.id.stoppopup_proximityalert:
+			ProximityAlert.createProximityAlert(stopMapActivity, stopCode);
 			dialog.dismiss();
 			break;
 		}
