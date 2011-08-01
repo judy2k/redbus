@@ -18,7 +18,7 @@
 			</intent-filter>
 		</activity-alias>
 				
-		<activity-alias android:targetActivity=".ui.RedbusTabView" android:name="StopBookmarksActivity" android:label="Edinburgh Bus Tracker">
+		<activity-alias android:name="StopBookmarksActivity" android:targetActivity=".ui.RedbusTabView" android:label="Edinburgh Bus Tracker">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"></action>
 				<!-- do not add LAUNCHER here or you end up with multiple entries! -->
@@ -28,7 +28,7 @@
 
 
 		
-		<activity android:theme="@android:style/Theme.Dialog" android:name=".ui.CreateShortcutActivity" android:label="Bus Bookmark">
+		<activity android:name=".ui.CreateShortcutActivity" android:theme="@android:style/Theme.Dialog" android:label="Bus Bookmark">
         	<intent-filter>
         		<action android:name="android.intent.action.CREATE_SHORTCUT"></action>
         		<category android:name="android.intent.category.DEFAULT"></category>
@@ -57,8 +57,7 @@
 		<uses-library android:name="com.google.android.maps" />
 		<receiver android:name=".ui.alert.TemporalAlert"/>
 		<receiver android:name=".ui.alert.ProximityAlert"/>
-		<receiver android:name=".ui.alert.AlertNotificationPressedReceiver"/>
-		
+		<receiver android:name=".ui.alert.AlertNotificationPressedReceiver"/>		
 	</application>
 
 	<uses-sdk android:minSdkVersion="3"/>
