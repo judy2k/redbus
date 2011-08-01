@@ -45,14 +45,18 @@ import android.text.InputFilter;
 import android.text.InputType;
 import android.text.method.DigitsKeyListener;
 import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
@@ -147,7 +151,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_menu_bustimes:
-			doShowBusTimes();
+			doEnterStopcode();
 			return true;				
 			
 		case R.id.stopbookmarks_menu_backup:
@@ -180,20 +184,24 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 			StopMapActivity.showActivity(this, pt.lat[stopNodeIdx], pt.lon[stopNodeIdx]);
 	}
 	
-	private void doShowBusTimes() {
-		final EditText input = new EditText(this);
-		input.setInputType(InputType.TYPE_CLASS_PHONE);
-		input.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
+	private void doEnterStopcode() {
+		LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		View dialogView = layoutInflater.inflate(R.layout.enterstopcode, null);
 
+		final EditText stopCodeText = (EditText) dialogView.findViewById(R.id.enterstopcode_code);
+		final CheckBox addbookmarkCb = (CheckBox) dialogView.findViewById(R.id.enterstopcode_addbookmark);
+		stopCodeText.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
+
+		// show the dialog!
 		new AlertDialog.Builder(this)
-		.setTitle("Enter stopcode")
-		.setView(input)
+			.setView(dialogView)
+			.setTitle("Enter Stopcode")
 		.setPositiveButton(android.R.string.ok,
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int whichButton) {
 						long stopCode = -1;
 						try {
-							stopCode = Long.parseLong(input.getText().toString());
+							stopCode = Long.parseLong(stopCodeText.getText().toString());
 						} catch (Exception ex) {
 							new AlertDialog.Builder(BookmarksActivity.this)
 									.setTitle("Error")
@@ -204,19 +212,24 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 						}
 						StopDbHelper pt = StopDbHelper.Load(BookmarksActivity.this);
 						int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
-						if (stopNodeIdx != -1) {
-							ArrivalTimeActivity.showActivity(BookmarksActivity.this, (int) stopCode);
-						} else {
+						if (stopNodeIdx == -1) {
 							new AlertDialog.Builder(BookmarksActivity.this)
-								.setTitle("Error")
-								.setMessage("The stopcode was invalid; please try again")
-								.setPositiveButton(android.R.string.ok, null)
-								.show();
+									.setTitle("Error")
+									.setMessage("The stopcode was invalid; please try again")
+									.setPositiveButton(android.R.string.ok, null)
+									.show();
+							return;
+						}
+
+						ArrivalTimeActivity.showActivity(BookmarksActivity.this, (int) stopCode);
+						if (addbookmarkCb.isChecked()) {
+							String stopName = pt.lookupStopNameByStopNodeIdx(stopNodeIdx);
+							new Common().doAddBookmark(BookmarksActivity.this, (int) stopCode, stopName);
 						}
 					}
 				})
-		.setNegativeButton(android.R.string.cancel, null)
-		.show();
+			.setNegativeButton(android.R.string.cancel, null)
+			.show();
 	}
 	
 	private void doBookmarksBackup() {
