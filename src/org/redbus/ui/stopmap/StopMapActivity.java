@@ -338,7 +338,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			return;
 		String stopName = pt.lookupStopNameByStopNodeIdx(nodeIdx);
 
-		new Common().doAddBookmark(this, stopCode, stopName);
+		Common.doAddBookmark(this, stopCode, stopName);
 	}
 	
 	private void updateServiceFilter(ServiceBitmap filter) {

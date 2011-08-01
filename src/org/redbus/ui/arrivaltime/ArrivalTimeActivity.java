@@ -162,15 +162,15 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 			return true;
 
 		case R.id.bustimes_menu_addbookmark:
-			new Common().doAddBookmark(this, stopCode, stopName);
+			Common.doAddBookmark(this, stopCode, stopName);
 			return true;
 			
 		case R.id.bustimes_menu_renamebookmark:
-			new Common().doRenameBookmark(this, stopCode, stopName, this);
+			Common.doRenameBookmark(this, stopCode, stopName, this);
 			return true;
 
 		case R.id.bustimes_menu_deletebookmark:
-			new Common().doDeleteBookmark(this, stopCode, this);
+			Common.doDeleteBookmark(this, stopCode, this);
 			return true;
 
 		case R.id.bustimes_menu_viewonmap:

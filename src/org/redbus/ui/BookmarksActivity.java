@@ -129,11 +129,11 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 			return true;
 
 		case R.id.stopbookmarks_item_menu_rename:
-			new Common().doRenameBookmark(this, (int) stopCode, bookmarkName, this);
+			Common.doRenameBookmark(this, (int) stopCode, bookmarkName, this);
 			return true;
 
 		case R.id.stopbookmarks_item_menu_delete:
-			new Common().doDeleteBookmark(this, (int) stopCode, this);
+			Common.doDeleteBookmark(this, (int) stopCode, this);
 			return true;
 		}
 
@@ -224,7 +224,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 						ArrivalTimeActivity.showActivity(BookmarksActivity.this, (int) stopCode);
 						if (addbookmarkCb.isChecked()) {
 							String stopName = pt.lookupStopNameByStopNodeIdx(stopNodeIdx);
-							new Common().doAddBookmark(BookmarksActivity.this, (int) stopCode, stopName);
+							Common.doAddBookmark(BookmarksActivity.this, (int) stopCode, stopName);
 						}
 					}
 				})

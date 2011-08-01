@@ -30,7 +30,7 @@ public class Common
     	}
 	}
 		
-	public void doAddBookmark(Context ctx, int stopCode, String stopName) {
+	public static void doAddBookmark(Context ctx, int stopCode, String stopName) {
 		if (stopCode == -1) 
 			return;
 		
@@ -43,7 +43,7 @@ public class Common
 		Toast.makeText(ctx, "Added bookmark", Toast.LENGTH_SHORT).show();
 	}
 
-	public void doRenameBookmark(Context ctx, int stopCode, String bookmarkName, ICommonResultReceiver result) {
+	public static void doRenameBookmark(Context ctx, int stopCode, String bookmarkName, ICommonResultReceiver result) {
 		final int localStopCode = stopCode;
 		final EditText input = new EditText(ctx);
 		final Context localCtx = ctx;
@@ -69,7 +69,7 @@ public class Common
 				.show();
 	}
 	
-	public void doDeleteBookmark(Context ctx, int stopCode, ICommonResultReceiver result) {
+	public static void doDeleteBookmark(Context ctx, int stopCode, ICommonResultReceiver result) {
 		final int localStopCode = stopCode;
 		final Context localCtx = ctx;
 		final ICommonResultReceiver localResult = result;
