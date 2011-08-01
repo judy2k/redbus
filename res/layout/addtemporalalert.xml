@@ -28,4 +28,22 @@
 			android:layout_height="wrap_content"
 			android:layout_gravity="center_horizontal"
 			android:gravity="center_horizontal" />
+			
+  <TextView android:text="but wait" 
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content" 
+			android:layout_gravity="center_horizontal" 
+			android:gravity="center_horizontal" />
+			
+  <Spinner  android:id="@+id/addtemporalalert_delay" 
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:gravity="center_horizontal" />
+			
+  <TextView android:text="for me to get ready." 
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content" 
+			android:layout_gravity="center_horizontal" 
+			android:gravity="center_horizontal" />
 </LinearLayout>

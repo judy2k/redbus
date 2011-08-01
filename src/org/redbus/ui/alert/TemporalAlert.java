@@ -52,10 +52,14 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 	private static final String[] temporalAlarmStrings = new String[] { "Due", "5 mins away", "10 mins away", "20 mins away", "30 mins away" };
 	private static final int[] temporalAlarmTimeouts = new int[] { 0, 5 * 60, 10 *  60, 20 * 60, 30 * 60 };
 
+	private static final String[] temporalDelayStrings = new String[] { "no time", "5 mins", "10 mins", "20 mins", "30 mins" };
+	private static final int[] temporalDelaySecs = new int[] { 0, 5 * 60, 10 *  60, 20 * 60, 30 * 60 };
+
 	// These are ONLY used during UI construction. cannot be relied on to be set to anything useful in BroadcastReceiver implementation
 	private int uiStopCode;
 	private ArrivalTimeActivity uiArrivalTimeActivity;
 	private Spinner uiTimeSpinner;
+	private Spinner uiDelaySpinner;
 	private Button uiServicesButton;
 	private String[] uiServices;
 	private boolean[] uiSelectedServices;
@@ -120,6 +124,12 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 		timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		uiTimeSpinner.setAdapter(timeAdapter);
 
+		// setup time selector
+		uiDelaySpinner = (Spinner) dialogView.findViewById(R.id.addtemporalalert_delay);
+		ArrayAdapter<String> delayAdapter = new ArrayAdapter<String>(arrivalTimeActivity, android.R.layout.simple_spinner_item, temporalDelayStrings);
+		delayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		uiDelaySpinner.setAdapter(delayAdapter);
+
 		// show the dialog!
 		new AlertDialog.Builder(arrivalTimeActivity)
 			.setView(dialogView)
@@ -158,18 +168,21 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 		if (selectedServicesList.size() == 0)
 			return;
 
+		// grab the delay... 
+		long delaySecs = temporalDelaySecs[uiDelaySpinner.getSelectedItemPosition()];
+
 		// create an intent
 		Intent i = new Intent(uiArrivalTimeActivity, TemporalAlert.class);
 		i.putExtra("StopCode", (long) uiStopCode);
 		i.putExtra("StopName", uiStopName);
 		i.putExtra("Services", selectedServicesList.toArray(new String[selectedServicesList.size()]));
-		i.putExtra("StartTime", System.currentTimeMillis());
+		i.putExtra("StartTime", System.currentTimeMillis() + (delaySecs * 1000));
 		i.putExtra("TimeoutSecs", temporalAlarmTimeouts[uiTimeSpinner.getSelectedItemPosition()]);
 		PendingIntent pi = PendingIntent.getBroadcast(uiArrivalTimeActivity, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
-
+		
 		// schedule it in 10 seconds
 		AlarmManager am = (AlarmManager) uiArrivalTimeActivity.getSystemService(Context.ALARM_SERVICE);
-		am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 10000, pi);
+		am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (delaySecs * 1000) + 10000, pi);
 
 		AlertUtils.addOngoingNotification(uiArrivalTimeActivity);
 	
@@ -225,10 +238,10 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 			return;
 		}
 
-		// schedule it in 60 seconds
+		// schedule it in 30 seconds
 		PendingIntent pi = PendingIntent.getBroadcast(broadcastContext, 0, broadcastIntent, 0);
 		AlarmManager am = (AlarmManager) broadcastContext.getSystemService(Context.ALARM_SERVICE);
-		am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 60000, pi);
+		am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 30000, pi);
 	}
 
 	public void getBusTimesError(int requestId, int code, String message) {
