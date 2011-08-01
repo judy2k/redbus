@@ -25,7 +25,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="5.6"
-     inkscape:cx="185.92197"
+     inkscape:cx="188.60054"
      inkscape:cy="655.70533"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -53,7 +53,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -296,5 +296,25 @@
            id="tspan4356"
            sodipodi:role="line">8</tspan></text>
     </g>
+    <rect
+       style="fill:#4d4d4d;fill-opacity:1;stroke:none"
+       id="rect4274-7"
+       width="2.5"
+       height="4.9947042"
+       x="233.71429"
+       y="442.36749"
+       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
+       inkscape:export-xdpi="622.70001"
+       inkscape:export-ydpi="622.70001" />
+    <rect
+       style="fill:#4d4d4d;fill-opacity:1;stroke:none"
+       id="rect4274-7-9"
+       width="2.5"
+       height="4.9947042"
+       x="202.5"
+       y="442.36218"
+       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
+       inkscape:export-xdpi="622.70001"
+       inkscape:export-ydpi="622.70001" />
   </g>
 </svg>
