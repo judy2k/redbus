@@ -160,7 +160,7 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 
 		// create an intent
 		Intent i = new Intent(uiArrivalTimeActivity, TemporalAlert.class);
-		i.putExtra("StopCode", uiStopCode);
+		i.putExtra("StopCode", (long) uiStopCode);
 		i.putExtra("StopName", uiStopName);
 		i.putExtra("Services", selectedServicesList.toArray(new String[selectedServicesList.size()]));
 		i.putExtra("StartTime", System.currentTimeMillis());
@@ -261,7 +261,7 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 				text.append("!");
 
 				Intent i = new Intent(broadcastContext, ArrivalTimeActivity.class);
-				i.putExtra("StopCode", broadcastStopCode);
+				i.putExtra("StopCode", (long) broadcastStopCode);
 				i.putExtra("StopName", broadcastStopName);
 				PendingIntent contentIntent = PendingIntent.getActivity(broadcastContext, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 

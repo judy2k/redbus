@@ -98,7 +98,7 @@ public class ProximityAlert extends BroadcastReceiver implements DialogInterface
 
 		// create an intent
 		Intent i = new Intent(uiArrivalTimeActivity, ProximityAlert.class);
-		i.putExtra("StopCode", uiStopCode);
+		i.putExtra("StopCode", (long) uiStopCode);
 		i.putExtra("StopName", stopName);
 		i.putExtra("Location", location);
 		i.putExtra("Distance", proximityAlarmDistances[uiDistanceSpinner.getSelectedItemPosition()]);

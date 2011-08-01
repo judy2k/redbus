@@ -59,7 +59,7 @@ public class CreateShortcutActivity extends ListActivity {
     	shortcutIntent.setClass(this, ArrivalTimeActivity.class);
         shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        shortcutIntent.putExtra("StopCode", stopCode);
+        shortcutIntent.putExtra("StopCode", (long) stopCode);
 
         // Then, set up the container intent (the response to the launcher)
         Intent intent = new Intent();
