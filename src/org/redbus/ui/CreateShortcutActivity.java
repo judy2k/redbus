@@ -19,6 +19,7 @@
 package org.redbus.ui;
 
 import org.redbus.R;
+import org.redbus.settings.SettingsHelper;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 
 import android.app.ListActivity;
@@ -31,6 +32,8 @@ import android.widget.TextView;
 
 public class CreateShortcutActivity extends ListActivity {
 	
+	SettingsHelper listDb;
+	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,9 +45,17 @@ public class CreateShortcutActivity extends ListActivity {
 	protected void onStart() 
 	{
 		super.onStart();
-		Common.updateBookmarksListAdaptor(this);
+		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this);
+		if (tmp != null)
+			listDb = tmp;
 	}
 	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		Common.destroyBookmarksListAdaptor(this, listDb);
+	}
+
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		TextView tv = (TextView)v.findViewById(R.id.stopbookmarks_name);

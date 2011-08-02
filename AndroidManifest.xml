@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="org.redbus" android:versionName="1.0.34" android:versionCode="35">
 	
-	<application android:label="@string/app_name" android:icon="@drawable/icon72">
+	<application android:label="@string/app_name" android:icon="@drawable/icon72" android:backupAgent=".settings.SettingsBackupAgent" android:restoreAnyVersion="true" android:allowBackup="true">
 	    
 	   	<activity android:name=".ui.RedbusTabView" android:label="Edinburgh Bus Tracker">
 			  <intent-filter>
@@ -57,7 +57,9 @@
 		<uses-library android:name="com.google.android.maps" />
 		<receiver android:name=".ui.alert.TemporalAlert"/>
 		<receiver android:name=".ui.alert.ProximityAlert"/>
-		<receiver android:name=".ui.alert.AlertNotificationPressedReceiver"/>		
+		<receiver android:name=".ui.alert.AlertNotificationPressedReceiver"/>
+
+		<meta-data android:name="com.google.android.backup.api_key" android:value="AEdPqrEAAAAIbuJf7aPvzjJ8aS4zUoIy5bLO70X_y_AnJNTFSw" />
 	</application>
 
 	<uses-sdk android:minSdkVersion="3"/>

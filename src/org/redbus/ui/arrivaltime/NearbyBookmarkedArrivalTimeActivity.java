@@ -110,7 +110,9 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     @Override
     public void onDestroy() {
     	super.onDestroy();
-    	busyDialog.dismiss();
+    	
+    	if (busyDialog != null)
+    		busyDialog.dismiss();
     }
     
     private void refresh() {

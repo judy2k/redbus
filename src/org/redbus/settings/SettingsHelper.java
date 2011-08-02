@@ -20,6 +20,9 @@ package org.redbus.settings;
 
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.lang.reflect.Method;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlSerializer;
@@ -104,15 +107,18 @@ public class SettingsHelper
 
 	public void deleteBookmark(long bookmarkId) {
 		db.execSQL("DELETE FROM Bookmarks WHERE _id = ?", new Object[] { bookmarkId });
+		settingsChanged();
 	}
 	
 	public void deleteBookmarks() {
 		db.execSQL("DELETE FROM Bookmarks");
+		settingsChanged();
 	}
 	
 	public void addBookmark(long bookmarkId, String stopName) {
 		try {
 			db.execSQL("INSERT INTO Bookmarks VALUES (?, ?)", new Object[] { bookmarkId, stopName });
+			settingsChanged();
 		} catch (Exception ex) {
 		}
 	}
@@ -120,6 +126,7 @@ public class SettingsHelper
 	public void renameBookmark(long bookmarkId, String stopName) {
 		try {
 			db.execSQL("UPDATE Bookmarks SET StopName=? WHERE _id = ?", new Object[] { stopName, bookmarkId });
+			settingsChanged();
 		} catch (Exception ex) {
 		}
 	}
@@ -166,25 +173,55 @@ public class SettingsHelper
 	{
 		deleteBusStopSetting(stopCode, name);
 		db.execSQL("INSERT INTO Settings (StopCode, SettingName, SettingValue) VALUES (?, ?, ?)", new Object[] {stopCode, name, value});
+		settingsChanged();
 	}
 
 	public void deleteBusStopSetting(long stopCode, String name)
 	{
 		db.execSQL("DELETE FROM Settings WHERE StopCode = ? AND SettingName = ?", new Object[] { stopCode, name });
+		settingsChanged();
 	}
 
 	public void deleteBusStopSettings(long stopCode)
 	{
 		db.execSQL("DELETE FROM Settings WHERE StopCode = ?", new Object[] { stopCode});
+		settingsChanged();
 	}
 	
+	private void settingsChanged() {
+		try {
+		   Class backupManagerClass = Class.forName("android.app.backup.BackupManager");
+		   Method dataChanged = backupManagerClass.getMethod("dataChanged");
+		   dataChanged.invoke(null);
+		} catch (Throwable t) {
+		}
+	}
+	
+
 	public boolean backup(String filename) {
-        Cursor c = null;
         FileWriter output = null;
         try {
         	output = new FileWriter(filename);
+        	return backup(output);
+        } catch (Throwable t) {
+        	return false;
+        } finally {
+        	if (output != null) {
+        		try {
+	        		output.flush();
+        		} catch (Throwable t) {}
+        		try {
+	        		output.close();
+        		} catch (Throwable t) {}
+        	}
+        }
+	}
+
+	public boolean backup(Writer outputWriter) {
+        Cursor c = null;
+        try {
             XmlSerializer serializer = Xml.newSerializer();
-            serializer.setOutput(output);
+            serializer.setOutput(outputWriter);
             serializer.startDocument("UTF-8", true);
             serializer.startTag("", "redbus");
 
@@ -201,14 +238,6 @@ public class SettingsHelper
         	Log.e("StopBookmarks.Backup", "Backup failed", t);
         	return false;
         } finally {
-        	if (output != null) {
-        		try {
-	        		output.flush();
-        		} catch (Throwable t) {}
-        		try {
-	        		output.close();
-        		} catch (Throwable t) {}
-        	}
         	if (c != null)
         		c.close();
         	db.close();
@@ -220,10 +249,23 @@ public class SettingsHelper
 	public boolean restore(String filename) {
         FileReader inputFile = null;
         try {
-        	inputFile = new FileReader(filename);
-        	
+        	inputFile = new FileReader(filename);        	
+        	return restore(inputFile, false);
+        } catch (Throwable t) {
+        	return false;
+        } finally {
+        	if (inputFile != null) {
+        		try {
+        			inputFile.close();
+        		} catch (Throwable t) {}
+        	}
+        }
+	}
+	
+	public boolean restore(Reader inputReader, boolean merge) {
+        try {
 			XmlPullParser parser = Xml.newPullParser();
-			parser.setInput(inputFile);
+			parser.setInput(inputReader);
 			deleteBookmarks();
 
 			while(parser.next() != XmlPullParser.END_DOCUMENT) {
@@ -241,11 +283,6 @@ public class SettingsHelper
         	Log.e("StopBookmarks.Restore", "Restore failed", t);
         	return false;
         } finally {
-        	if (inputFile != null) {
-        		try {
-        			inputFile.close();
-        		} catch (Throwable t) {}
-        	}
         	db.close();
         }
         

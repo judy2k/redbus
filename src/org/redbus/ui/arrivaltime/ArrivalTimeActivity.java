@@ -118,7 +118,8 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	
 	@Override
 	protected void onDestroy() {
-		busyDialog.dismiss();
+		if (busyDialog != null)
+			busyDialog.dismiss();
 		busyDialog = null;
 		super.onDestroy();		
 	}

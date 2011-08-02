@@ -17,7 +17,7 @@ public class Common
 	private static final String[] columnNames = new String[] { SettingsHelper.ID, SettingsHelper.BOOKMARKS_COL_STOPNAME };
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
 	
-	public static void updateBookmarksListAdaptor(ListActivity la)
+	public static SettingsHelper updateBookmarksListAdaptor(ListActivity la)
 	{
     	SimpleCursorAdapter cursorAdapter = (SimpleCursorAdapter) la.getListAdapter();
     	if (cursorAdapter == null) {
@@ -25,11 +25,26 @@ public class Common
 	        Cursor listContentsCursor = db.getBookmarks();
 	        la.startManagingCursor(listContentsCursor);
 	        la.setListAdapter(new SimpleCursorAdapter(la, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds));
+	        return db;
     	} else {
     		cursorAdapter.getCursor().requery();
+    		return null;
     	}
 	}
-		
+	
+	public static void destroyBookmarksListAdaptor(ListActivity la, SettingsHelper db)
+	{
+		try {
+	    	SimpleCursorAdapter cursorAdapter = (SimpleCursorAdapter) la.getListAdapter();
+	    	if (cursorAdapter != null)
+	    		la.stopManagingCursor(cursorAdapter.getCursor());
+	    	if (db != null)
+	    		db.close();
+		} catch (Throwable t) {
+		}
+	}	
+	
+	
 	public static void doAddBookmark(Context ctx, int stopCode, String stopName) {
 		if (stopCode == -1) 
 			return;

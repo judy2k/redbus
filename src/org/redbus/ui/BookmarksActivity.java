@@ -42,7 +42,6 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.pm.PackageInfo;
 import android.os.Bundle;
 import android.text.InputFilter;
-import android.text.InputType;
 import android.text.method.DigitsKeyListener;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -52,11 +51,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
@@ -71,6 +68,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	private long stopCode = -1;
 	private String bookmarkName = null;
 	private boolean isManualUpdateCheck = false;
+	private SettingsHelper listDb;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
@@ -88,14 +86,20 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	protected void onResume() 
 	{
 		super.onResume();
-		Common.updateBookmarksListAdaptor(this);
+		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this);
+		if (tmp != null)
+			listDb = tmp;
 	}
 	
 	@Override
 	protected void onDestroy() {
-		busyDialog.dismiss();
-		busyDialog = null;
 		super.onDestroy();
+		
+		Common.destroyBookmarksListAdaptor(this, listDb);
+		
+		if (busyDialog != null)
+			busyDialog.dismiss();
+		busyDialog = null;
 	}
 
 	public void onCancel(DialogInterface dialog) {
@@ -242,7 +246,9 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         SettingsHelper db = new SettingsHelper(this);
         if (db.restore(bookmarksXmlFile)) {
 	        Toast.makeText(this, "Bookmarks restored from " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
-    		Common.updateBookmarksListAdaptor(this);
+    		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this);
+    		if (tmp != null)
+    			listDb = tmp;
         }
 	}
 	
@@ -425,10 +431,14 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	}
 
 	public void OnBookmarkRenamedOK(int stopCode) {
-    	Common.updateBookmarksListAdaptor(this);
+    	SettingsHelper tmp = Common.updateBookmarksListAdaptor(this);
+		if (tmp != null)
+			listDb = tmp;
 	}
 
 	public void OnBookmarkDeletedOK(int stopCode) {
-    	Common.updateBookmarksListAdaptor(this);
+		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this);
+		if (tmp != null)
+			listDb = tmp;
 	}
 }

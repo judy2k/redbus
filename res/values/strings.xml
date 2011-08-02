@@ -15,5 +15,6 @@
 * Add headlights to logo.\n
 * Fix initial wildly inaccurate initial map location.\n
 * Map now scrolls to track user location.\n
-* Trap lots of errors (thanks for sending in the error reports!).\n&quot;</string>
+* Trap lots of errors (thanks for sending in the error reports!).\n
+* Integrate with google backup API.\n&quot;</string>
 </resources>

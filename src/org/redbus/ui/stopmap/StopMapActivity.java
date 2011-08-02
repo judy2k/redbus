@@ -151,7 +151,8 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	
 	@Override
 	protected void onDestroy() {
-		busyDialog.dismiss();
+		if (busyDialog != null)
+			busyDialog.dismiss();
 		busyDialog = null;
 		super.onDestroy();
 	}
