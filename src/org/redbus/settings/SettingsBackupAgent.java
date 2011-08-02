@@ -64,10 +64,7 @@ public class SettingsBackupAgent extends BackupAgent {
 		        String key = data.getKey();
 		        int dataSize = data.getDataSize();
 	
-		        // If the key is ours (for saving top score). Note this key was used when
-		        // we wrote the backup entity header
 		        if (BOOKMARKS_KEY.equals(key)) {
-		            // Create an input stream for the BackupDataInput
 		            byte[] dataBuf = new byte[dataSize];
 		            data.readEntityData(dataBuf, 0, dataSize);
 		            ByteArrayInputStream baStream = new ByteArrayInputStream(dataBuf);
@@ -75,7 +72,6 @@ public class SettingsBackupAgent extends BackupAgent {
 	
 		            db.restore(reader, true);
 		        } else {
-		            // We don't know this entity key. Skip it. (Shouldn't happen.)
 		            data.skipEntityData();
 		        }
 		    }
