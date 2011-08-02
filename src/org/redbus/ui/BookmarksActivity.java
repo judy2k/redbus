@@ -330,7 +330,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         }
 	}
 
-	public void checkUpdateError(int requestId) {
+	public void onAsyncCheckUpdateError(int requestId) {
 		if (requestId != expectedRequestId)
 			return;
 
@@ -341,7 +341,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		setNextUpdateTime(false);
 	}
 
-	public void checkUpdateSuccess(int requestId, long updateDate) {
+	public void onAsyncCheckUpdateSuccess(int requestId, long updateDate) {
 		if (requestId != expectedRequestId)
 			return;
 
@@ -385,7 +385,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		}
 	}
 
-	public void getUpdateError(int requestId) {
+	public void onAsyncGetUpdateError(int requestId) {
 		if (requestId != expectedRequestId)
 			return;
 
@@ -394,7 +394,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		Toast.makeText(this, "Failed to download update; please try again later", Toast.LENGTH_SHORT).show();
 	}
 
-	public void getUpdateSuccess(int requestId, long updateDate, byte[] updateData) {
+	public void onAsyncGetUpdateSuccess(int requestId, long updateDate, byte[] updateData) {
 		if (requestId != expectedRequestId)
 			return;
 

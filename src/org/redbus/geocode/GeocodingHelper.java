@@ -66,9 +66,15 @@ public class GeocodingHelper {
 
 		protected void onPostExecute(GeocodingRequest request) {
 			if ((request.addresses == null) || (request.addresses.size() == 0)) {
-				request.callback.geocodeResponseError(request.requestId, "Could not find address...");
+				try {
+					request.callback.onAsyncGeocodeResponseError(request.requestId, "Could not find address...");
+				} catch (Throwable t) {
+				}
 			} else {
-				request.callback.geocodeResponseSucccess(request.requestId, request.addresses);
+				try {
+					request.callback.onAsyncGeocodeResponseSucccess(request.requestId, request.addresses);
+				} catch (Throwable t) {
+				}
 			}
 		}
 	}

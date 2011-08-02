@@ -80,9 +80,12 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
         // Define a listener that responds to location updates
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-            // Called when a new location is found by the network location provider.
-            // FIXME - check location accuracy + error if too great 	
-            locationUpdated(location);
+	            // Called when a new location is found by the network location provider.
+	            // FIXME - check location accuracy + error if too great
+            	try {
+            		locationUpdated(location);
+            	} catch (Throwable t) {
+            	}
             }
 
             public void onProviderEnabled(String provider) {}
@@ -193,7 +196,7 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     }
 
     // FIXME - this is common with ArrivalTimeActivity
-	public void getBusTimesError(int requestId, int code, String message) {
+	public void onAsyncGetBusTimesError(int requestId, int code, String message) {
 		if (requestId != expectedRequestId)
 			return;
 		
@@ -207,7 +210,7 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 			show();
 	}
 
-	public void getBusTimesSuccess(int requestId, List<ArrivalTime> busTimes) {
+	public void onAsyncGetBusTimesSuccess(int requestId, List<ArrivalTime> busTimes) {
 		if (requestId != expectedRequestId)
 			return;
 		

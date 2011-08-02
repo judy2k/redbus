@@ -22,6 +22,6 @@ import java.util.List;
 
 
 public interface IArrivalTimeResponseListener {
-	public void getBusTimesError(int requestId, int code, String message);
-	public void getBusTimesSuccess(int requestId, List<ArrivalTime> busTimes);
+	public void onAsyncGetBusTimesError(int requestId, int code, String message);
+	public void onAsyncGetBusTimesSuccess(int requestId, List<ArrivalTime> busTimes);
 }

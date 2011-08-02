@@ -244,11 +244,11 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 		am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 30000, pi);
 	}
 
-	public void getBusTimesError(int requestId, int code, String message) {
+	public void onAsyncGetBusTimesError(int requestId, int code, String message) {
 		rescheduleAlarm();
 	}
 
-	public void getBusTimesSuccess(int requestId, List<ArrivalTime> busTimes) {
+	public void onAsyncGetBusTimesSuccess(int requestId, List<ArrivalTime> busTimes) {
 		String[] requestedServices = broadcastIntent.getStringArrayExtra("Services");
 		int timeout = broadcastIntent.getIntExtra("TimeoutSecs", -1);
 		if ((requestedServices == null) || (timeout == -1))

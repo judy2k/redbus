@@ -363,7 +363,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	
 	
 	
-	public void geocodeResponseError(int requestId, String message) {
+	public void onAsyncGeocodeResponseError(int requestId, String message) {
 		if (requestId != expectedRequestId)
 			return;
 		
@@ -375,7 +375,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 			show();
 	}
 
-	public void geocodeResponseSucccess(int requestId, List<Address> addresses_) {
+	public void onAsyncGeocodeResponseSucccess(int requestId, List<Address> addresses_) {
 		if (requestId != expectedRequestId)
 			return;
 		

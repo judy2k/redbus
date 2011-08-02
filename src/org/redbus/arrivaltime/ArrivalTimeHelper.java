@@ -32,6 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.protocol.HTTP;
+import org.redbus.settings.SettingsHelper;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -102,11 +103,17 @@ public class ArrivalTimeHelper {
 	private static void getBusTimesResponse(BusDataRequest request)
 	{
 		if (request.content == null) {
-			request.callback.getBusTimesError(request.requestId, BUSSTATUS_HTTPERROR, "A network error occurred");
+			try {
+				request.callback.onAsyncGetBusTimesError(request.requestId, BUSSTATUS_HTTPERROR, "A network error occurred");
+			} catch (Throwable t) {
+			}
 			return;
 		}
 		if (request.content.toLowerCase().contains("doesn't exist")) {
-			request.callback.getBusTimesError(request.requestId, BUSSTATUS_BADSTOPCODE, "The BusStop code was invalid");
+			try {
+				request.callback.onAsyncGetBusTimesError(request.requestId, BUSSTATUS_BADSTOPCODE, "The BusStop code was invalid");
+			} catch (Throwable t) {
+			}
 			return;
 		}
 		
@@ -141,11 +148,17 @@ public class ArrivalTimeHelper {
 			
 		} catch (Throwable t) {
 			Log.e("BusDataHelper.GetBusTimesResponse", request.content, t);
-			request.callback.getBusTimesError(request.requestId, BUSSTATUS_BADDATA, "Invalid data was received from the bus website");
+			try {
+				request.callback.onAsyncGetBusTimesError(request.requestId, BUSSTATUS_BADDATA, "Invalid data was received from the bus website");
+			} catch (Throwable t2) {
+			}
 			return;
 		}
 		
-		request.callback.getBusTimesSuccess(request.requestId, busTimes);
+		try {
+			request.callback.onAsyncGetBusTimesSuccess(request.requestId, busTimes);
+		} catch (Throwable t) {
+		}
 	}
 	
 	private static ArrivalTime parseStopTime(XmlPullParser parser) 

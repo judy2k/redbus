@@ -205,20 +205,32 @@ public class StopDbUpdateHelper {
 			switch(request.requestType) {
 			case UpdateRequest.REQ_CHECKUPDATE:
 				if (request.updateDate == -1) {
-					request.callback.checkUpdateError(request.requestId);
+					try {
+						request.callback.onAsyncCheckUpdateError(request.requestId);
+					} catch (Throwable t) {
+					}
 					return;
 				}
 				
-				request.callback.checkUpdateSuccess(request.requestId, request.updateDate);
+				try {
+					request.callback.onAsyncCheckUpdateSuccess(request.requestId, request.updateDate);
+				} catch (Throwable t) {
+				}
 				break;
 
 			case UpdateRequest.REQ_GETUPDATE:
 				if (request.updateData == null) {
-					request.callback.getUpdateError(request.requestId);
+					try {
+						request.callback.onAsyncGetUpdateError(request.requestId);
+					} catch (Throwable t) {
+					}
 					return;
 				}
 				
-				request.callback.getUpdateSuccess(request.requestId, request.updateDate, request.updateData);
+				try {
+					request.callback.onAsyncGetUpdateSuccess(request.requestId, request.updateDate, request.updateData);
+				} catch (Throwable t) {
+				}
 				break;
 			}
 		}

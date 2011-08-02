@@ -292,7 +292,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	
 	
 
-	public void getBusTimesError(int requestId, int code, String message) {
+	public void onAsyncGetBusTimesError(int requestId, int code, String message) {
 		if (requestId != expectedRequestId)
 			return;
 		
@@ -308,11 +308,12 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 			show();
 	}
 
-	public void getBusTimesSuccess(int requestId, List<ArrivalTime> busTimes) {
+	public void onAsyncGetBusTimesSuccess(int requestId, List<ArrivalTime> busTimes) {
 		if (requestId != expectedRequestId)
 			return;
 		
-		busyDialog.dismiss();
+		if (busyDialog != null)
+			busyDialog.dismiss();
 		hideStatusBoxes();
 		
 		if (sorting.equalsIgnoreCase("service")) {
@@ -347,7 +348,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 	}
 
 	public void OnBookmarkDeletedOK(int stopCode) {
-        doRefreshArrivalTimes();
+		doRefreshArrivalTimes();
 	}
 }
 

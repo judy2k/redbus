@@ -23,6 +23,6 @@ import java.util.List;
 import android.location.Address;
 
 public interface IGeocodingResponseListener {
-	public void geocodeResponseError(int requestId, String message);
-	public void geocodeResponseSucccess(int requestId, List<Address> addresses);
+	public void onAsyncGeocodeResponseError(int requestId, String message);
+	public void onAsyncGeocodeResponseSucccess(int requestId, List<Address> addresses);
 }

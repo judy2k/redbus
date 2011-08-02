@@ -62,7 +62,11 @@ public class Common
 		                        } finally {
 		                        	db.close();
 		                        }
-		                        localResult.OnBookmarkRenamedOK(localStopCode);
+		                        try {
+		                        	localResult.OnBookmarkRenamedOK(localStopCode);
+		                        } catch (Throwable t) {
+		                        	
+		                        }
 							}
 						})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -86,7 +90,11 @@ public class Common
 		                        } finally {
 		                        	db.close();
 		                        }
-		                        localResult.OnBookmarkDeletedOK(localStopCode);
+		                        try {
+		                        	localResult.OnBookmarkDeletedOK(localStopCode);
+		                        } catch (Throwable t) {
+		                        	
+		                        }
 		                    }
 						})
 				.setNegativeButton(android.R.string.cancel, null)
