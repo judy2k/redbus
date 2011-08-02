@@ -173,19 +173,22 @@ public class SettingsHelper
 	{
 		deleteBusStopSetting(stopCode, name);
 		db.execSQL("INSERT INTO Settings (StopCode, SettingName, SettingValue) VALUES (?, ?, ?)", new Object[] {stopCode, name, value});
-		settingsChanged();
+		if (stopCode != -1)
+			settingsChanged();
 	}
 
 	public void deleteBusStopSetting(long stopCode, String name)
 	{
 		db.execSQL("DELETE FROM Settings WHERE StopCode = ? AND SettingName = ?", new Object[] { stopCode, name });
-		settingsChanged();
+		if (stopCode != -1)
+			settingsChanged();
 	}
 
 	public void deleteBusStopSettings(long stopCode)
 	{
 		db.execSQL("DELETE FROM Settings WHERE StopCode = ?", new Object[] { stopCode});
-		settingsChanged();
+		if (stopCode != -1)
+			settingsChanged();
 	}
 	
 	private void settingsChanged() {
