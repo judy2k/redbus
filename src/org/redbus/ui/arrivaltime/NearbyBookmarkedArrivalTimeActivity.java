@@ -200,7 +200,8 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 		if (requestId != expectedRequestId)
 			return;
 		
-		busyDialog.dismiss();
+		if (busyDialog != null)
+			busyDialog.dismiss();
 
 		showNoServicesMessage();
 		
@@ -216,7 +217,9 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 		
 		arrivalTimes.addAll(busTimes);
 		triggerDownloadNextStop();
-		busyDialog.dismiss();
+
+		if (busyDialog != null)
+			busyDialog.dismiss();
 
 		// FIXME - this is common with ArrivalTimeActivity
 		Collections.sort(arrivalTimes, new Comparator<ArrivalTime>() {

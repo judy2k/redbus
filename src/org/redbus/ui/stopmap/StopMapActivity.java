@@ -367,7 +367,8 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		if (requestId != expectedRequestId)
 			return;
 		
-		busyDialog.dismiss();
+		if (busyDialog != null)
+			busyDialog.dismiss();
 		
 		new AlertDialog.Builder(this).setTitle("Error").
 			setMessage("Unable to find location: " + message).
@@ -379,7 +380,9 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		if (requestId != expectedRequestId)
 			return;
 		
-		busyDialog.dismiss();
+		if (busyDialog != null)
+			busyDialog.dismiss();
+		
 		if (addresses_.size() == 1) {
 			Address address = addresses_.get(0);
 			GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));

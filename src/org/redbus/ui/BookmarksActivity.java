@@ -334,7 +334,8 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		if (requestId != expectedRequestId)
 			return;
 
-		busyDialog.dismiss();
+		if (busyDialog != null)
+			busyDialog.dismiss();
 		
 		if (isManualUpdateCheck)
 			Toast.makeText(this, "Failed to check for bus stop data updates; please try again later", Toast.LENGTH_SHORT).show();
@@ -345,7 +346,8 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		if (requestId != expectedRequestId)
 			return;
 
-		busyDialog.dismiss();
+		if (busyDialog != null)
+			busyDialog.dismiss();
 		setNextUpdateTime(true);
 
 		if (updateDate == 0) {
@@ -389,7 +391,8 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		if (requestId != expectedRequestId)
 			return;
 
-		busyDialog.dismiss();
+		if (busyDialog != null)
+			busyDialog.dismiss();
 
 		Toast.makeText(this, "Failed to download update; please try again later", Toast.LENGTH_SHORT).show();
 	}
@@ -398,7 +401,8 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		if (requestId != expectedRequestId)
 			return;
 
-		busyDialog.dismiss();
+		if (busyDialog != null)
+			busyDialog.dismiss();
 
 		try {
 			StopDbHelper.saveRawDb(updateData);
