@@ -32,8 +32,8 @@ import org.redbus.settings.SettingsHelper;
 import org.redbus.stopdb.StopDbHelper;
 import org.redbus.ui.BusyDialog;
 
+import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
@@ -43,12 +43,12 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.Toast;
 
-public class NearbyBookmarkedArrivalTimeActivity extends ListActivity implements IArrivalTimeResponseListener, OnCancelListener {
+public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IArrivalTimeResponseListener, OnCancelListener {
 
 	private LocationManager locationManager;
     private LocationListener locationListener;
@@ -63,14 +63,33 @@ public class NearbyBookmarkedArrivalTimeActivity extends ListActivity implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
-    	setContentView(R.layout.nearbybookmarkedarrivaltime);
-
     	setTitle("Nearby services");
+    	
     	busyDialog = new BusyDialog(this);
     	arrivalTimes = new ArrayList<ArrivalTime>();
-		lvAdapter = new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, arrivalTimes);
-		setListAdapter(lvAdapter);
+		lvAdapter = new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, arrivalTimes);		
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+		setContentView(R.layout.nearbybookmarkedarrivaltime);
+		
+		ListView lv = (ListView)findViewById(R.id.nearbystopslist);
+		lv.setAdapter(lvAdapter);
+
     	pt = StopDbHelper.Load(this);
+    	
+        // Define a listener that responds to location updates
+        locationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+            // Called when a new location is found by the network location provider.
+            // FIXME - check location accuracy + error if too great 	
+            locationUpdated(location);
+            }
+
+            public void onProviderEnabled(String provider) {}
+            public void onProviderDisabled(String provider) {}
+			public void onStatusChanged(String arg0, int arg1, Bundle arg2) {}
+          };
+          
     	refresh();
     }
     
@@ -92,9 +111,7 @@ public class NearbyBookmarkedArrivalTimeActivity extends ListActivity implements
     }
     
     private void refresh() {
-		findViewById(android.R.id.empty).setVisibility(View.GONE);
-		findViewById(R.id.nearbybookmarkednone).setVisibility(View.GONE);
-
+		showBlank();
     	bookmarkIds = getBookmarks();
     	arrivalTimes.clear();
     	lvAdapter.notifyDataSetChanged();
@@ -105,26 +122,10 @@ public class NearbyBookmarkedArrivalTimeActivity extends ListActivity implements
     }
     
     private void startLocationListener() {
-            // Acquire a reference to the system Location Manager
-            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-            // Define a listener that responds to location updates
-            locationListener = new LocationListener() {
-                public void onLocationChanged(Location location) {
-                // Called when a new location is found by the network location provider.
-                // FIXME - check location accuracy + error if too great 	
-                locationUpdated(location);
-                }
-
-                public void onProviderEnabled(String provider) {}
-                public void onProviderDisabled(String provider) {}
-				public void onStatusChanged(String arg0, int arg1, Bundle arg2) {}
-              };
-
-            // Use network updates for quick, but rough updates
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, // min time
-            1, // min distance
-            locationListener);
+    	// Use network updates for quick, but rough updates
+    	locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, // min time
+    			1, // min distance
+    			locationListener);
     }
 
     private ArrayList<Integer> getBookmarks() {
@@ -164,15 +165,8 @@ public class NearbyBookmarkedArrivalTimeActivity extends ListActivity implements
     		toastTxt += "\n"+name;
     	}
 
-    	// Set content view, either showing the 'no stops nearby'
-    	// Need to disable the empty 'no services from this stop' empty listview text
-		findViewById(android.R.id.empty).setVisibility(View.GONE);
-
-    	if (nearby.isEmpty()) {
-    		findViewById(R.id.nearbybookmarkednone).setVisibility(View.VISIBLE);
-    	} else {
-    		findViewById(R.id.nearbybookmarkednone).setVisibility(View.GONE);
-    	}
+    	if (nearby.isEmpty())
+    		showNoStopsMessage();
     		
     	busyDialog.dismiss();
     	Toast.makeText(getBaseContext(), 
@@ -202,9 +196,8 @@ public class NearbyBookmarkedArrivalTimeActivity extends ListActivity implements
 		
 		busyDialog.dismiss();
 
-		setListAdapter(new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, new ArrayList<ArrivalTime>()));
-		findViewById(R.id.bustimes_error).setVisibility(View.VISIBLE);
-
+		showNoServicesMessage();
+		
 		new AlertDialog.Builder(this).setTitle("Error").
 			setMessage("Unable to download bus times: " + message).
 			setPositiveButton(android.R.string.ok, null).
@@ -230,8 +223,42 @@ public class NearbyBookmarkedArrivalTimeActivity extends ListActivity implements
 			}
 		});
 		
-		findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
 		lvAdapter.notifyDataSetChanged();
+		showData();
+	}
+	
+	
+	// Don't like the way this is done; would rather set the appropriate
+	// single item as visible. However, need to change view parents
+	// if letting view inflater provided views do this..this actually
+	// seems simpler for now
+	
+	private void showNoStopsMessage()
+	{
+		findViewById(R.id.nearbynobookmarks).setVisibility(View.VISIBLE);
+		findViewById(R.id.nearbybookmarkednoservices).setVisibility(View.GONE);
+		findViewById(R.id.nearbystopslist).setVisibility(View.GONE);
+	}
+	
+	private void showNoServicesMessage()
+	{
+		findViewById(R.id.nearbynobookmarks).setVisibility(View.GONE);
+		findViewById(R.id.nearbybookmarkednoservices).setVisibility(View.VISIBLE);
+		findViewById(R.id.nearbystopslist).setVisibility(View.GONE);
+	}
+	
+	private void showData()
+	{
+		findViewById(R.id.nearbynobookmarks).setVisibility(View.GONE);
+		findViewById(R.id.nearbybookmarkednoservices).setVisibility(View.GONE);
+		findViewById(R.id.nearbystopslist).setVisibility(View.VISIBLE);
+	}
+	
+	private void showBlank()
+	{
+		findViewById(R.id.nearbynobookmarks).setVisibility(View.GONE);
+		findViewById(R.id.nearbybookmarkednoservices).setVisibility(View.GONE);
+		findViewById(R.id.nearbystopslist).setVisibility(View.GONE);
 	}
 
 	public void onCancel(DialogInterface arg0) {
