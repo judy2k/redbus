@@ -137,11 +137,12 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     
     private void startLocationListener() {
     	// Use network updates for quick, but rough updates
+    	// Keep GPS doing tho just in case network is duff
 
-    	locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, // min time
-    	//locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, // min time
-    			1, // min distance
-    			locationListener);
+    	// Min update time = 5000, min distance = 1
+    	locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 1, locationListener);
+    	locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 1, locationListener);
+    	
     }
 
     private ArrayList<Integer> getBookmarks() {
@@ -165,6 +166,10 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     }
     
     private void locationUpdated(Location location) {
+    	// Ignore updates of dubious accuracy
+    	if (location.getAccuracy() > 100) // Accuracy is determined in mysterious Android units
+    		return;
+    	
     	stopLocationListener(); // For now only update once
 
     	// Now get the ones near us
