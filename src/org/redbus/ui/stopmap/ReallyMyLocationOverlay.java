@@ -26,12 +26,12 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 
-public class WorkaroundMyLocationOverlay extends MyLocationOverlay {
+public class ReallyMyLocationOverlay extends MyLocationOverlay {
 	
 	private MapView mapView;
 	private final int MinLocationAccuracy = 100;
 	
-	public WorkaroundMyLocationOverlay(Context ctx, MapView mapView) {
+	public ReallyMyLocationOverlay(Context ctx, MapView mapView) {
 		super(ctx, mapView);
 		
 		this.mapView = mapView;

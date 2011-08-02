@@ -98,7 +98,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		mapController.setZoom(17);
 
 		// Make map update automatically as user moves around
-		myLocationOverlay = new WorkaroundMyLocationOverlay(this, mapView);
+		myLocationOverlay = new ReallyMyLocationOverlay(this, mapView);
 		mapView.getOverlays().add(myLocationOverlay);
 
 		// Check to see if we've been passed data
