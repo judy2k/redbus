@@ -1,20 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableLayout
+<LinearLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent"
-  android:layout_height="wrap_content"
-  android:stretchColumns="1">
-  	<TableRow>
-		<TextView 	android:id="@+id/bustimes_service" 
-					android:textAppearance="@style/textappearance_service"
-					android:width="80px" />
-					
-		<TextView 	android:id="@+id/bustimes_destination" 
-					android:layout_gravity="center_vertical" />
-					
-		<TextView 	android:id="@+id/bustimes_time" 
-					android:textAppearance="@style/textappearance_time"
-					android:paddingRight="5px" 
-					android:gravity="right" />
-	</TableRow>
-</TableLayout>
+  android:layout_height="wrap_content" 
+  android:paddingRight="5px">
+	<TextView 	android:id="@+id/bustimes_service" 
+				android:textAppearance="@style/textappearance_service"
+				android:layout_width="70dp" 
+				android:layout_height="wrap_content" 
+				android:text="N27" 
+				android:layout_weight="0" 
+				android:layout_gravity="top"></TextView>
+				
+	<TextView 	android:id="@+id/bustimes_destination" 
+				android:layout_height="wrap_content" 
+				android:layout_width="wrap_content" 
+				android:text="Thistle Street" 
+				android:layout_weight="1" 
+				android:layout_gravity="center_vertical"></TextView>
+				
+	<TextView 	android:id="@+id/bustimes_time" 
+				android:textAppearance="@style/textappearance_time"
+				android:layout_width="wrap_content" 
+				android:layout_height="wrap_content" 
+				android:text="~00:00" 
+				android:layout_weight="0" 
+				android:layout_gravity="top"
+				android:gravity="right"></TextView>
+</LinearLayout>
