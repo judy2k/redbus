@@ -146,7 +146,6 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	public void onResume() {
 		updateMyLocationStatus(true);
 		super.onResume();
-		Toast.makeText(this, "Finding your location...", Toast.LENGTH_SHORT).show();
 	}	
 	
 	@Override
@@ -351,6 +350,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	private void updateMyLocationStatus(boolean status) {
 		if (status) {
 			myLocationOverlay.enableMyLocation();
+			Toast.makeText(this, "Finding your location...", Toast.LENGTH_SHORT).show();
 		} else {
 			myLocationOverlay.disableMyLocation();
 		}
