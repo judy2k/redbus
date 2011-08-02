@@ -350,14 +350,6 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	private void updateMyLocationStatus(boolean status) {
 		if (status) {
 			myLocationOverlay.enableMyLocation();
-			myLocationOverlay.runOnFirstFix(new Runnable() {
-				public void run() {
-					try {
-						mapController.animateTo(myLocationOverlay.getMyLocation());
-					} catch (Throwable t) {						
-					}
-				}
-			});
 		} else {
 			myLocationOverlay.disableMyLocation();
 		}

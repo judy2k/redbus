@@ -21,23 +21,20 @@ package org.redbus.ui.stopmap;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.location.Location;
-import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 
-/* 
- * This is a quick hack fix for some buggy Android versions which throw exceptions from the drawMyLocation method from inside Android's code
- */
 public class WorkaroundMyLocationOverlay extends MyLocationOverlay {
 	
-	private Context ctx;
+	private MapView mapView;
+	private final int MinLocationAccuracy = 100;
 	
 	public WorkaroundMyLocationOverlay(Context ctx, MapView mapView) {
 		super(ctx, mapView);
-		this.ctx = ctx;
+		
+		this.mapView = mapView;
 	}
 
 	@Override
@@ -46,16 +43,21 @@ public class WorkaroundMyLocationOverlay extends MyLocationOverlay {
 		try {
 			super.drawMyLocation(canvas, mapView, lastFix, myLocation, when);
 		} catch (Throwable t) {
-			
 		}
 	}
 
 	@Override
 	public synchronized void onLocationChanged(Location location) {
 		// ignore android's wild guesses!
-		if (location.getAccuracy() > 100)
+		if (location.getAccuracy() > MinLocationAccuracy)
 			return;
-		
 		super.onLocationChanged(location);
+
+		if (isMyLocationEnabled()) {
+			try {
+				mapView.getController().animateTo(getMyLocation());
+			} catch (Throwable t) {
+			}
+		}
 	}
 }
