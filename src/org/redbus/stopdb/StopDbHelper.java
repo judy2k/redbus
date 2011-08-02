@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Colin Paton - cozzarp@googlemail.com
+ * Copyright 2010, 2011 Colin Paton - cozzarp@googlemail.com
  * This file is part of rEdBus.
  *
  *  rEdBus is free software: you can redistribute it and/or modify

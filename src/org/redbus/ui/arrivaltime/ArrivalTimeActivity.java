@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Andrew De Quincey -  adq@lidskialf.net
+ * Copyright 2010, 2011 Andrew De Quincey -  adq@lidskialf.net
  * This file is part of rEdBus.
  *
  *  rEdBus is free software: you can redistribute it and/or modify
