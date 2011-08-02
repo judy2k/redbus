@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.redbus.R;
 import org.redbus.arrivaltime.ArrivalTime;
+import org.redbus.stopdb.StopDbHelper;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -35,13 +36,18 @@ public class ArrivalTimeArrayAdapter extends ArrayAdapter<ArrivalTime> {
 	private List<ArrivalTime> items;
 	private int textViewResourceId;
 	private Context ctx;
+	private StopDbHelper pt;
 
-	public ArrivalTimeArrayAdapter(Context context, int textViewResourceId, List<ArrivalTime> items) {
+	// Take a StopDbHelper to convert stop codes to names. If this is null stop names are not displayed.
+	// FIXME - Create a subclass of this - neater
+	
+	public ArrivalTimeArrayAdapter(Context context, int textViewResourceId, List<ArrivalTime> items, StopDbHelper pt) {
 		super(context, textViewResourceId, items);
 
 		this.ctx = context;
 		this.textViewResourceId = textViewResourceId;
 		this.items = items;
+		this.pt = pt;
 	}
 
 	@Override
@@ -62,11 +68,19 @@ public class ArrivalTimeArrayAdapter extends ArrayAdapter<ArrivalTime> {
 
 		serviceView.setText(arrivalTime.service);
 		
+		// FIXME - move this into a subclass
+		String destinationTxt = arrivalTime.destination;
+		
+		if (pt != null)
+			destinationTxt += "\n@" + pt.lookupStopNameByStopNodeIdx(pt.lookupStopNodeIdxByStopCode((int) arrivalTime.stopCode));
+			
+		// END FIXME
+		
 		if (arrivalTime.isDiverted) {
 			destinationView.setText("DIVERTED");
 			timeView.setText("");
 		} else {
-			destinationView.setText(arrivalTime.destination);
+			destinationView.setText(destinationTxt);
 
 			if (arrivalTime.arrivalIsDue)
 				timeView.setText("Due");

@@ -41,6 +41,7 @@ import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -65,9 +66,10 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     	super.onCreate(savedInstanceState);
     	setTitle("Nearby services");
     	
+    	pt = StopDbHelper.Load(this);
     	busyDialog = new BusyDialog(this);
     	arrivalTimes = new ArrayList<ArrivalTime>();
-		lvAdapter = new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, arrivalTimes);		
+		lvAdapter = new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, arrivalTimes, pt);		
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
 		setContentView(R.layout.nearbybookmarkedarrivaltime);
@@ -75,7 +77,6 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 		ListView lv = (ListView)findViewById(R.id.nearbystopslist);
 		lv.setAdapter(lvAdapter);
 
-    	pt = StopDbHelper.Load(this);
     	
         // Define a listener that responds to location updates
         locationListener = new LocationListener() {
@@ -89,8 +90,16 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
             }
 
             public void onProviderEnabled(String provider) {}
-            public void onProviderDisabled(String provider) {}
-			public void onStatusChanged(String arg0, int arg1, Bundle arg2) {}
+            public void onProviderDisabled(String provider) {
+				busyDialog.dismiss();
+				showLocationError();	
+            }
+			public void onStatusChanged(String provider, int status, Bundle extras) {
+				if (status != LocationProvider.AVAILABLE) {
+				busyDialog.dismiss();
+				showLocationError();
+				}
+			}
           };
           
     }
@@ -130,7 +139,6 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     	// Use network updates for quick, but rough updates
 
     	locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, // min time
-    	
     	//locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, // min time
     			1, // min distance
     			locationListener);
@@ -179,7 +187,7 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     	busyDialog.dismiss();
     	Toast.makeText(getBaseContext(), 
     			toastTxt, 
-    			Toast.LENGTH_SHORT).show(); 
+    			Toast.LENGTH_LONG).show(); 
 
     	// Download the first stop
     	nextStopToDownload = nearby.iterator();
@@ -249,6 +257,7 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 		findViewById(R.id.nearbynobookmarks).setVisibility(View.VISIBLE);
 		findViewById(R.id.nearbybookmarkednoservices).setVisibility(View.GONE);
 		findViewById(R.id.nearbystopslist).setVisibility(View.GONE);
+		findViewById(R.id.nearbybookmarked_error).setVisibility(View.GONE);
 	}
 	
 	private void showNoServicesMessage()
@@ -256,6 +265,7 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 		findViewById(R.id.nearbynobookmarks).setVisibility(View.GONE);
 		findViewById(R.id.nearbybookmarkednoservices).setVisibility(View.VISIBLE);
 		findViewById(R.id.nearbystopslist).setVisibility(View.GONE);
+		findViewById(R.id.nearbybookmarked_error).setVisibility(View.GONE);
 	}
 	
 	private void showData()
@@ -263,13 +273,22 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 		findViewById(R.id.nearbynobookmarks).setVisibility(View.GONE);
 		findViewById(R.id.nearbybookmarkednoservices).setVisibility(View.GONE);
 		findViewById(R.id.nearbystopslist).setVisibility(View.VISIBLE);
+		findViewById(R.id.nearbybookmarked_error).setVisibility(View.GONE);
 	}
 	
+	private void showLocationError()
+	{
+		findViewById(R.id.nearbynobookmarks).setVisibility(View.GONE);
+		findViewById(R.id.nearbybookmarkednoservices).setVisibility(View.GONE);
+		findViewById(R.id.nearbystopslist).setVisibility(View.GONE);
+		findViewById(R.id.nearbybookmarked_error).setVisibility(View.VISIBLE);
+	}
 	private void showBlank()
 	{
 		findViewById(R.id.nearbynobookmarks).setVisibility(View.GONE);
 		findViewById(R.id.nearbybookmarkednoservices).setVisibility(View.GONE);
 		findViewById(R.id.nearbystopslist).setVisibility(View.GONE);
+		findViewById(R.id.nearbybookmarked_error).setVisibility(View.GONE);
 	}
 
 	public void onCancel(DialogInterface arg0) {

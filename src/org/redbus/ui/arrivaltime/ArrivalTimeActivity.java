@@ -300,7 +300,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		busyDialog.dismiss();
 		hideStatusBoxes();
 
-		setListAdapter(new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, new ArrayList<ArrivalTime>()));
+		setListAdapter(new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, new ArrayList<ArrivalTime>(),null));
 		findViewById(R.id.bustimes_error).setVisibility(View.VISIBLE);
 
 		new AlertDialog.Builder(this).setTitle("Error").
@@ -337,7 +337,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 			});
 		}
 
-		setListAdapter(new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, busTimes));
+		setListAdapter(new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, busTimes, null));
 		if (busTimes.isEmpty())
 			findViewById(R.id.bustimes_nodepartures).setVisibility(View.VISIBLE);
 	}
