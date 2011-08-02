@@ -56,7 +56,7 @@ public class ArrivalTimeHelper {
 	{
 		int requestId = RequestId++;
 		
-		new AsyncHttpRequestTask().execute(new BusDataRequest(requestId, 
+		new AsyncHttpRequestTask().execute(new BusDataRequest(requestId, stopCode, 
 				buildURL(stopCode, daysInAdvance, timeInAdvance, 4), 
 				BusDataRequest.REQ_BUSTIMES, 
 				callback));		
@@ -129,7 +129,7 @@ public class ArrivalTimeHelper {
 				case XmlPullParser.START_TAG:
 					String tagName = parser.getName();
 					if (tagName == "pre") {
-						ArrivalTime bt = parseStopTime(parser);
+						ArrivalTime bt = parseStopTime(parser,request.stopCode);
 						if (bt.isDiverted) {
 							if (wasDiverted.containsKey(bt.service))
 								continue;
@@ -161,7 +161,7 @@ public class ArrivalTimeHelper {
 		}
 	}
 	
-	private static ArrivalTime parseStopTime(XmlPullParser parser) 
+	private static ArrivalTime parseStopTime(XmlPullParser parser, long stopCode) 
 		throws XmlPullParserException, IOException
 	{
 		String rawDestination = parser.nextText();
@@ -243,7 +243,7 @@ public class ArrivalTimeHelper {
 				arrivalMinutesLeft = Integer.parseInt(rawTime);
 		}
 
-		return new ArrivalTime(service, destination, isDiverted, lowFloorBus, arrivalEstimated, arrivalIsDue, arrivalMinutesLeft, arrivalAbsoluteTime);
+		return new ArrivalTime(service, stopCode, destination, isDiverted, lowFloorBus, arrivalEstimated, arrivalIsDue, arrivalMinutesLeft, arrivalAbsoluteTime);
 	}
 	
 	private static class AsyncHttpRequestTask extends AsyncTask<BusDataRequest, Integer, BusDataRequest> {
@@ -314,12 +314,13 @@ public class ArrivalTimeHelper {
 		
 		public static final int REQ_BUSTIMES = 0;
 		
-		public BusDataRequest(int requestId, URL url, int requestType, IArrivalTimeResponseListener callback)
+		public BusDataRequest(int requestId, long stopCode, URL url, int requestType, IArrivalTimeResponseListener callback)
 		{
 			this.requestId = requestId;
 			this.url = url;
 			this.requestType = requestType;
 			this.callback = callback;
+			this.stopCode = stopCode;
 		}
 		
 		public int requestId;
@@ -327,5 +328,6 @@ public class ArrivalTimeHelper {
 		public int requestType;
 		public IArrivalTimeResponseListener callback;
 		public String content = null;
+		public long stopCode;
 	}
 }
