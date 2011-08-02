@@ -21,6 +21,8 @@ package org.redbus.ui.stopmap;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.location.Location;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
@@ -31,8 +33,11 @@ import com.google.android.maps.MyLocationOverlay;
  */
 public class WorkaroundMyLocationOverlay extends MyLocationOverlay {
 	
+	private Context ctx;
+	
 	public WorkaroundMyLocationOverlay(Context ctx, MapView mapView) {
 		super(ctx, mapView);
+		this.ctx = ctx;
 	}
 
 	@Override
@@ -43,5 +48,14 @@ public class WorkaroundMyLocationOverlay extends MyLocationOverlay {
 		} catch (Throwable t) {
 			
 		}
+	}
+
+	@Override
+	public synchronized void onLocationChanged(Location location) {
+		// ignore android's wild guesses!
+		if (location.getAccuracy() > 100)
+			return;
+		
+		super.onLocationChanged(location);
 	}
 }
