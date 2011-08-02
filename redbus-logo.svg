@@ -25,8 +25,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="5.6"
-     inkscape:cx="188.60054"
-     inkscape:cy="655.70533"
+     inkscape:cx="220.27785"
+     inkscape:cy="637.58149"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -72,249 +72,249 @@
        inkscape:export-xdpi="622.70001"
        inkscape:export-ydpi="622.70001" />
     <g
-       id="g4225"
-       transform="matrix(1,0,0,0.99894088,-90.371121,-11.979975)"
-       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
-       inkscape:export-xdpi="622.70001"
-       inkscape:export-ydpi="622.70001">
-      <rect
-         y="421.90073"
-         x="341.17902"
-         height="38.006989"
-         width="3.0304577"
-         id="rect4223"
-         style="fill:#336666;fill-opacity:1;stroke:none" />
+       id="g3125">
       <g
-         transform="translate(-15.657364,0.12626907)"
-         id="g4211">
+         id="g3091">
+        <rect
+           style="fill:#336666;fill-opacity:1;stroke:none"
+           id="rect4223"
+           width="3.0304577"
+           height="37.966736"
+           x="250.80789"
+           y="409.47391" />
         <rect
            style="fill:#999999;fill-opacity:1;stroke:none"
            id="rect4098"
            width="13.005714"
-           height="17.930208"
-           x="351.65933"
-           y="404.72812" />
+           height="17.911219"
+           x="245.63084"
+           y="392.44562" />
         <rect
            style="fill:#66cc99;fill-opacity:1;stroke:none"
            id="rect4100"
            width="4.293148"
-           height="4.0406103"
-           x="352.79578"
-           y="405.73828" />
-        <g
-           id="g4202"
-           transform="matrix(1.1267606,0,0,1,-61.224492,-3.4092648)">
-          <rect
-             y="414.19833"
-             x="367.44299"
-             height="9.975256"
-             width="8.9651041"
-             id="rect4102"
-             style="fill:#666666;fill-opacity:1;stroke:none" />
-          <rect
-             y="415.33466"
-             x="368.26376"
-             height="1.2626902"
-             width="7.1973138"
-             id="rect4104"
-             style="fill:#669933;fill-opacity:1;stroke:none" />
-          <g
-             transform="translate(-0.05932617,0.32550561)"
-             id="g4198">
-            <rect
-               style="fill:#669933;fill-opacity:1;stroke:none"
-               id="rect4104-8"
-               width="3.788049"
-               height="1.2626902"
-               x="368.32309"
-               y="417.11365" />
-            <rect
-               style="fill:#669933;fill-opacity:1;stroke:none"
-               id="rect4104-8-4"
-               width="1.3889366"
-               height="1.2626902"
-               x="374.13147"
-               y="417.11365" />
-          </g>
-          <rect
-             y="419.54364"
-             x="368.26376"
-             height="1.2626902"
-             width="7.1973138"
-             id="rect4104-7"
-             style="fill:#669933;fill-opacity:1;stroke:none" />
-          <rect
-             y="421.64813"
-             x="368.26376"
-             height="1.2626902"
-             width="5.4295468"
-             id="rect4104-7-3"
-             style="fill:#669933;fill-opacity:1;stroke:none" />
-        </g>
+           height="4.0363307"
+           x="246.76729"
+           y="393.45471" />
+        <rect
+           style="fill:#666666;fill-opacity:1;stroke:none"
+           id="rect4102"
+           width="10.101526"
+           height="9.9646912"
+           x="246.7673"
+           y="398.50015" />
+        <rect
+           style="fill:#669933;fill-opacity:1;stroke:none"
+           id="rect4104"
+           width="8.1096497"
+           height="1.2613529"
+           x="247.69212"
+           y="399.63528" />
+        <rect
+           style="fill:#669933;fill-opacity:1;stroke:none"
+           id="rect4104-8"
+           width="4.2682242"
+           height="1.2613529"
+           x="247.69211"
+           y="401.73755" />
+        <rect
+           style="fill:#669933;fill-opacity:1;stroke:none"
+           id="rect4104-8-4"
+           width="1.5649991"
+           height="1.2613529"
+           x="254.23677"
+           y="401.73755" />
+        <rect
+           style="fill:#669933;fill-opacity:1;stroke:none"
+           id="rect4104-7"
+           width="8.1096497"
+           height="1.2613529"
+           x="247.69212"
+           y="403.83981" />
+        <rect
+           style="fill:#669933;fill-opacity:1;stroke:none"
+           id="rect4104-7-3"
+           width="6.1177993"
+           height="1.2613529"
+           x="247.69212"
+           y="405.94205" />
+      </g>
+      <g
+         id="g3102">
+        <path
+           style="fill:#a4c639"
+           inkscape:connector-curvature="0"
+           d="m 252.54,419.34712 1.3158,2.2854 c -2.39514,1.17361 -4.01867,3.47143 -4.01867,6.10769 h 7.66287 7.66287 c 0,-2.6362 -1.62353,-4.93405 -4.01866,-6.10769 l 1.31612,-2.28536 c 0,0 0.0623,-0.12138 -0.0558,-0.18952 -0.11823,-0.0682 -0.19759,0.0481 -0.19759,0.0481 l -1.33621,2.30549 c -1.01746,-0.45234 -2.16129,-0.70785 -3.37081,-0.70785 -1.20958,0 -2.35344,0.25551 -3.37081,0.70785 l -1.33621,-2.30549 c 0,0 -0.0745,-0.11629 -0.1935,-0.0484 -0.11921,0.0678 -0.0596,0.18985 -0.0596,0.18985 z m 1.3158,4.42666 c 0.40151,0 0.72884,0.32699 0.72884,0.72807 -1e-5,0.40109 -0.32733,0.71798 -0.72884,0.71798 -0.40151,0 -0.72884,-0.31689 -0.72884,-0.71798 0,-0.40109 0.32733,-0.72807 0.72884,-0.72807 z m 7.28841,0 c 0.40151,0 0.72884,0.32699 0.72884,0.72807 -10e-6,0.40109 -0.32733,0.71798 -0.72884,0.71798 -0.40151,0 -0.72885,-0.31689 -0.72885,-0.71798 0,-0.40109 0.32734,-0.72807 0.72885,-0.72807 z"
+           id="path4078" />
+        <path
+           style="fill:#a4c639"
+           inkscape:connector-curvature="0"
+           d="m 249.77558,428.63133 0,11.61448 c 0,0.57621 0.6972,1.33046 1.27402,1.33046 h 1.82356 v 3.95973 c 0,1.00836 0.73502,1.82017 1.65003,1.82017 0.91497,0 1.65003,-0.81181 1.65003,-1.82017 v -3.95973 h 2.65217 v 3.95973 c 0,1.00836 0.73503,1.82017 1.65003,1.82017 0.91497,0 1.66014,-0.81181 1.66014,-1.82017 v -3.95973 h 1.81342 c 0.57682,0 1.27401,-0.75425 1.27401,-1.33046 v -11.61448 h -15.44754 z"
+           id="path4080" />
+        <rect
+           style="fill:#a4c639"
+           rx="1.8221024"
+           ry="1.8201725"
+           height="10.531114"
+           width="3.303107"
+           y="428.38834"
+           x="245.58167"
+           id="rect4082" />
+        <rect
+           style="fill:#a4c639"
+           rx="1.8221024"
+           ry="1.8201725"
+           height="10.531114"
+           width="3.303107"
+           y="428.38834"
+           x="266.11554"
+           id="rect4084" />
+      </g>
+      <g
+         id="g3108">
+        <rect
+           style="fill:#000000;fill-opacity:1;stroke:none"
+           id="rect4274"
+           width="5"
+           height="4.9947042"
+           x="201.25"
+           y="442.36755"
+           inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
+           inkscape:export-xdpi="622.70001"
+           inkscape:export-ydpi="622.70001" />
+        <rect
+           style="fill:#000000;fill-opacity:1;stroke:none"
+           id="rect4274-0"
+           width="5"
+           height="4.9947042"
+           x="232.5"
+           y="442.36755"
+           inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
+           inkscape:export-xdpi="622.70001"
+           inkscape:export-ydpi="622.70001" />
+        <path
+           style="fill:#ffffff;fill-opacity:1;stroke:none"
+           d="m 198.75,379.80889 c 0,-4.89481 13.01564,-6.06096 20,-6.11852 7.38309,-0.0608 21.25,1.22371 21.25,6.11852 0,22.02664 0,63.63253 0,63.63253 l -41.25,0 c 0,0 0,-42.82958 0,-63.63253 z"
+           id="rect4266"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cacccc"
+           inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
+           inkscape:export-xdpi="29.287312"
+           inkscape:export-ydpi="29.287312" />
+        <path
+           style="fill:#85161e;fill-opacity:1;stroke:none"
+           d="m 198.75,428.75699 c 5.5,4.40533 13.01564,6.06097 20,6.11851 7.38309,0.0608 15.75,-1.71318 21.25,-6.11851 0,3.67111 0,14.68443 0,14.68443 l -41.25,0 c 0,0 0,-11.01332 0,-14.68443 z"
+           id="rect4348"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cscccc"
+           inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
+           inkscape:export-xdpi="29.287312"
+           inkscape:export-ydpi="29.287312" />
+        <rect
+           style="fill:#000000;fill-opacity:1;stroke:none"
+           id="rect4272"
+           width="38.75"
+           height="14.684431"
+           x="200"
+           y="392.04593"
+           inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
+           inkscape:export-xdpi="29.287312"
+           inkscape:export-ydpi="29.287312" />
+        <path
+           style="fill:#d5ffff;fill-opacity:1;stroke:none"
+           d="m 200,406.73034 38.75,0 0,21.53717 c 0,0 -5.83333,5.38429 -18.75,5.38429 -14.09091,0 -20,-5.41925 -20,-5.41925 z"
+           id="rect4269-6"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cccscc"
+           inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
+           inkscape:export-xdpi="29.287312"
+           inkscape:export-ydpi="29.287312" />
+        <path
+           style="fill:#d4feff;fill-opacity:1;stroke:none"
+           d="m 200,379.31941 c 1.25,-3.18163 12.32268,-4.36056 18.75,-4.40533 6.83316,-0.0476 18.75,1.2237 20,4.40533 0,4.25076 0,11.5028 0,11.5028 l -38.75,0 c 0,0 0,-7.4882 0,-11.5028 z"
+           id="rect4266-4"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cacccc"
+           inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
+           inkscape:export-xdpi="29.287312"
+           inkscape:export-ydpi="29.287312" />
+        <rect
+           style="fill:#ffffff;fill-opacity:1;stroke:none"
+           id="rect4350"
+           width="18.75"
+           height="3.6711078"
+           x="205.12627"
+           y="400.97025"
+           inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
+           inkscape:export-xdpi="29.287312"
+           inkscape:export-ydpi="29.287312" />
+        <rect
+           style="fill:#ffffff;fill-opacity:1;stroke:none"
+           id="rect4352"
+           width="16.25"
+           height="3.6711078"
+           x="206.25"
+           y="394.49332"
+           inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
+           inkscape:export-xdpi="29.287312"
+           inkscape:export-ydpi="29.287312" />
+        <text
+           xml:space="preserve"
+           style="font-size:2.44273353px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+           x="227.48741"
+           y="406.30313"
+           id="text4354"
+           sodipodi:linespacing="125%"
+           inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
+           inkscape:export-xdpi="29.287312"
+           inkscape:export-ydpi="29.287312"
+           transform="scale(1.0106879,0.98942514)"><tspan
+             sodipodi:role="line"
+             id="tspan4356"
+             x="227.48741"
+             y="406.30313"
+             style="font-size:10.07788277px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Courier New;-inkscape-font-specification:Courier New Bold">8</tspan></text>
+        <rect
+           style="fill:#4d4d4d;fill-opacity:1;stroke:none"
+           id="rect4274-7"
+           width="2.5"
+           height="4.9947042"
+           x="233.71429"
+           y="442.36749"
+           inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
+           inkscape:export-xdpi="622.70001"
+           inkscape:export-ydpi="622.70001" />
+        <rect
+           style="fill:#4d4d4d;fill-opacity:1;stroke:none"
+           id="rect4274-7-9"
+           width="2.5"
+           height="4.9947042"
+           x="202.5"
+           y="442.36218"
+           inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
+           inkscape:export-xdpi="622.70001"
+           inkscape:export-ydpi="622.70001" />
+        <path
+           sodipodi:type="arc"
+           style="fill:#ffffff;stroke:none"
+           id="path3016"
+           sodipodi:cx="203.75"
+           sodipodi:cy="438.61218"
+           sodipodi:rx="1.25"
+           sodipodi:ry="1.25"
+           d="m 205,438.61218 a 1.25,1.25 0 1 1 -2.5,0 1.25,1.25 0 1 1 2.5,0 z"
+           transform="translate(0,0.71428572)" />
+        <path
+           transform="translate(31.214294,0.71428572)"
+           sodipodi:type="arc"
+           style="fill:#ffffff;stroke:none"
+           id="path3016-9"
+           sodipodi:cx="203.75"
+           sodipodi:cy="438.61218"
+           sodipodi:rx="1.25"
+           sodipodi:ry="1.25"
+           d="m 205,438.61218 a 1.25,1.25 0 1 1 -2.5,0 1.25,1.25 0 1 1 2.5,0 z" />
       </g>
     </g>
-    <g
-       id="g4092"
-       transform="matrix(0.32392931,0,0,0.32358623,245.58167,419.13602)"
-       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
-       inkscape:export-xdpi="622.70001"
-       inkscape:export-ydpi="622.70001">
-      <path
-         id="path4078"
-         d="m 21.481,0.65239 4.062,7.0627 c -7.394,3.6269 -12.406,10.728 -12.406,18.875 h 23.656 23.656 c 0,-8.1468 -5.012,-15.248 -12.406,-18.875 l 4.063,-7.0626 c 0,0 0.19231,-0.37509 -0.17225,-0.58569 -0.365,-0.21059 -0.61,0.14869 -0.61,0.14869 l -4.125,7.1248 c -3.141,-1.3979 -6.6721,-2.1875 -10.406,-2.1875 -3.7341,0 -7.2653,0.7896 -10.406,2.1875 l -4.125,-7.1248 c 0,0 -0.23006,-0.35939 -0.59737,-0.14971 -0.368,0.20967 -0.184,0.58671 -0.184,0.58671 z m 4.062,13.68 c 1.2395,0 2.25,1.0105 2.25,2.25 -10e-6,1.2395 -1.0105,2.2188 -2.25,2.2188 -1.2395,0 -2.25,-0.97928 -2.25,-2.2188 0,-1.23952 1.0105,-2.25 2.25,-2.25 z m 22.5,0 c 1.2395,0 2.25,1.0105 2.25,2.25 -10e-6,1.2395 -1.0105,2.2188 -2.25,2.2188 -1.2395,0 -2.25,-0.97928 -2.25,-2.2188 0,-1.23952 1.0105,-2.25 2.25,-2.25 z"
-         inkscape:connector-curvature="0"
-         style="fill:#a4c639" />
-      <path
-         id="path4080"
-         d="m 12.947,29.344 0,35.893 c 0,1.7807 2.1523,4.1116 3.933,4.1116 h 5.6295 v 12.237 c 0,3.1162 2.2691,5.625 5.0938,5.625 2.8246,0 5.0938,-2.5088 5.0938,-5.625 v -12.237 h 8.1875 v 12.237 c 0,3.1162 2.2691,5.625 5.0938,5.625 2.8246,0 5.125,-2.5088 5.125,-5.625 v -12.237 h 5.5982 c 1.7807,0 3.933,-2.3309 3.933,-4.1116 V 29.344 h -47.688 z"
-         inkscape:connector-curvature="0"
-         style="fill:#a4c639" />
-      <rect
-         id="rect4082"
-         x="0"
-         y="28.593"
-         width="10.197"
-         height="32.544998"
-         ry="5.625"
-         rx="5.625"
-         style="fill:#a4c639" />
-      <rect
-         id="rect4084"
-         x="63.389999"
-         y="28.593"
-         width="10.197"
-         height="32.544998"
-         ry="5.625"
-         rx="5.625"
-         style="fill:#a4c639" />
-    </g>
-    <rect
-       style="fill:#000000;fill-opacity:1;stroke:none"
-       id="rect4274"
-       width="5"
-       height="4.9947042"
-       x="201.25"
-       y="442.36755"
-       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
-       inkscape:export-xdpi="622.70001"
-       inkscape:export-ydpi="622.70001" />
-    <rect
-       style="fill:#000000;fill-opacity:1;stroke:none"
-       id="rect4274-0"
-       width="5"
-       height="4.9947042"
-       x="232.5"
-       y="442.36755"
-       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
-       inkscape:export-xdpi="622.70001"
-       inkscape:export-ydpi="622.70001" />
-    <g
-       id="g3012"
-       transform="matrix(1,0,0,0.9789621,0,7.9382088)"
-       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
-       inkscape:export-xdpi="622.70001"
-       inkscape:export-ydpi="622.70001">
-      <path
-         inkscape:export-ydpi="29.287312"
-         inkscape:export-xdpi="29.287312"
-         inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
-         sodipodi:nodetypes="cacccc"
-         inkscape:connector-curvature="0"
-         id="rect4266"
-         d="m 198.75,379.86218 c 0,-5 13.01564,-6.19121 20,-6.25 7.38309,-0.0621 21.25,1.25 21.25,6.25 0,22.5 0,65 0,65 l -41.25,0 c 0,0 0,-43.74999 0,-65 z"
-         style="fill:#ffffff;fill-opacity:1;stroke:none" />
-      <path
-         inkscape:export-ydpi="29.287312"
-         inkscape:export-xdpi="29.287312"
-         inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
-         sodipodi:nodetypes="cscccc"
-         inkscape:connector-curvature="0"
-         id="rect4348"
-         d="m 198.75,429.86218 c 5.5,4.5 13.01564,6.19122 20,6.25 7.38309,0.0621 15.75,-1.75 21.25,-6.25 0,3.75 0,15 0,15 l -41.25,0 c 0,0 0,-11.25 0,-15 z"
-         style="fill:#85161e;fill-opacity:1;stroke:none" />
-      <rect
-         inkscape:export-ydpi="29.287312"
-         inkscape:export-xdpi="29.287312"
-         inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
-         y="392.36218"
-         x="200"
-         height="15"
-         width="38.75"
-         id="rect4272"
-         style="fill:#000000;fill-opacity:1;stroke:none" />
-      <path
-         inkscape:export-ydpi="29.287312"
-         inkscape:export-xdpi="29.287312"
-         inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
-         sodipodi:nodetypes="cccscc"
-         inkscape:connector-curvature="0"
-         id="rect4269-6"
-         d="m 200,407.36218 38.75,0 0,22 c 0,0 -5.83333,5.5 -18.75,5.5 -14.09091,0 -20,-5.53571 -20,-5.53571 z"
-         style="fill:#d5ffff;fill-opacity:1;stroke:none" />
-      <path
-         inkscape:export-ydpi="29.287312"
-         inkscape:export-xdpi="29.287312"
-         inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
-         sodipodi:nodetypes="cacccc"
-         inkscape:connector-curvature="0"
-         id="rect4266-4"
-         d="m 200,379.36218 c 1.25,-3.25 12.32268,-4.45426 18.75,-4.5 6.83316,-0.0486 18.75,1.25 20,4.5 0,4.34211 0,11.75 0,11.75 l -38.75,0 c 0,0 0,-7.64912 0,-11.75 z"
-         style="fill:#d4feff;fill-opacity:1;stroke:none" />
-      <rect
-         inkscape:export-ydpi="29.287312"
-         inkscape:export-xdpi="29.287312"
-         inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
-         y="401.4783"
-         x="205.12627"
-         height="3.75"
-         width="18.75"
-         id="rect4350"
-         style="fill:#ffffff;fill-opacity:1;stroke:none" />
-      <rect
-         inkscape:export-ydpi="29.287312"
-         inkscape:export-xdpi="29.287312"
-         inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
-         y="394.86218"
-         x="206.25"
-         height="3.75"
-         width="16.25"
-         id="rect4352"
-         style="fill:#ffffff;fill-opacity:1;stroke:none" />
-      <text
-         inkscape:export-ydpi="29.287312"
-         inkscape:export-xdpi="29.287312"
-         inkscape:export-filename="/home/adq/dev/android/redbus/icon24.png"
-         sodipodi:linespacing="125%"
-         id="text4354"
-         y="402.53687"
-         x="229.91878"
-         style="font-size:2.46884108px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
-         xml:space="preserve"><tspan
-           style="font-size:10.18559361px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
-           y="402.53687"
-           x="229.91878"
-           id="tspan4356"
-           sodipodi:role="line">8</tspan></text>
-    </g>
-    <rect
-       style="fill:#4d4d4d;fill-opacity:1;stroke:none"
-       id="rect4274-7"
-       width="2.5"
-       height="4.9947042"
-       x="233.71429"
-       y="442.36749"
-       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
-       inkscape:export-xdpi="622.70001"
-       inkscape:export-ydpi="622.70001" />
-    <rect
-       style="fill:#4d4d4d;fill-opacity:1;stroke:none"
-       id="rect4274-7-9"
-       width="2.5"
-       height="4.9947042"
-       x="202.5"
-       y="442.36218"
-       inkscape:export-filename="/home/adq/dev/android/redbus/redbus-hires.png"
-       inkscape:export-xdpi="622.70001"
-       inkscape:export-ydpi="622.70001" />
   </g>
 </svg>

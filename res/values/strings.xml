@@ -11,5 +11,9 @@
 * Add warn when nearby stop button to map view.\n
 * Manually entering a stopcode now has an "add bookmark" checkbox.\n
 * Tweak tyres on logo to be visible on a dark background (Edinburgh doesn't (yet) have hoverbuses unfortunately).\n
-* Increase width of service name in arrival times view to stop linewrap.\n&quot;</string>
+* Increase width of service name in arrival times view to stop linewrap.\n
+* Add headlights to logo.\n
+* Fix initial wildly inaccurate initial map location.\n
+* Map now scrolls to track user location.\n
+* Trap lots of errors (thanks for sending in the error reports!).\n&quot;</string>
 </resources>
