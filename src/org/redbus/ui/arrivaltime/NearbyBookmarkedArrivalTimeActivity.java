@@ -90,12 +90,12 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 			public void onStatusChanged(String arg0, int arg1, Bundle arg2) {}
           };
           
-    	refresh();
     }
     
     @Override
     protected void onResume() {
     	super.onResume();
+    	refresh();
     }
     
     @Override
@@ -123,7 +123,10 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     
     private void startLocationListener() {
     	// Use network updates for quick, but rough updates
-    	locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, // min time
+
+    	locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, // min time
+    	
+    	//locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, // min time
     			1, // min distance
     			locationListener);
     }
@@ -143,7 +146,7 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 
         if (!bookmarkIds.isEmpty()) {
         	startLocationListener();
-        	busyDialog.show(this, "Finding bookmarked stops nearby");
+        	busyDialog.show(this, "Waiting for GPS to find bookmarked stops nearby");
         }
     	return bookmarkIds;
     }
