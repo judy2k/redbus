@@ -13,5 +13,11 @@
 		<TextView android:id="@+id/stopbookmarks_stopcode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="123456" />
     </LinearLayout>
     
-	<ImageView android:clickable="true" android:background="@android:color/transparent" android:src="@drawable/dropdown32" android:id="@+id/stopbookmarks_edit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0" android:layout_gravity="center_vertical"/>
+	<ImageView  android:scaleType="center" 
+				android:src="@drawable/dropdown" 
+				android:id="@+id/stopbookmarks_edit" 
+				android:layout_weight="0" 
+				android:layout_gravity="center_vertical" 
+				android:layout_width="wrap_content" 
+				android:layout_height="fill_parent" />
 </LinearLayout>
