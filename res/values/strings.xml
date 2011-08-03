@@ -6,15 +6,5 @@
 	<string name="bookmarkhelp">&quot;No bookmarks\n\nPress the 'map' button above to view a map of stops.\n\nFrom the map touch a stop on the map to display times, and then press menu to add a bookmark.&quot;</string>
 	<string name="futureboo">&quot;Lothian's website no longer supports future departures beyond the current day :(&quot;</string>
 	<string name="newversiontext">&quot;Changes:\n
-* Add new nearby bookmark times view -- more planned for this.\n
-* Fix arrival time alerts.\n
-* Allow arrival time alerts to be delayed.\n	
-* Add warn when nearby stop button to map view.\n
-* Manually entering a stopcode now has an "add bookmark" checkbox.\n
-* Icon tweaks: types + headlights.\n
-* Fix display issues with long service names.\n
-* Fix initial wildly inaccurate initial map location.\n
-* Map now scrolls to track user location.\n
-* Trap lots of errors (thanks for sending in the error reports!).\n
-* Integrate with google backup API.\n&quot;</string>
+* Detect if Google StreetView is missing, and provide link to market to install it if necessary.\n&quot;</string>
 </resources>
