@@ -45,7 +45,7 @@ public class CreateShortcutActivity extends ListActivity {
 	protected void onStart() 
 	{
 		super.onStart();
-		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this);
+		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this, null);
 		if (tmp != null)
 			listDb = tmp;
 	}

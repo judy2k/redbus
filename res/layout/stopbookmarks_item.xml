@@ -3,10 +3,15 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent"
   android:layout_height="wrap_content"
-  android:orientation="vertical" >
-	<TextView 	android:id="@+id/stopbookmarks_name" 
-				android:layout_width="fill_parent" 
-				android:layout_height="wrap_content" 
-				android:textAppearance="@style/textappearance_bookmarkname" />
-	<TextView android:id="@+id/stopbookmarks_stopcode" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  android:orientation="horizontal">
+  
+    <LinearLayout android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/linearLayout1" android:orientation="vertical" android:layout_weight="1"> 
+		<TextView 	android:id="@+id/stopbookmarks_name" 
+					android:layout_width="fill_parent" 
+					android:layout_height="wrap_content" 
+					android:textAppearance="@style/textappearance_bookmarkname" android:text="Bookmark"/>
+		<TextView android:id="@+id/stopbookmarks_stopcode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="123456" />
+    </LinearLayout>
+    
+	<ImageView android:clickable="true" android:background="@android:color/transparent" android:src="@android:drawable/ic_menu_edit" android:id="@+id/stopbookmarks_edit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0" android:layout_gravity="center_vertical"/>
 </LinearLayout>

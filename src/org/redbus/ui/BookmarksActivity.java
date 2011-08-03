@@ -58,7 +58,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
 
-public class BookmarksActivity extends ListActivity implements IStopDbUpdateResponseListener, OnCancelListener, ICommonResultReceiver
+public class BookmarksActivity extends ListActivity implements IStopDbUpdateResponseListener, OnCancelListener, ICommonResultReceiver, View.OnClickListener
 {	
 	private static final String bookmarksXmlFile = "/sdcard/redbus-stops.xml";
 	
@@ -86,7 +86,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	protected void onResume() 
 	{
 		super.onResume();
-		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this);
+		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this, this);
 		if (tmp != null)
 			listDb = tmp;
 	}
@@ -104,6 +104,11 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 
 	public void onCancel(DialogInterface dialog) {
 		expectedRequestId = -1;
+	}
+	
+	public void onClick(View v) {
+		/* Note: this will be called when the edit button is clicked on a bookmark */
+		openContextMenu(v);
 	}
 	
 	@Override
@@ -246,7 +251,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         SettingsHelper db = new SettingsHelper(this);
         if (db.restore(bookmarksXmlFile)) {
 	        Toast.makeText(this, "Bookmarks restored from " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
-    		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this);
+    		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this, this);
     		if (tmp != null)
     			listDb = tmp;
         }
@@ -431,13 +436,13 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	}
 
 	public void OnBookmarkRenamedOK(int stopCode) {
-    	SettingsHelper tmp = Common.updateBookmarksListAdaptor(this);
+    	SettingsHelper tmp = Common.updateBookmarksListAdaptor(this, this);
 		if (tmp != null)
 			listDb = tmp;
 	}
 
 	public void OnBookmarkDeletedOK(int stopCode) {
-		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this);
+		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this, this);
 		if (tmp != null)
 			listDb = tmp;
 	}

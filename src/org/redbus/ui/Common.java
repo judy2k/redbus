@@ -26,23 +26,36 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 public class Common 
 {
-	private static final String[] columnNames = new String[] { SettingsHelper.ID, SettingsHelper.BOOKMARKS_COL_STOPNAME };
-	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name };
+	private static final String[] columnNames = new String[] { SettingsHelper.ID, SettingsHelper.BOOKMARKS_COL_STOPNAME, SettingsHelper.ID };
+	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name, R.id.stopbookmarks_edit };
 	
-	public static SettingsHelper updateBookmarksListAdaptor(ListActivity la)
+	public static SettingsHelper updateBookmarksListAdaptor(ListActivity la, View.OnClickListener editClickListener)
 	{
+		final View.OnClickListener localEditClickListener = editClickListener;
+		
     	SimpleCursorAdapter cursorAdapter = (SimpleCursorAdapter) la.getListAdapter();
     	if (cursorAdapter == null) {
             SettingsHelper db = new SettingsHelper(la);
 	        Cursor listContentsCursor = db.getBookmarks();
 	        la.startManagingCursor(listContentsCursor);
-	        la.setListAdapter(new SimpleCursorAdapter(la, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds));
+	        SimpleCursorAdapter sca = new SimpleCursorAdapter(la, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds);
+	        sca.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
+	    		public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
+	    			if ((view.getId() == R.id.stopbookmarks_edit) && (localEditClickListener != null)) {
+	    				view.setOnClickListener(localEditClickListener);
+	    				return true;
+	    			}
+	    			return false;
+	    		}
+	        });
+	        la.setListAdapter(sca);	        	
 	        return db;
     	} else {
     		cursorAdapter.getCursor().requery();
