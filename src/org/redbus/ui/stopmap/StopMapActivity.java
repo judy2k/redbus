@@ -27,12 +27,15 @@ import org.redbus.geocode.IGeocodingResponseListener;
 import org.redbus.settings.SettingsHelper;
 import org.redbus.stopdb.ServiceBitmap;
 import org.redbus.stopdb.StopDbHelper;
+import org.redbus.stopdb.StopDbUpdateHelper;
+import org.redbus.ui.BookmarksActivity;
 import org.redbus.ui.BusyDialog;
 import org.redbus.ui.Common;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -324,7 +327,25 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		double stopLat = pt.lat[nodeIdx] / 1E6;
 		double stopLon = pt.lon[nodeIdx] / 1E6;
 
-        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("google.streetview:cbll=" + stopLat + "," + stopLon + "&cbp=1,180,,0,2.0")));		
+		try {
+			startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("google.streetview:cbll=" + stopLat + "," + stopLon + "&cbp=1,180,,0,2.0")));
+		} catch (ActivityNotFoundException ex) {
+			new AlertDialog.Builder(this)
+			.setTitle("Google StreetView required")
+			.setMessage("You will need Google StreetView installed for this to work. Would you like to go to the Android Market to install it?")
+			.setPositiveButton(android.R.string.ok, 
+					new DialogInterface.OnClickListener() {
+	                    public void onClick(DialogInterface dialog, int whichButton) {
+	                    	try {
+	                    		startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.android.street")));
+	                    	} catch (Throwable t) {
+	                    		Toast.makeText(StopMapActivity.this, "Sorry, I couldn't find the Android Market either!", 5000).show();
+	                    	}
+	                    }
+					})
+			.setNegativeButton(android.R.string.cancel, null)
+	        .show();
+		}
 	}
 	
 	public void doShowArrivalTimes(int stopCode) {
@@ -413,3 +434,4 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
   	       .show();
 	}
 }
+	
