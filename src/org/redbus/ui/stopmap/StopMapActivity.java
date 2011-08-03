@@ -66,8 +66,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	private int expectedRequestId = -1;
 	
 	private final int StopTapRadiusMetres = 50;
-
-	
+	private boolean isFirstResume = true;
 	
 	
 	
@@ -144,7 +143,9 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 
 	@Override
 	public void onResume() {
-		updateMyLocationStatus(true);
+		if (!isFirstResume)
+			updateMyLocationStatus(true);
+		isFirstResume = false;
 		super.onResume();
 	}	
 	
