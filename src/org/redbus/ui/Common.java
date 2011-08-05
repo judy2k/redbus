@@ -33,29 +33,18 @@ import android.widget.Toast;
 
 public class Common 
 {
-	private static final String[] columnNames = new String[] { SettingsHelper.ID, SettingsHelper.BOOKMARKS_COL_STOPNAME, SettingsHelper.ID };
-	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name, R.id.stopbookmarks_edit };
+	private static final String[] columnNames = new String[] { SettingsHelper.ID, SettingsHelper.BOOKMARKS_COL_STOPNAME};
+	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name};
 	
-	public static SettingsHelper updateBookmarksListAdaptor(ListActivity la, View.OnClickListener editClickListener)
+	public static SettingsHelper updateBookmarksListAdaptor(ListActivity la)
 	{
-		final View.OnClickListener localEditClickListener = editClickListener;
-		
     	SimpleCursorAdapter cursorAdapter = (SimpleCursorAdapter) la.getListAdapter();
     	if (cursorAdapter == null) {
             SettingsHelper db = new SettingsHelper(la);
 	        Cursor listContentsCursor = db.getBookmarks();
 	        la.startManagingCursor(listContentsCursor);
 	        SimpleCursorAdapter sca = new SimpleCursorAdapter(la, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds);
-	        sca.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
-	    		public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
-	    			if ((view.getId() == R.id.stopbookmarks_edit) && (localEditClickListener != null)) {
-	    				view.setOnClickListener(localEditClickListener);
-	    				return true;
-	    			}
-	    			return false;
-	    		}
-	        });
-	        la.setListAdapter(sca);	        	
+	        la.setListAdapter(sca);
 	        return db;
     	} else {
     		cursorAdapter.getCursor().requery();
