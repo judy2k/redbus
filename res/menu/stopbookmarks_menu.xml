@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-	<!--  <item android:id="@+id/stopbookmarks_menu_nearby_stops"
-		android:title="Nearby stops map"></item> -->
 	<item android:id="@+id/stopbookmarks_menu_bustimes" android:title="Enter stopcode"></item>
 
 	<item android:title="Backup / Restore" android:id="@+id/stopbookmarks_menu_backuprestore">
@@ -11,5 +9,8 @@
 				android:title="Restore"></item>
 		</menu>
 	</item>
-<item android:id="@+id/stopbookmarks_menu_checkupdates" android:title="Update bus data"></item>
+	
+	<item android:id="@+id/stopbookmarks_menu_checktraffic" android:title="View traffic alerts"></item>
+
+	<item android:id="@+id/stopbookmarks_menu_checkupdates" android:title="Update bus data"></item>
 </menu>

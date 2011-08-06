@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content" 
+  android:paddingRight="5px"
+  android:orientation="vertical">
+  
+	<LinearLayout android:orientation="horizontal"
+				  android:layout_height="wrap_content" 
+				  android:layout_width="fill_parent">
+				  
+		<TextView 	android:id="@+id/trafficinfo_date" 
+					android:layout_width="wrap_content" 
+					android:layout_height="wrap_content" 
+					android:text="2011/07/11 12:00" 
+					android:layout_gravity="left" 
+					android:textAppearance="@style/textappearance_trafficinfo_date"
+					android:paddingRight="5px"/>
+					
+		<TextView 	android:id="@+id/trafficinfo_location" 
+					android:layout_height="wrap_content" 
+					android:layout_width="wrap_content" 
+					android:text="Thistle Street" 
+					android:layout_gravity="right"
+					android:gravity="right"
+					android:layout_weight="1"
+					android:textAppearance="@style/textappearance_trafficinfo_location"/>
+	</LinearLayout>
+	
+	<TextView 	android:id="@+id/trafficinfo_description" 
+				android:layout_width="fill_parent" 
+				android:layout_height="wrap_content" 
+				android:text="Blah blah blah"></TextView>
+				
+</LinearLayout>

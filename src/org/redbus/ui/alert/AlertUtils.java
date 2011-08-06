@@ -31,6 +31,7 @@ import android.location.LocationManager;
 public class AlertUtils {
 	
 	public static final int ALERT_NOTIFICATION_ID = 1;
+	public static final int TRAFFIC_NOTIFICATION_ID = 2;
 
 	public static void addOngoingNotification(Context ctx)
 	{

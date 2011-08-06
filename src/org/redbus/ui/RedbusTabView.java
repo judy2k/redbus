@@ -19,6 +19,7 @@
 package org.redbus.ui;
 
 import org.redbus.R;
+import org.redbus.ui.alert.TrafficAlert;
 import org.redbus.ui.arrivaltime.NearbyBookmarkedArrivalTimeActivity;
 import org.redbus.ui.stopmap.StopMapActivity;
 
@@ -45,6 +46,8 @@ public class RedbusTabView extends TabActivity {
 	    
 	    tabHost.addTab(tabHost.newTabSpec("nearby").setIndicator("Nearby")
                 .setContent(new Intent().setClass(this, NearbyBookmarkedArrivalTimeActivity.class)));
+	    
+	    TrafficAlert.createTrafficAlert(this);
 	}
 	
 	@Override

@@ -19,15 +19,20 @@
 package org.redbus.ui;
 
 import java.util.Date;
+import java.util.List;
 
 import org.redbus.R;
 import org.redbus.settings.SettingsHelper;
 import org.redbus.stopdb.IStopDbUpdateResponseListener;
 import org.redbus.stopdb.StopDbHelper;
 import org.redbus.stopdb.StopDbUpdateHelper;
+import org.redbus.trafficnews.ITrafficNewsResponseListener;
+import org.redbus.trafficnews.NewsItem;
+import org.redbus.trafficnews.TrafficNewsHelper;
 import org.redbus.ui.alert.AlertUtils;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 import org.redbus.ui.stopmap.StopMapActivity;
+import org.redbus.ui.trafficinfo.TrafficInfoActivity;
 
 
 import android.app.AlertDialog;
@@ -63,7 +68,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	private static final String bookmarksXmlFile = "/sdcard/redbus-stops.xml";
 	
 	private BusyDialog busyDialog = null;
-	private int expectedRequestId = -1;
+	private int stopDbExpectedRequestId = -1;
 
 	private long stopCode = -1;
 	private String bookmarkName = null;
@@ -103,7 +108,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	}
 
 	public void onCancel(DialogInterface dialog) {
-		expectedRequestId = -1;
+		stopDbExpectedRequestId = -1;
 	}
 	
 	@Override
@@ -164,6 +169,10 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 			
 		case R.id.stopbookmarks_menu_restore:
 			doBookmarksRestore();
+			return true;
+			
+		case R.id.stopbookmarks_menu_checktraffic:
+			doCheckTraffic();
 			return true;
 		
 		case R.id.stopbookmarks_menu_checkupdates:
@@ -264,11 +273,14 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         	db.close();
         }
         
-		busyDialog.show(this, "Checking for updates...");
-		isManualUpdateCheck = true;
-		expectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
+        busyDialog.show(this, "Checking for updates...");
+        isManualUpdateCheck = true;
+        stopDbExpectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
 	}
-
+	
+	private void doCheckTraffic() {
+		TrafficInfoActivity.showActivity(this);
+	}
 
 	
 	
@@ -298,12 +310,12 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
             if (getIntent().getBooleanExtra("DoManualUpdate", false)) {
             	busyDialog.show(BookmarksActivity.this, "Checking for updates...");
         		isManualUpdateCheck = true;
-        		expectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
+        		stopDbExpectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
             } else {
             	// otherwise, we do an background update check
 	        	if (nextUpdateCheck <= new Date().getTime() / 1000) {
 	        		isManualUpdateCheck = false;
-	        		expectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
+	        		stopDbExpectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
 	        	}
             }
         } catch (Throwable t) {
@@ -337,7 +349,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	}
 
 	public void onAsyncCheckUpdateError(int requestId) {
-		if (requestId != expectedRequestId)
+		if (requestId != stopDbExpectedRequestId)
 			return;
 
 		if (busyDialog != null)
@@ -349,7 +361,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	}
 
 	public void onAsyncCheckUpdateSuccess(int requestId, long updateDate) {
-		if (requestId != expectedRequestId)
+		if (requestId != stopDbExpectedRequestId)
 			return;
 
 		if (busyDialog != null)
@@ -385,7 +397,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 						new DialogInterface.OnClickListener() {
 		                    public void onClick(DialogInterface dialog, int whichButton) {
 		                    	busyDialog.show(BookmarksActivity.this, "Downloading bus data update...");
-		                    	expectedRequestId = StopDbUpdateHelper.getUpdate(updateDateF, BookmarksActivity.this);
+		                    	stopDbExpectedRequestId = StopDbUpdateHelper.getUpdate(updateDateF, BookmarksActivity.this);
 		                    }
 						})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -394,7 +406,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	}
 
 	public void onAsyncGetUpdateError(int requestId) {
-		if (requestId != expectedRequestId)
+		if (requestId != stopDbExpectedRequestId)
 			return;
 
 		if (busyDialog != null)
@@ -404,7 +416,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	}
 
 	public void onAsyncGetUpdateSuccess(int requestId, long updateDate, byte[] updateData) {
-		if (requestId != expectedRequestId)
+		if (requestId != stopDbExpectedRequestId)
 			return;
 
 		if (busyDialog != null)

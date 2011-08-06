@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="org.redbus" android:versionName="1.0.35" android:versionCode="36">
+	package="org.redbus" android:versionName="1.0.36" android:versionCode="37">
 	
 	<application android:label="@string/app_name" android:icon="@drawable/icon72" android:backupAgent=".settings.SettingsBackupAgent" android:restoreAnyVersion="true" android:allowBackup="true">
 	    
@@ -48,6 +48,14 @@
 				<action android:name="android.intent.action.MAIN" />
 			</intent-filter>
 		</activity-alias>
+
+
+
+		<activity android:name=".ui.trafficinfo.TrafficInfoActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+			</intent-filter>
+		</activity>
 		
 		
 		<activity android:name=".ui.arrivaltime.NearbyBookmarkedArrivalTimeActivity" android:label="Nearby arrivals" />
@@ -60,6 +68,7 @@
 		<receiver android:name=".ui.alert.AlertNotificationPressedReceiver"/>
 
 		<meta-data android:name="com.google.android.backup.api_key" android:value="AEdPqrEAAAAIbuJf7aPvzjJ8aS4zUoIy5bLO70X_y_AnJNTFSw" />
+		<receiver android:name=".ui.alert.TrafficAlert"></receiver>
 	</application>
 
 	<uses-sdk android:minSdkVersion="3"/>
