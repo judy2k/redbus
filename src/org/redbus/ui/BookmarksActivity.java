@@ -273,7 +273,8 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         	db.close();
         }
         
-        busyDialog.show(this, "Checking for updates...");
+        if (busyDialog != null)
+        	busyDialog.show(this, "Checking for updates...");
         isManualUpdateCheck = true;
         stopDbExpectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
 	}
@@ -308,7 +309,8 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         	
             // are we being called from a click on a notification?
             if (getIntent().getBooleanExtra("DoManualUpdate", false)) {
-            	busyDialog.show(BookmarksActivity.this, "Checking for updates...");
+            	if (busyDialog != null)
+            		busyDialog.show(BookmarksActivity.this, "Checking for updates...");
         		isManualUpdateCheck = true;
         		stopDbExpectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
             } else {
@@ -396,7 +398,8 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 				.setPositiveButton(android.R.string.ok, 
 						new DialogInterface.OnClickListener() {
 		                    public void onClick(DialogInterface dialog, int whichButton) {
-		                    	busyDialog.show(BookmarksActivity.this, "Downloading bus data update...");
+		                    	if (busyDialog != null)
+		                    		busyDialog.show(BookmarksActivity.this, "Downloading bus data update...");
 		                    	stopDbExpectedRequestId = StopDbUpdateHelper.getUpdate(updateDateF, BookmarksActivity.this);
 		                    }
 						})
