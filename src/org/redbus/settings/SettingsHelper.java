@@ -191,6 +191,22 @@ public class SettingsHelper
 			settingsChanged();
 	}
 	
+	public static void triggerInitialGoogleBackup(Context ctx) {
+		SettingsHelper db = null;
+		try  {
+			db = new SettingsHelper(ctx);
+			if (db.getGlobalSetting("initialbackupdone", null) != null)
+				return;
+			
+			db.setGlobalSetting("initialbackupdone", "t");
+			db.settingsChanged();
+		} catch (Throwable t) {
+		} finally {
+			if (db != null)
+				db.close();
+		}
+	}
+	
 	private void settingsChanged() {
 		try {
 		   Class backupManagerClass = Class.forName("android.app.backup.BackupManager");
@@ -253,7 +269,10 @@ public class SettingsHelper
         FileReader inputFile = null;
         try {
         	inputFile = new FileReader(filename);        	
-        	return restore(inputFile, false);
+        	if (!restore(inputFile, false))
+        		return false;
+        	settingsChanged();
+        	return true;
         } catch (Throwable t) {
         	return false;
         } finally {
