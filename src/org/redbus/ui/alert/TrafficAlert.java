@@ -40,7 +40,6 @@ public class TrafficAlert extends BroadcastReceiver implements ITrafficNewsRespo
 	
 	// these are only used during broadcastreceiver implementation
 	private Context broadcastContext;
-	private Intent broadcastIntent;
 	private SettingsHelper broadcastDb;
 
 	
@@ -70,7 +69,6 @@ public class TrafficAlert extends BroadcastReceiver implements ITrafficNewsRespo
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		this.broadcastContext = context;
-		this.broadcastIntent = intent;
 		this.broadcastDb = new SettingsHelper(context);
 		
 		TrafficNewsHelper.getTrafficNewsAsync(broadcastDb.getGlobalSetting("trafficLastTweetId", null), this);

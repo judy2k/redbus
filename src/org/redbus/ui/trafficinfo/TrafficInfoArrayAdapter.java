@@ -21,8 +21,6 @@ package org.redbus.ui.trafficinfo;
 import java.util.List;
 
 import org.redbus.R;
-import org.redbus.arrivaltime.ArrivalTime;
-import org.redbus.stopdb.StopDbHelper;
 import org.redbus.trafficnews.NewsItem;
 
 import android.content.Context;
