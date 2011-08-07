@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.redbus.R;
+import org.redbus.settings.SettingsHelper;
 import org.redbus.trafficnews.ITrafficNewsResponseListener;
 import org.redbus.trafficnews.NewsItem;
 import org.redbus.trafficnews.TrafficNewsHelper;
@@ -126,6 +127,19 @@ public class TrafficInfoActivity extends ListActivity implements ITrafficNewsRes
 		setListAdapter(new TrafficInfoArrayAdapter(this, R.layout.trafficinfo_item, newsItems));
 		if (newsItems.isEmpty())
 			findViewById(R.id.trafficinfo_none).setVisibility(View.VISIBLE);
+
+		// store last tweet id so we don't warn about ones they've already looked at from a manual request
+		SettingsHelper db = null;
+		try {
+			db = new SettingsHelper(this);
+			String lastTweetId = db.getGlobalSetting("trafficLastTweetId", null);
+			if (newsItems.size() > 0)
+				lastTweetId = newsItems.get(0).tweetId;
+			if (lastTweetId != null)
+				db.setGlobalSetting("trafficLastTweetId", lastTweetId);
+		} finally {
+			db.close();
+		}
 	}
 }
 
