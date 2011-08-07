@@ -59,13 +59,12 @@ public class TrafficAlert extends BroadcastReceiver implements ITrafficNewsRespo
 		Intent i = new Intent(ctx, TrafficAlert.class);
 		PendingIntent pi = PendingIntent.getBroadcast(ctx, 0, i, PendingIntent.FLAG_NO_CREATE);
 		if (pi != null)
-			pi.cancel();
-//			return;
+			return;
 		
 		// didn't already exist => create one!
 		pi = PendingIntent.getBroadcast(ctx, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 		AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
-		am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 10000, AlarmManager.INTERVAL_FIFTEEN_MINUTES /*INTERVAL_HALF_HOUR */, pi);
+		am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 10000, AlarmManager.INTERVAL_HOUR, pi);
 	}
 	
 	@Override
@@ -83,7 +82,7 @@ public class TrafficAlert extends BroadcastReceiver implements ITrafficNewsRespo
 
 	public void onAsyncGetTrafficNewsSuccess(int requestId, List<NewsItem> newsItems) {
 		
-		if (newsItems == null)
+		if (newsItems.size() == 0)
 			return;
 
 		// record the last tweet id
