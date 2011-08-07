@@ -20,7 +20,6 @@ package org.redbus.ui.alert;
 
 import org.redbus.R;
 import org.redbus.stopdb.StopDbHelper;
-import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 import org.redbus.ui.stopmap.StopMapActivity;
 
 import android.app.AlertDialog;
