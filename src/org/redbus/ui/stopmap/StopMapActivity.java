@@ -39,8 +39,10 @@ import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
 import android.location.Address;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -104,20 +106,26 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		int lat = getIntent().getIntExtra("Lat", -1);
 		int lng = getIntent().getIntExtra("Lng", -1);
 		
-		// Not been passed a location, so use GPS and default to centre
 		if (lat == -1 && lng == -1) {
-			// Default map to centre of Edinburgh
-			lat = 55946052;
-			lng = -3188879;
-			
+			// if we don't have a location supplied, try and use the last known one.
+			LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);			
+            Location gpsLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            Location networkLocation = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            
+            if ((gpsLocation != null) && (gpsLocation.getAccuracy() < 100))
+        		mapController.setCenter(new GeoPoint((int) (gpsLocation.getLatitude() * 1000000), (int) (gpsLocation.getLongitude() * 1000000)));
+            else if ((networkLocation != null) && (networkLocation.getAccuracy() < 100))
+        		mapController.setCenter(new GeoPoint((int) (networkLocation.getLatitude() * 1000000), (int) (networkLocation.getLongitude() * 1000000)));
+            else
+        		mapController.setCenter(new GeoPoint(55946052, -3188879)); // centre of edinburgh
 			updateMyLocationStatus(true);
 		} else {
+			mapController.setCenter(new GeoPoint(lat, lng));
 			updateMyLocationStatus(false);
 		}
 
 		stopOverlay = new StopMapOverlay(this);
 		mapView.getOverlays().add(stopOverlay);
-		mapController.setCenter(new GeoPoint(lat, lng));
 	}
 	
 	public void invalidate()
