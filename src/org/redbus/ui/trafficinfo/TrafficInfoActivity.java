@@ -98,7 +98,7 @@ public class TrafficInfoActivity extends ListActivity implements ITrafficNewsRes
 	private void doRefreshTrafficInfo() {
 		if (busyDialog != null)
 			busyDialog.show(this, "Retrieving traffic information");
-		expectedRequestId = TrafficNewsHelper.getTrafficNewsAsync(null, this);
+		expectedRequestId = TrafficNewsHelper.getTrafficNewsAsync(null, 10, this);
 	}
 
 	public void onAsyncGetTrafficNewsError(int requestId, int code, String message) {

@@ -31,6 +31,7 @@
 	<TextView 	android:id="@+id/trafficinfo_description" 
 				android:layout_width="fill_parent" 
 				android:layout_height="wrap_content" 
-				android:text="Blah blah blah"></TextView>
+				android:text="Blah blah blah"
+				android:autoLink="all"></TextView>
 				
 </LinearLayout>

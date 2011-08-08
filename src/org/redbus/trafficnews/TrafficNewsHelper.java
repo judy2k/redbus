@@ -41,10 +41,10 @@ public class TrafficNewsHelper {
 
 	private static Integer RequestId = new Integer(0);
 
-	public static int getTrafficNewsAsync(String lastTweetId, ITrafficNewsResponseListener callback)
+	public static int getTrafficNewsAsync(String lastTweetId, int count, ITrafficNewsResponseListener callback)
 	{
 		int requestId = RequestId++;
-		new AsyncHttpRequestTask().execute(new TrafficNewsRequest(requestId, buildURL(lastTweetId), TrafficNewsRequest.REQ_TRAFFICNEWS, callback));
+		new AsyncHttpRequestTask().execute(new TrafficNewsRequest(requestId, buildURL(lastTweetId, count), TrafficNewsRequest.REQ_TRAFFICNEWS, callback));
 		return requestId;
 	}
 	
@@ -52,10 +52,10 @@ public class TrafficNewsHelper {
 	
 	
 	
-	private static URL buildURL(String lastTweetId)
+	private static URL buildURL(String lastTweetId, int count)
 	{
 		try {
-			String url = "http://twitter.com/statuses/user_timeline.rss?user_id=141165868&count=10";
+			String url = "http://twitter.com/statuses/user_timeline.rss?user_id=141165868&count=" + count;
 			if (lastTweetId != null)
 				url += "&since_id=" + lastTweetId;				
 			return new URL(url);
@@ -169,7 +169,7 @@ public class TrafficNewsHelper {
 					// make the request and check the response code
 					connection = (HttpURLConnection) bdr.url.openConnection();
 					connection.setReadTimeout(30 * 1000);
-					connection.setConnectTimeout(30 * 1000);					
+					connection.setConnectTimeout(30 * 1000);
 					if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
 						Log.e("AsyncHttpRequestTask.doInBackGround", "HttpError: " + connection.getResponseMessage());
 						continue;

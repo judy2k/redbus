@@ -71,7 +71,7 @@ public class TrafficAlert extends BroadcastReceiver implements ITrafficNewsRespo
 		this.broadcastContext = context;
 		this.broadcastDb = new SettingsHelper(context);
 		
-		TrafficNewsHelper.getTrafficNewsAsync(broadcastDb.getGlobalSetting("trafficLastTweetId", null), this);
+		TrafficNewsHelper.getTrafficNewsAsync(broadcastDb.getGlobalSetting("trafficLastTweetId", null), 1, this);
 	}
 
 	public void onAsyncGetTrafficNewsError(int requestId, int code, String message) {
