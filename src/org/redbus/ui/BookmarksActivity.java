@@ -19,16 +19,12 @@
 package org.redbus.ui;
 
 import java.util.Date;
-import java.util.List;
 
 import org.redbus.R;
 import org.redbus.settings.SettingsHelper;
 import org.redbus.stopdb.IStopDbUpdateResponseListener;
 import org.redbus.stopdb.StopDbHelper;
 import org.redbus.stopdb.StopDbUpdateHelper;
-import org.redbus.trafficnews.ITrafficNewsResponseListener;
-import org.redbus.trafficnews.NewsItem;
-import org.redbus.trafficnews.TrafficNewsHelper;
 import org.redbus.ui.alert.AlertUtils;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 import org.redbus.ui.stopmap.StopMapActivity;
