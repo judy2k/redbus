@@ -21,6 +21,7 @@ package org.redbus.ui.arrivaltime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,7 +35,6 @@ import org.redbus.ui.BusyDialog;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.database.Cursor;
@@ -47,11 +47,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
-import android.widget.Toast;
 
 public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IArrivalTimeResponseListener, OnCancelListener {
+	
+	private final long LastKnownLocationExpiry = 3 * 60 * 1000;
 
-	private LocationManager locationManager;
     private LocationListener locationListener;
     private ArrayList<Integer> bookmarkIds; // Stop codes of current bookmarks
     private List<ArrivalTime> arrivalTimes; // The actual retrieved times
@@ -59,30 +59,25 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     private BusyDialog busyDialog = null;
 	private int expectedRequestId = -1;
 	private ArrivalTimeArrayAdapter lvAdapter;
-	private StopDbHelper pt;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	setTitle("Nearby services");
     	
-    	pt = StopDbHelper.Load(this);
+    	StopDbHelper pt = StopDbHelper.Load(this);
     	busyDialog = new BusyDialog(this);
     	arrivalTimes = new ArrayList<ArrivalTime>();
-		lvAdapter = new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, arrivalTimes, pt);		
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		lvAdapter = new ArrivalTimeArrayAdapter(this, R.layout.bustimes_item, arrivalTimes, pt);
 
 		setContentView(R.layout.nearbybookmarkedarrivaltime);
 		
 		ListView lv = (ListView)findViewById(R.id.nearbystopslist);
 		lv.setAdapter(lvAdapter);
-
-    	
+		
         // Define a listener that responds to location updates
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-	            // Called when a new location is found by the network location provider.
-	            // FIXME - check location accuracy + error if too great
             	try {
             		locationUpdated(location);
             	} catch (Throwable t) {
@@ -91,23 +86,24 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 
             public void onProviderEnabled(String provider) {}
             public void onProviderDisabled(String provider) {
-				busyDialog.dismiss();
+            	if (busyDialog != null)
+            		busyDialog.dismiss();
 				showLocationError();	
             }
 			public void onStatusChanged(String provider, int status, Bundle extras) {
 				if (status != LocationProvider.AVAILABLE) {
-				busyDialog.dismiss();
-				showLocationError();
+	            	if (busyDialog != null)
+            			busyDialog.dismiss();
+	            	showLocationError();
 				}
 			}
           };
-          
     }
     
     @Override
     protected void onResume() {
     	super.onResume();
-    	refresh();
+        refresh();
     }
     
     @Override
@@ -122,6 +118,7 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     	
     	if (busyDialog != null)
     		busyDialog.dismiss();
+    	busyDialog = null;
     }
     
     private void refresh() {
@@ -129,10 +126,28 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     	bookmarkIds = getBookmarks();
     	arrivalTimes.clear();
     	lvAdapter.notifyDataSetChanged();
+
+        if (bookmarkIds.isEmpty())
+        	return;
+
+        // start locating, but use last known lock if its accurate enough, and not too long ago.
+		LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);			
+        Location gpsLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location networkLocation = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        long now = new Date().getTime();
+        if ((gpsLocation != null) && (gpsLocation.getAccuracy() < 100) && ((now - gpsLocation.getTime()) < LastKnownLocationExpiry)) {
+        	locationUpdated(gpsLocation);
+        } else if ((networkLocation != null) && (networkLocation.getAccuracy() < 100) && ((now - networkLocation.getTime()) < LastKnownLocationExpiry)) {
+        	locationUpdated(networkLocation);
+        } else {
+        	startLocationListener();
+        }
     }
     
     private void stopLocationListener() {
-    	locationManager.removeUpdates(locationListener);	
+		LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);			
+    	lm.removeUpdates(locationListener);	
     }
     
     private void startLocationListener() {
@@ -140,9 +155,12 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     	// Keep GPS doing tho just in case network is duff
 
     	// Min update time = 5000, min distance = 1
-    	locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 1, locationListener);
-    	locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 1, locationListener);
-    	
+		LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);			
+    	lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 1, locationListener);
+    	lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 1, locationListener);    	
+
+    	if (busyDialog != null)
+    		busyDialog.show(this, "Waiting for GPS to find bookmarked stops nearby");
     }
 
     private ArrayList<Integer> getBookmarks() {
@@ -157,11 +175,6 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
         }
      
         db.close();
-
-        if (!bookmarkIds.isEmpty()) {
-        	startLocationListener();
-        	busyDialog.show(this, "Waiting for GPS to find bookmarked stops nearby");
-        }
     	return bookmarkIds;
     }
     
@@ -177,22 +190,25 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     	int y = (int)(location.getLongitude() * 1E6);
 
     	// 0.008 empirically determined for now!
+    	StopDbHelper pt = StopDbHelper.Load(this);
     	ArrayList<Integer> nearby = pt.getStopsWithinRadius((int)x, (int)y, bookmarkIds, 0.008);
     	
     	// Nearby names toast
-    	String toastTxt = "Nearby:";
+    	StringBuilder sb = new StringBuilder();
     	for(Integer stopCode : nearby) {
     		String name = pt.lookupStopNameByStopNodeIdx(pt.lookupStopNodeIdxByStopCode(stopCode));
-    		toastTxt += "\n"+name;
+    		if (sb.length() > 0)
+    			sb.append(", ");
+    		sb.append(name);
     	}
 
-    	if (nearby.isEmpty())
+    	if (nearby.isEmpty()) {
     		showNoStopsMessage();
-    		
-    	busyDialog.dismiss();
-    	Toast.makeText(getBaseContext(), 
-    			toastTxt, 
-    			Toast.LENGTH_LONG).show(); 
+    		return;
+    	}
+    	
+    	if (busyDialog != null)
+			busyDialog.show(this, "Getting times for: "+ sb.toString());
 
     	// Download the first stop
     	nextStopToDownload = nearby.iterator();
@@ -201,12 +217,11 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 
     private void triggerDownloadNextStop() {
     	if (nextStopToDownload.hasNext()) {
-    		Integer nextStop = nextStopToDownload.next();
-
-    		busyDialog.dismiss();
-    		busyDialog.show(this, "Getting times for "+pt.lookupStopNameByStopNodeIdx(pt.lookupStopNodeIdxByStopCode(nextStop)));
-    		
+    		Integer nextStop = nextStopToDownload.next();  
     		expectedRequestId = ArrivalTimeHelper.getBusTimesAsync(nextStop, 0, null, NearbyBookmarkedArrivalTimeActivity.this);
+    	} else {
+    		if (busyDialog != null)
+    			busyDialog.dismiss();
     	}
     }
 
@@ -232,9 +247,6 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 		
 		arrivalTimes.addAll(busTimes);
 		triggerDownloadNextStop();
-
-		if (busyDialog != null)
-			busyDialog.dismiss();
 
 		// FIXME - this is common with ArrivalTimeActivity
 		Collections.sort(arrivalTimes, new Comparator<ArrivalTime>() {

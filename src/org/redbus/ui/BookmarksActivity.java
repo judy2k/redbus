@@ -19,12 +19,16 @@
 package org.redbus.ui;
 
 import java.util.Date;
+import java.util.List;
 
 import org.redbus.R;
 import org.redbus.settings.SettingsHelper;
 import org.redbus.stopdb.IStopDbUpdateResponseListener;
 import org.redbus.stopdb.StopDbHelper;
 import org.redbus.stopdb.StopDbUpdateHelper;
+import org.redbus.trafficnews.ITrafficNewsResponseListener;
+import org.redbus.trafficnews.NewsItem;
+import org.redbus.trafficnews.TrafficNewsHelper;
 import org.redbus.ui.alert.AlertUtils;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
 import org.redbus.ui.stopmap.StopMapActivity;
@@ -59,9 +63,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
 
-public class BookmarksActivity extends ListActivity implements IStopDbUpdateResponseListener, OnCancelListener, ICommonResultReceiver
+public class BookmarksActivity extends ListActivity implements IStopDbUpdateResponseListener, OnCancelListener, ICommonResultReceiver, ITrafficNewsResponseListener
 {	
 	private static final String bookmarksXmlFile = "/sdcard/redbus-stops.xml";
+	
+	private final int TrafficCheckInterval = 15 * 60;
 	
 	private BusyDialog busyDialog = null;
 	private int stopDbExpectedRequestId = -1;
@@ -80,7 +86,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         registerForContextMenu(getListView());
         busyDialog = new BusyDialog(this);
         
-        displayChangelogOnNewVersion();
+        doSetupStuff();
 	}
 
 	@Override
@@ -285,9 +291,12 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	
 	
 	
-	private void displayChangelogOnNewVersion() {
+	private void doSetupStuff() {
         SettingsHelper db = new SettingsHelper(this);
         try {
+        	long nowSecs = new Date().getTime() / 1000;
+        	
+        	// show the changelog if this is a version upgrade.
         	PackageInfo pi = getPackageManager().getPackageInfo("org.redbus", 0);
         	if (!db.getGlobalSetting("PREVIOUSVERSIONCODE", "").equals(Integer.toString(pi.versionCode))) {
         		new AlertDialog.Builder(this).
@@ -299,11 +308,9 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         		db.setGlobalSetting("PREVIOUSVERSIONCODE", Integer.toString(pi.versionCode));
         	}
         	
-        	// get update details
+        	// check for stop database updates
         	long nextUpdateCheck = Long.parseLong(db.getGlobalSetting("NEXTUPDATECHECK", "0"));
 			long lastUpdateDate = Long.parseLong(db.getGlobalSetting("LASTUPDATE", "-1"));
-        	
-            // are we being called from a click on a notification?
             if (getIntent().getBooleanExtra("DoManualUpdate", false)) {
             	if (busyDialog != null)
             		busyDialog.show(BookmarksActivity.this, "Checking for updates...");
@@ -311,11 +318,19 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         		stopDbExpectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
             } else {
             	// otherwise, we do an background update check
-	        	if (nextUpdateCheck <= new Date().getTime() / 1000) {
+	        	if (nextUpdateCheck <= nowSecs) {
 	        		isManualUpdateCheck = false;
 	        		stopDbExpectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
 	        	}
             }
+            
+            // check for new traffic information every TrafficCheckInternal seconds
+			long lastTrafficCheck = Long.parseLong(db.getGlobalSetting("LASTTRAFFICCHECK", "-1"));
+			if ((lastTrafficCheck + TrafficCheckInterval) <= nowSecs) {
+				db.setGlobalSetting("LASTTRAFFICCHECK", Long.toString(nowSecs));
+				TrafficNewsHelper.getTrafficNewsAsync(db.getGlobalSetting("trafficLastTweetId", null), 1, this);
+			}
+            
         } catch (Throwable t) {
         	// ignore
         } finally {
@@ -451,5 +466,53 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this);
 		if (tmp != null)
 			listDb = tmp;
+	}
+
+	public void onAsyncGetTrafficNewsError(int requestId, int code, String message) {
+		// ignore
+	}
+
+	public void onAsyncGetTrafficNewsSuccess(int requestId, List<NewsItem> newsItems) {
+		if (newsItems.size() == 0)
+			return;
+
+        SettingsHelper db = null;
+        try {
+        	db = new SettingsHelper(this);
+        	
+			// record the last tweet id
+			String lastTweetId = db.getGlobalSetting("trafficLastTweetId", null);
+			boolean hadLastTweetId = lastTweetId != null;
+			if (newsItems.size() > 0)
+				lastTweetId = newsItems.get(0).tweetId;
+			if (lastTweetId != null)
+				db.setGlobalSetting("trafficLastTweetId", lastTweetId);
+	
+			// if this is the first time we've recorded a tweet id, don't display the alert, to avoid spamming *everyone* on the first upgrade.
+			if (!hadLastTweetId)
+				return;
+
+			// don't bother if its not for today.
+			Date now = new Date();
+			Date firstItemDate = newsItems.get(0).date;
+			if ((now.getDate() != firstItemDate.getDate()) || (now.getMonth() != firstItemDate.getMonth()) || (now.getYear() != firstItemDate.getYear()))
+				return;
+        	
+			Intent ui = new Intent(this, TrafficInfoActivity.class);
+			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, ui, PendingIntent.FLAG_CANCEL_CURRENT);
+	
+			Notification notification = new Notification(R.drawable.trafficalert38, "New traffic information", System.currentTimeMillis());
+			notification.defaults |= 0;
+			notification.flags |= Notification.FLAG_AUTO_CANCEL;
+			notification.setLatestEventInfo(this, "New traffic information available", "Press to view", contentIntent);
+			
+			NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			nm.notify(AlertUtils.TRAFFIC_NOTIFICATION_ID, notification);		
+        } catch (Exception e) {
+        	// ignore
+        } finally {
+        	if (db != null)
+        		db.close();
+        }
 	}
 }
