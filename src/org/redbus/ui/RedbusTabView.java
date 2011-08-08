@@ -48,7 +48,7 @@ public class RedbusTabView extends TabActivity {
 	    tabHost.addTab(tabHost.newTabSpec("nearby").setIndicator("Nearby")
                 .setContent(new Intent().setClass(this, NearbyBookmarkedArrivalTimeActivity.class)));
 	    
-	    TrafficAlert.createTrafficAlert(this);
+//	    TrafficAlert.createTrafficAlert(this);
 	    SettingsHelper.triggerInitialGoogleBackup(this);
 	}
 	
