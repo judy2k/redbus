@@ -64,9 +64,13 @@ public class TrafficInfoArrayAdapter extends ArrayAdapter<NewsItem> {
 		dateView.setText(DateFormat.format("MMM dd kk:mm", newsItem.date));
 		if (newsItem.location != null)
 			locationView.setText("@" + newsItem.location);
+		else
+			locationView.setText("");			
 		if (newsItem.description != null) {
 			char firstChar = Character.toUpperCase(newsItem.description.charAt(0));
 			descriptionView.setText("" + firstChar + newsItem.description.substring(1));
+		} else {
+			descriptionView.setText("");
 		}
 		
 		return v;
