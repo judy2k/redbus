@@ -8,20 +8,14 @@
 	android:layout_height="wrap_content" />
 
 	<TextView android:id="@+id/nearbynobookmarks" 
-	android:layout_width="wrap_content" 
+	android:layout_width="fill_parent" 
 	android:layout_height="wrap_content" 
-	android:text="No bookmarked stops nearby"
+	android:text="Unable to find any nearby bookmarks."
 	android:textAppearance="@style/textappearance_help"/>
 	
 	<TextView android:id="@+id/nearbybookmarkednoservices" 
-	android:layout_width="wrap_content" 
+	android:layout_width="fill_parent" 
 	android:layout_height="wrap_content" 
-	android:text="No services from nearby stops"
-	android:textAppearance="@style/textappearance_help"/>
-	
-	<TextView android:id="@+id/nearbybookmarked_error" 
-	android:layout_width="wrap_content" 
-	android:layout_height="wrap_content" 
-	android:text="Unable to find location. Check that GPS is switched on" 
+	android:text="There are currently no departures from your nearby bookmarks."
 	android:textAppearance="@style/textappearance_help"/>
 </LinearLayout>
