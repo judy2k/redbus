@@ -36,7 +36,7 @@ public class NewsItem
 		this.date = date;
 
 		text = text.replaceAll("^[^:]+:", "");
-		text = text.replaceAll("#\\S+", "");
+		text = text.replaceAll("#edintravel", "");
 		text = text.replaceAll("@\\S+", "");
 		text = text.trim();
 		
