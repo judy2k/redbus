@@ -68,7 +68,6 @@
 		<receiver android:name=".ui.alert.AlertNotificationPressedReceiver"/>
 
 		<meta-data android:name="com.google.android.backup.api_key" android:value="AEdPqrEAAAAIbuJf7aPvzjJ8aS4zUoIy5bLO70X_y_AnJNTFSw" />
-		<receiver android:name=".ui.alert.TrafficAlert"></receiver>
 	</application>
 
 	<uses-sdk android:minSdkVersion="3"/>
