@@ -27,7 +27,6 @@ import org.redbus.trafficnews.ITrafficNewsResponseListener;
 import org.redbus.trafficnews.NewsItem;
 import org.redbus.trafficnews.TrafficNewsHelper;
 import org.redbus.ui.BusyDialog;
-import org.redbus.ui.Common;
 
 
 import android.app.AlertDialog;
