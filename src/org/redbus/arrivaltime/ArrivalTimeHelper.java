@@ -185,16 +185,9 @@ public class ArrivalTimeHelper {
 		String arrivalAbsoluteTime = null;
 		
 		boolean done = false;
-		int tagDepth = 0;
 		while(!done) {
 			switch(parser.next()) {
-			case XmlPullParser.END_TAG:
-				if (tagDepth == 0)
-					done = true;
-				tagDepth--;
-				break;
 			case XmlPullParser.START_TAG:
-				tagDepth++;
 				String classAttr = parser.getAttributeValue(null, "class");
 				if (classAttr == null)
 					continue;
@@ -209,6 +202,7 @@ public class ArrivalTimeHelper {
 				else if (classAttr.contains("flag"))
 					grabFlag = true;
 				break;
+				
 			case XmlPullParser.TEXT:
 				if (grabService) {
 					service = parser.getText().trim();
