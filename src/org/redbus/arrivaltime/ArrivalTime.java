@@ -23,7 +23,6 @@ public class ArrivalTime
 	public String service;
 	public int baseService;
 	public String destination;
-	public boolean lowFloorBus;
 	public boolean isDiverted;
 	public boolean arrivalEstimated;
 	public boolean arrivalIsDue;
@@ -34,13 +33,12 @@ public class ArrivalTime
 	public int arrivalSortingIndex;
 
 	
-	public ArrivalTime(String service, long stopCode, String destination, boolean isDiverted, boolean lowFloorBus, boolean arrivalEstimated, boolean arrivalIsDue, int arrivalMinutesLeft, String arrivalAbsoluteTime) 
+	public ArrivalTime(String service, long stopCode, String destination, boolean isDiverted, boolean arrivalEstimated, boolean arrivalIsDue, int arrivalMinutesLeft, String arrivalAbsoluteTime) 
 	{
 		this.service = service;
 		this.baseService = Integer.parseInt(service.replaceAll("[^0-9]", "").trim());
 		this.destination = destination;
 		this.isDiverted = isDiverted;
-		this.lowFloorBus = lowFloorBus;
 		this.arrivalEstimated = arrivalEstimated;
 		this.arrivalIsDue = arrivalIsDue;
 		this.arrivalMinutesLeft = arrivalMinutesLeft;

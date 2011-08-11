@@ -20,16 +20,14 @@ package org.redbus.arrivaltime;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.http.protocol.HTTP;
 import org.xmlpull.v1.XmlPullParser;
@@ -45,9 +43,12 @@ public class ArrivalTimeHelper {
 	public static final int BUSSTATUS_BADSTOPCODE = -2;
 	public static final int BUSSTATUS_BADDATA = -3;
 
-	private static final Pattern destinationRegex = Pattern.compile("(\\S+)\\s+(.*)");
-	private static final Pattern destinationAndTimeRegex = Pattern.compile("(\\S+)\\s+(.*)\\s+(\\S+)");
 	private static final SimpleDateFormat advanceTimeFormat = new SimpleDateFormat("HH:mm");
+	
+	private static final String url = "http://www.mybustracker.co.uk/?module=BTTimeConsult&mode=busStopQuickSearch";
+
+	
+	
 
 	private static Integer RequestId = new Integer(0);
 
@@ -56,7 +57,7 @@ public class ArrivalTimeHelper {
 		int requestId = RequestId++;
 		
 		new AsyncHttpRequestTask().execute(new BusDataRequest(requestId, stopCode, 
-				buildURL(stopCode, daysInAdvance, timeInAdvance, 4), 
+				buildPOSTData(stopCode, daysInAdvance, timeInAdvance, 4), 
 				BusDataRequest.REQ_BUSTIMES, 
 				callback));		
 		
@@ -67,7 +68,7 @@ public class ArrivalTimeHelper {
 	
 	
 	
-	private static URL buildURL(long stopCode, int daysInAdvance, Object timeInAdvance, int departureCount)
+	private static String buildPOSTData(long stopCode, int daysInAdvance, Object timeInAdvance, int departureCount)
 	{
 		String time = "";
 		if (timeInAdvance != null) {
@@ -78,25 +79,15 @@ public class ArrivalTimeHelper {
 		} else {
 			daysInAdvance = 0;
 		}
-
-		StringBuilder result = new StringBuilder("http://old.mybustracker.co.uk/getBusStopDepartures.php");
-		result.append("?refreshCount=0");
-		result.append("&clientType=b");
-		result.append("&busStopDay=").append(daysInAdvance);
-		result.append("&busStopService=0");
-		result.append("&numberOfPassage=").append(departureCount);
-		result.append("&busStopTime=").append(time);
-		result.append("&busStopDestination=0");
-		result.append("&busStopCode=").append(stopCode);
-		result.append("&randomThing=").append(new Date().getTime());
-
-		try {
-			return new URL(result.toString());
-		} catch (MalformedURLException e) {
-			Log.e("BusDataHelper", "Malformed URL reported: " + result.toString());
-		}
 		
-		return null;
+		StringBuilder sb = new StringBuilder();
+		sb.append("googleMapMode=0");
+		sb.append("&busStopCode=").append(stopCode);
+		sb.append("&busStopDay=").append(daysInAdvance);
+		sb.append("&busStopTime=").append(time);
+		sb.append("&nbDeparture=").append(departureCount);
+		
+		return sb.toString();
 	}
 	
 	private static void getBusTimesResponse(BusDataRequest request)
@@ -127,8 +118,22 @@ public class ArrivalTimeHelper {
 				switch(parser.getEventType()) {
 				case XmlPullParser.START_TAG:
 					String tagName = parser.getName();
-					if (tagName == "pre") {
-						ArrivalTime bt = parseStopTime(parser,request.stopCode);
+					if (tagName == "tr") {
+						String classAttr = parser.getAttributeValue(null, "class");
+						if (classAttr == null)
+							continue;
+						classAttr = classAttr.toLowerCase();
+						if ((!classAttr.contains("tblanc")) && (!classAttr.contains("tgris")))
+							continue;
+						
+						String styleAttr = parser.getAttributeValue(null, "style");
+						if (styleAttr != null) {
+							styleAttr = styleAttr.toLowerCase();
+							if (styleAttr.contains("display") && styleAttr.contains("none"))
+								continue;
+						}
+						
+						ArrivalTime bt = parseStopTime(parser, request.stopCode);
 						if (bt.isDiverted) {
 							if (wasDiverted.containsKey(bt.service))
 								continue;
@@ -163,13 +168,17 @@ public class ArrivalTimeHelper {
 	private static ArrivalTime parseStopTime(XmlPullParser parser, long stopCode) 
 		throws XmlPullParserException, IOException
 	{
-		String rawDestination = parser.nextText();
-		String rawTime = null;
+		boolean grabService = false;
+		boolean grabDestination = false;
+		boolean grabTime = false;
+		boolean grabFlag = false;
 		
-		String service =  null;
+		String service = null;
 		String destination = null;
+		String rawTime = null;
+		String flag = null;
+
 		boolean isDiverted = false;
-		boolean lowFloorBus =  false;
 		boolean arrivalEstimated = false;
 		boolean arrivalIsDue= false;
 		int arrivalMinutesLeft = 0;
@@ -186,54 +195,48 @@ public class ArrivalTimeHelper {
 				break;
 			case XmlPullParser.START_TAG:
 				tagDepth++;
-				if (parser.getName().equalsIgnoreCase("span")) {
-					String classAttr = parser.getAttributeValue(null, "class");
-					if (classAttr.equalsIgnoreCase("handicap"))
-						lowFloorBus = true;
-				}
+				String classAttr = parser.getAttributeValue(null, "class");
+				if (classAttr == null)
+					continue;
+				classAttr = classAttr.toLowerCase();
+				
+				if (classAttr.contains("service"))
+					grabService = true;
+				else if (classAttr.contains("dest"))
+					grabDestination = true;
+				else if (classAttr.contains("mins"))
+					grabTime = true;
+				else if (classAttr.contains("flag"))
+					grabFlag = true;
 				break;
 			case XmlPullParser.TEXT:
-				if (tagDepth == 0)
+				if (grabService) {
+					service = parser.getText().trim();
+					grabService = false;
+				}
+				if (grabDestination) {
+					destination = parser.getText().trim();
+					grabDestination = false;
+				}
+				if (grabTime) {
 					rawTime = parser.getText().trim();
+					grabTime = false;
+				}
+				if (grabFlag) {
+					flag = parser.getText().trim();
+					grabFlag = false;
+				}
 				break;
 			}
 		}
 		
-		if (rawDestination.toLowerCase().contains("diverted")) {
+		if (destination.toLowerCase().contains("diverted")) {
 			isDiverted = true;
-			Matcher m = destinationRegex.matcher(rawDestination.trim());
-			if (m.matches()) {
-				service = m.group(1).trim();
-				destination = null;
-			} else {
-				throw new RuntimeException("Failed to parse destination");
-			}
+			destination = null;
 		} else {
-			// parse the rawDestination
-			if (rawTime == null) {
-				Matcher m = destinationAndTimeRegex.matcher(rawDestination.trim());
-				if (m.matches()) {
-					service = m.group(1).trim();
-					destination = m.group(2).trim();
-					rawTime = m.group(3).trim();
-				} else {
-					throw new RuntimeException("Failed to parse rawTime");
-				}
-			} else {
-				Matcher m = destinationRegex.matcher(rawDestination.trim());
-				if (m.matches()) {
-					service = m.group(1).trim();
-					destination = m.group(2).trim();
-				} else {
-					throw new RuntimeException("Failed to parse destination");
-				}
-			}
-	
 			// parse the rawTime
-			if (rawTime.startsWith("*")) {
+			if (flag.contains("*"))
 				arrivalEstimated = true;
-				rawTime = rawTime.substring(1).trim();
-			}
 			if (rawTime.equalsIgnoreCase("due"))
 				arrivalIsDue = true;
 			else if (rawTime.contains(":"))
@@ -242,7 +245,7 @@ public class ArrivalTimeHelper {
 				arrivalMinutesLeft = Integer.parseInt(rawTime);
 		}
 
-		return new ArrivalTime(service, stopCode, destination, isDiverted, lowFloorBus, arrivalEstimated, arrivalIsDue, arrivalMinutesLeft, arrivalAbsoluteTime);
+		return new ArrivalTime(service, stopCode, destination, isDiverted, arrivalEstimated, arrivalIsDue, arrivalMinutesLeft, arrivalAbsoluteTime);
 	}
 	
 	private static class AsyncHttpRequestTask extends AsyncTask<BusDataRequest, Integer, BusDataRequest> {
@@ -255,10 +258,24 @@ public class ArrivalTimeHelper {
 				HttpURLConnection connection = null;
 				InputStreamReader reader = null;
 				try {
+					byte[] postDataBytes = bdr.postData.getBytes();
+
 					// make the request and check the response code
-					connection = (HttpURLConnection) bdr.url.openConnection();
+					connection = (HttpURLConnection) new URL(url + "&randomThing=" + new Date().getTime()).openConnection();
 					connection.setReadTimeout(30 * 1000);
 					connection.setConnectTimeout(30 * 1000);
+					connection.setRequestMethod("POST");
+				    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			        connection.setRequestProperty("Content-Length", "" + postDataBytes.length);
+				    connection.setUseCaches(false);
+				    connection.setDoInput(true);
+				    connection.setDoOutput(true);
+					
+					OutputStream out = connection.getOutputStream();
+					out.write(postDataBytes);
+					out.flush();
+					out.close();
+					
 					if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
 						Log.e("AsyncHttpRequestTask.doInBackGround", "HttpError: " + connection.getResponseMessage());
 						continue;
@@ -313,17 +330,17 @@ public class ArrivalTimeHelper {
 		
 		public static final int REQ_BUSTIMES = 0;
 		
-		public BusDataRequest(int requestId, long stopCode, URL url, int requestType, IArrivalTimeResponseListener callback)
+		public BusDataRequest(int requestId, long stopCode, String postData, int requestType, IArrivalTimeResponseListener callback)
 		{
 			this.requestId = requestId;
-			this.url = url;
+			this.postData = postData;
 			this.requestType = requestType;
 			this.callback = callback;
 			this.stopCode = stopCode;
 		}
 		
 		public int requestId;
-		public URL url;
+		public String postData;
 		public int requestType;
 		public IArrivalTimeResponseListener callback;
 		public String content = null;

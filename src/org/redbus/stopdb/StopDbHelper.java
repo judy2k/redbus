@@ -17,10 +17,6 @@
  */
 
 // KD-Tree implementation
-// FIXME - Make into a generic KD-Tree class
-// FIXME - currently a bit nasty due to way data is read from resource - e.g. needs nodes[] array
-//       - Android only gives an InputStream to a resource - ideally we need Random access.
-//       - Read data into memory for now.
 
 package org.redbus.stopdb;
 

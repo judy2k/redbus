@@ -4,7 +4,6 @@
 	<string name="app_name">Edinburgh Bus Tracker</string>
 	<string name="shortcuthelp">&quot;No bookmarks\n\nUse the Edinburgh Bus Tracker app to add bookmarks first\n\n</string>
 	<string name="bookmarkhelp">&quot;No bookmarks\n\nPress the 'map' button above to view a map of stops.\n\nFrom the map touch a stop on the map to display times, and then press menu to add a bookmark.&quot;</string>
-	<string name="futureboo">&quot;Lothian's website no longer supports future departures beyond the current day :(&quot;</string>
 	<string name="newversiontext">&quot;Changes:\n
 * Add traffic alerts view (in the bookmarks menu).\n
 * Initial map location is now the last known location instead of the centre of Edinburgh.\n
