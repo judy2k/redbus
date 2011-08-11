@@ -85,14 +85,15 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         setContentView(R.layout.stopbookmarks);
         registerForContextMenu(getListView());
         busyDialog = new BusyDialog(this);
-        
-        doSetupStuff();
 	}
 
 	@Override
 	protected void onResume() 
 	{
 		super.onResume();
+        
+        doSetupStuff();
+        
 		SettingsHelper tmp = Common.updateBookmarksListAdaptor(this);
 		if (tmp != null)
 			listDb = tmp;

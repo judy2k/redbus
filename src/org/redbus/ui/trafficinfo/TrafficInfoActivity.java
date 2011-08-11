@@ -27,6 +27,7 @@ import org.redbus.trafficnews.ITrafficNewsResponseListener;
 import org.redbus.trafficnews.NewsItem;
 import org.redbus.trafficnews.TrafficNewsHelper;
 import org.redbus.ui.BusyDialog;
+import org.redbus.ui.Common;
 
 
 import android.app.AlertDialog;
@@ -57,8 +58,6 @@ public class TrafficInfoActivity extends ListActivity implements ITrafficNewsRes
 		setContentView(R.layout.trafficinfo);
 		registerForContextMenu(getListView());
 		busyDialog = new BusyDialog(this);
-		
-		doRefreshTrafficInfo();
 	}
 	
 	@Override
@@ -68,6 +67,15 @@ public class TrafficInfoActivity extends ListActivity implements ITrafficNewsRes
 		busyDialog = null;
 		super.onDestroy();		
 	}
+	
+	@Override
+	protected void onResume() 
+	{
+		super.onResume();
+		
+		doRefreshTrafficInfo();
+	}
+
 	
 	public void onCancel(DialogInterface dialog) {
 		expectedRequestId = -1;
