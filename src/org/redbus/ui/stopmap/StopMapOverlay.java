@@ -55,7 +55,6 @@ public class StopMapOverlay extends Overlay {
 	
 	// used during recursive drawStops() to control stack allocation size
 	private boolean showServiceLabels;
-	private Canvas bitmapRedCanvas;
 	private Projection projection;
 	private StopDbHelper pointTree;
 	private Point stopCircle = new Point();
@@ -75,6 +74,7 @@ public class StopMapOverlay extends Overlay {
 	private Bitmap bitmapBufferRed1;
 	private Bitmap bitmapBufferRed2;
 	private Bitmap oldBitmapRedBuffer;
+	private Canvas bitmapRedCanvas;
 
 	public StopMapOverlay(StopMapActivity stopMapActivity) {
 		this.stopMapActivity = stopMapActivity;
@@ -110,11 +110,18 @@ public class StopMapOverlay extends Overlay {
 	}
 
 	public void draw(Canvas canvas, MapView view, boolean shadow) {
-		super.draw(canvas, view,shadow);
-
-		if (shadow)
-			return;
-
+		super.draw(canvas, view,shadow);		
+		
+		if (!shadow)
+			localDraw(canvas, view, shadow);
+		
+		// make sure to nullify these since we don't need them any longer; makes sure it can all be GCed if we're paused
+		bitmapRedCanvas = null;
+		pointTree = null;
+		projection = null;
+	}
+	
+	private void localDraw(Canvas canvas, MapView view, boolean shadow) {
 		// create the bitmaps now we know the size of what we're drawing into!
 		if (bitmapBufferRed1 == null) {
 			bitmapBufferRed1 = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Config.ARGB_8888);
@@ -287,5 +294,12 @@ public class StopMapOverlay extends Overlay {
 	public boolean onTouchEvent(MotionEvent e, MapView mapView) {
 		this.stopMapActivity.onStopMapTouchEvent(e, mapView);
 		return super.onTouchEvent(e, mapView);
+	}
+	
+	public void onPause() {
+		// nullify these so they can be GCed
+		bitmapBufferRed1 = null;
+		bitmapBufferRed2 = null;
+		oldBitmapRedBuffer = null;
 	}
 }

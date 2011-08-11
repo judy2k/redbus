@@ -145,6 +145,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	@Override
 	public void onPause() {
 		updateMyLocationStatus(false);
+		stopOverlay.onPause();
 		super.onPause();
 	}
 
