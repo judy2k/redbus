@@ -101,15 +101,8 @@ if len(stops) > 32767:
     print >>sys.stderr, "Error: more than 32767 stops found - need to fix file format!"
     sys.exit(1)
 
-tree=kdtree(stops)
 
-def recordnumgenerator():
-    num=0
-    while 1:
-        yield num
-        num+=1
-
-# Header - 8 bytes - magic, integer root pos
+# Open file and write header - 8 bytes - magic, integer root pos
 treeFile = open(destfile + ".tree", "wb")
 treeFile.write(struct.pack(">BBBB", ord('b'), ord('u'), ord('s'), ord('3')))
 treeFile.seek(8,os.SEEK_SET)
@@ -117,12 +110,16 @@ treeFile.seek(8,os.SEEK_SET)
 # The stop names file
 stopNamesFile = open(destfile + ".stopnames", "wb")
 
-# Write the tree
-recordnumgen=recordnumgenerator()
-rootpos=tree.write(treeFile,stopNamesFile,recordnumgen)
+# Build + write the tree
+def recordnumgenerator():
+    num=0
+    while 1:
+        yield num
+        num+=1
+rootpos = makeTree(stops).write(treeFile, stopNamesFile, recordnumgenerator())
 
 # output file headers and close 'em
-treeFile.seek(4,os.SEEK_SET)
+treeFile.seek(4, os.SEEK_SET)
 treeFile.write(struct.pack('>i',rootpos))
 treeFile.close()
 stopNamesFile.close()
