@@ -20,8 +20,12 @@
 
 INSTDIR=/usr/local/redbus
 
-# Download stops from the website
-$INSTDIR/getstops || exit 1
+# Extract stops from XML
+$INSTDIR/getstops $INSTDIR/stopdata/NaPTAN620.xml || exit 1
+$INSTDIR/getstops $INSTDIR/stopdata/NaPTAN628.xml || exit 1
+
+# Download services from website
+$INSTDIR/getlrtservices || exit 1
 
 # Generate new stops database
 $INSTDIR/makestopsdat $INSTDIR/bus2 || exit 1

@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 # Copyright 2010, 2011 Andrew De Quincey -  adq@lidskialf.net
@@ -19,8 +19,6 @@
 
 import sys
 import os
-import mechanize
-import BeautifulSoup
 import datetime
 import psycopg2
 import time
@@ -36,7 +34,7 @@ for row in dbcur:
 
 if len(sys.argv) != 2:
     for date in dates:
-        print date 
+        print(date)
 else:
     date = sys.argv[1]
     if date == "LATEST":
