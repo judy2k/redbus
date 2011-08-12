@@ -128,5 +128,6 @@ stopNamesFile.close()
 servicesFile = open(destfile + ".services", "wb")
 servicesFile.write(struct.pack('>i', len(servicesList)));
 for service in servicesList:
+    servicesFile.write(struct.pack(">B", 0)) # service provider byte; currently 0 == LRT
     servicesFile.write((service['ServiceName'] + '\0').encode('utf-8'))
 servicesFile.close();
