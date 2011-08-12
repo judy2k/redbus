@@ -22,6 +22,7 @@ INSTDIR=/usr/local/redbus
 INSTDIR=.
 
 nowdate=`date +%Y-%m-%dT%H:%M:%S`
+dataformat=bus3
 
 # Download data from remote sites
 $INSTDIR/getlrtdata $nowdate || exit 1
@@ -31,27 +32,27 @@ $INSTDIR/getnaptandata $INSTDIR/stopdata/NaPTAN620.xml $nowdate || exit 1
 $INSTDIR/getnaptandata $INSTDIR/stopdata/NaPTAN627.xml $nowdate || exit 1
 $INSTDIR/getnaptandata $INSTDIR/stopdata/NaPTAN628.xml $nowdate || exit 1
 
-exit 0 # HACK
-
 # Generate new stops database
-$INSTDIR/makestopsdat $INSTDIR/bus2 || exit 1
-cat $INSTDIR/bus2.kdt $INSTDIR/bus2.met $INSTDIR/bus2.srv > $INSTDIR/bus2.dat
-/bin/gzip -n -f -9 $INSTDIR/bus2.dat || exit 1
-newsum=`/usr/bin/md5sum $INSTDIR/bus2.dat.gz | cut -f1 -d ' '` || exit 1
+$INSTDIR/makestopsdat $INSTDIR/$dataformat || exit 1
+cat $INSTDIR/$dataformat.tree $INSTDIR/$dataformat.stopnames $INSTDIR/$dataformat.services > $INSTDIR/$dataformat.dat
+/bin/gzip -n -f -9 $INSTDIR/$dataformat.dat || exit 1
+newsum=`/usr/bin/md5sum $INSTDIR/$dataformat.dat.gz | cut -f1 -d ' '` || exit 1
 
 # handle old data
-if [ ! -f $INSTDIR/bus2.dat.gz.old ]; then
+if [ ! -f $INSTDIR/$dataformat.dat.gz.old ]; then
 	echo "Old data file is missing!"
 	exit 1
 fi
-oldsum=`/usr/bin/md5sum $INSTDIR/bus2.dat.gz.old | cut -f1 -d ' '` || exit 1
-rm -f $INSTDIR/bus2.dat.gz.old
-cp -f $INSTDIR/bus2.dat.gz $INSTDIR/bus2.dat.gz.old
+oldsum=`/usr/bin/md5sum $INSTDIR/$dataformat.dat.gz.old | cut -f1 -d ' '` || exit 1
+rm -f $INSTDIR/$dataformat.dat.gz.old
+cp -f $INSTDIR/$dataformat.dat.gz $INSTDIR/$dataformat.dat.gz.old
+
+exit 0 # HACK
 
 # Publish if something has changed!
 if [ x$oldsum != x$newsum ]; then
-	OUTFILE=bus2.dat-`date +%s`.gz
-	mv $INSTDIR/bus2.dat.gz $INSTDIR/$OUTFILE
+	OUTFILE=$dataformat.dat-`date +%s`.gz
+	mv $INSTDIR/$dataformat.dat.gz $INSTDIR/$OUTFILE
 	$INSTDIR/googlecode_upload.py -s "new bus data for `date`" -p redbus -u $GCODE_USER -w $GCODE_PASS $INSTDIR/$OUTFILE || exit 1
 	rm -f $OUTFILE
 else

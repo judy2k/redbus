@@ -125,7 +125,7 @@ treeFile.close()
 stopNamesFile.close()
 
 # output the services
-servicesFile = open(destfile + ".servicenames", "wb")
+servicesFile = open(destfile + ".services", "wb")
 servicesFile.write(struct.pack('>i', len(servicesList)));
 for service in servicesList:
     servicesFile.write((service['ServiceName'] + '\0').encode('utf-8'))
