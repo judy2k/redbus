@@ -1,0 +1,111 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright 2010, 2011 Andrew De Quincey -  adq@lidskialf.net
+# This file is part of rEdBus.
+#
+#  rEdBus is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  rEdBus is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
+
+import sys
+import os
+import urllib.request
+import urllib.parse
+import datetime
+import psycopg2
+import time
+import re
+import lxml.html
+
+# grab the list of all bus services
+services = {}
+resp = urllib.request.urlopen("http://www.mybustracker.co.uk/")
+tree = lxml.html.fromstring(resp.read().decode('utf-8'))
+for option in tree.xpath("//select[@name='serviceRef']/option"):
+    serviceCode = option.attrib["value"].strip();
+    serviceName = option.text.split('-', 1)[0].strip();
+    serviceRoute = option.text.split('-', 1)[1].strip();
+    services[serviceName] = { 'ServiceName': serviceName,
+                              'ServiceRef': serviceCode,
+                              'ServiceRoute': serviceRoute }
+
+
+# Now grab the stop details for each
+addBusStopMarkerRe = re.compile('addBusStopMarker\s*\((.*)\);')
+addBusStopParamsRe = re.compile('(.*),"([^"]*)","([^"]*)",(.*),(true|false),([0-9]+)')
+serviceRe = re.compile('new\s*Array\("([^"]*)"\s*,\s*"([^"]*)"\)')
+stops = {}
+for service in services:
+    params = urllib.parse.urlencode({ 'mode': 'serviceSearch',
+                                      'displayMap': 'true',
+                                      'googleMapMode': '3',
+                                      'serviceRef': services[service]['ServiceRef'] })
+
+    resp = urllib.request.urlopen("http://www.mybustracker.co.uk/", params.encode('utf-8'))
+    for m in addBusStopMarkerRe.finditer(resp.read().decode('utf-8')):
+        paramsTxt = m.group(1)
+
+        pm = addBusStopParamsRe.match(paramsTxt)
+        servicesTxt = pm.group(4)
+        stopCode = pm.group(6)
+
+        servicesAtThisStop = ()
+        for sm in serviceRe.finditer(servicesTxt):
+            servicesAtThisStop += ( sm.group(2), )
+
+        for tmpservice in servicesAtThisStop:
+            if not tmpservice in services:
+                print >>sys.stderr, "Warning: Stop %s has services which do not exist (%s)" % (stopCode, tmpservice)
+
+        if stopCode in stops:
+            oldStop = stops[stopCode]
+
+            if ','.join(oldStop['Services']) != ','.join(servicesAtThisStop):
+                print >>sys.stderr, "Warning: Stop %s has differing services list (%s != %s) between services" % (stopCode, ','.join(oldStop['Services']), ','.join(servicesAtThisStop))
+        else:
+            stops[stopCode] = { 'StopCode': stopCode,
+                                'Services': servicesAtThisStop }
+
+# Connect to database
+db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
+dbcur = db.cursor()
+
+# Get the latest date in the database
+dbcur.execute("SELECT DISTINCT created_date FROM stops ORDER BY created_date DESC LIMIT 1")
+nowdate = dbcur.fetchone()[0]
+
+# Add services to the database
+for service in services.values():
+    dbcur.execute("INSERT INTO services (service_name, service_route, service_provider, created_date) VALUES (%s, %s, %s, %s); SELECT last_value FROM services_service_id_seq",
+                  (service['ServiceName'], service['ServiceRoute'], 'LRT', nowdate))
+    service['DbServiceId'] = dbcur.fetchone()[0]
+db.commit()
+
+# Finally, populate the link table between services and stops
+for stop in stops.values():
+    for serviceName in stop['Services']:
+        if serviceName in services:
+            dbcur.execute("INSERT INTO stops_services (stop_id, service_id, created_date) "+
+                          "SELECT stops.stop_id, services.service_id, %(date)s " +
+                          "FROM stops " +
+                          "CROSS JOIN services " +
+                          "WHERE stops.stop_code=%(stopcode)s AND stops.created_date = %(date)s " +
+                          "AND services.service_provider = 'LRT' AND services.service_name = %(service)s AND services.created_date = %(date)s",
+                          { 'date': nowdate,
+                            'stopcode': stop['StopCode'],
+                            'service': serviceName })
+db.commit()
+
+# DONE
+dbcur.close()
+db.close()

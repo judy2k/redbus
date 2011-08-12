@@ -12,6 +12,8 @@ SELECT pg_catalog.setval('services_service_id_seq', 1, true);
 CREATE TABLE services (
     service_id integer DEFAULT nextval('services_service_id_seq'::regclass) NOT NULL,
     service_name character varying(20) NOT NULL,
+    service_route character varying(255) NOT NULL,
+    service_provider character varying(20) NOT NULL,
     created_date timestamp with time zone NOT NULL
 );
 
@@ -35,6 +37,8 @@ CREATE TABLE stops (
     stop_name character varying(255) NOT NULL,
     x numeric(20,17) NOT NULL,
     y numeric(20,17) NOT NULL,
+    facing character varying(2) NULL,
+    stop_type character varying(255) NOT NULL,
     created_date timestamp with time zone NOT NULL
 );
 

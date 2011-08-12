@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 # Copyright 2010, 2011 Andrew De Quincey -  adq@lidskialf.net
@@ -19,126 +19,34 @@
 
 import sys
 import os
-import urllib
-import urllib2
-import BeautifulSoup
 import datetime
 import psycopg2
 import time
-import re
 import xml.sax
-from cookielib import CookieJar
+from NaptanSaxDocumentHandler import NaptanSaxDocumentHandler
 
-debug = False
+if len(sys.argv) != 2:
+    print("Syntax: getstops <xml file>", file=sys.stderr)
+    sys.exit(1)
+xmlfile = sys.argv[1]
 
 nowdate = datetime.datetime.today()
 
-cj = CookieJar()
-opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-
-# grab the list of all bus services
-services = {}
-response = opener.open("http://www.mybustracker.co.uk/")
-soup = BeautifulSoup.BeautifulSoup(response.read())
-service_select = soup.find("select", {"name":"serviceRef"})
-for option in service_select.findAll("option"):
-    serviceCode = option["value"].strip();
-    serviceName = option.contents[0].split('-', 1)[0].strip();
-    serviceRoute = option.contents[0].split('-', 1)[1].strip();
-    services[serviceName] = { 'ServiceName': serviceName, 
-			      'ServiceRef': serviceCode, 
-			      'ServiceRoute': serviceRoute }
-
-if debug:
-    print >>sys.stderr, "Found %i services" % len(services)
-
-
-# Now grab the stop details for each
-addBusStopMarkerRe = re.compile('addBusStopMarker\s*\((.*)\);')
-addBusStopParamsRe = re.compile('(.*),"([^"]*)","([^"]*)",(.*),(true|false),([0-9]+)')
-latLngRe = re.compile('new\s*google.maps.LatLng\s*\(\s*([+-]?[0-9.]+)\s*,\s*([+-]?[0-9.]+)\s*\)')
-serviceRe = re.compile('new\s*Array\("([^"]*)"\s*,\s*"([^"]*)"\)')
+# Parse the XML stop information
 stops = {}
-count = 0
-for service in services:
-    count += 1
-    if debug:
-        print >>sys.stderr, "Processing service \"%s\" (%i/%i)" % (service, count, len(services))
-
-    params = urllib.urlencode({ 'mode': 'serviceSearch', 
-			        'displayMap': 'true', 
-				'googleMapMode': '3', 
-				'serviceRef': services[service]['ServiceRef'] })
-
-    response = opener.open("http://www.mybustracker.co.uk/", params)
-    for m in addBusStopMarkerRe.finditer(response.read()):
-        paramsTxt = m.group(1)
-
-	pm = addBusStopParamsRe.match(paramsTxt)
-        latLngTxt = pm.group(1)
-        stopName = pm.group(2)
-        servicesTxt = pm.group(4)
-        stopCode = pm.group(6)
-
-        llm = latLngRe.match(latLngTxt)
-        x = llm.group(1)
-        y = llm.group(2)
-	
-        servicesAtThisStop = ()
-        for sm in serviceRe.finditer(servicesTxt):
-   	    servicesAtThisStop += ( sm.group(2), )
-
-        for tmpservice in servicesAtThisStop:
-            if not services.has_key(tmpservice):
-                print >>sys.stderr, "Warning: Stop %s has services which do not exist (%s)" % (stopCode, tmpservice)
-
-        if stops.has_key(stopCode):
-            oldStop = stops[stopCode]
-
-            if oldStop['StopName'] != stopName:
-                print >>sys.stderr, "Warning: Stop %s has differing names (%s != %s) between services" % (stopCode, oldStop['StopName'], stopName)
-            if oldStop['X'] != x:
-                print >>sys.stderr, "Warning: Stop %s has differing X coordinate (%s != %s) between services" % (stopCode, oldStop['X'], x)
-            if oldStop['Y'] != y:
-                print >>sys.stderr, "Warning: Stop %s has differing Y coordinate (%s != %s) between services" % (stopCode, oldStop['Y'], y)
-            if ','.join(oldStop['Services']) != ','.join(servicesAtThisStop):
-                print >>sys.stderr, "Warning: Stop %s has differing services list (%s != %s) between services" % (stopCode, ','.join(oldStop['Services']), ','.join(servicesAtThisStop))
-        else:
-            stops[stopCode] = { 'StopCode': stopCode,
-                                'StopName': stopName,
-                                'X': 	    x,
-                                'Y': 	    y,
-                                'Services': servicesAtThisStop }
-
-print stops
-sys.exit(1)
+handler = NaptanSaxDocumentHandler(stops)
+xml.sax.parse(xmlfile, handler)
 
 # Connect to database
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
 dbcur = db.cursor()
 
-# Add services to the database
-for service in services.values():
-    dbcur.execute("INSERT INTO services (service_name, created_date) VALUES (%s, %s); SELECT last_value FROM services_service_id_seq", 
-                  (service['ServiceName'], nowdate))
-    service['DbServiceId'] = dbcur.fetchone()[0]
-db.commit()
-
 # Add stops to the database
 for stop in stops.values():
-    dbcur.execute("INSERT INTO stops (stop_code, stop_name, x, y, created_date) VALUES (%s, %s, %s, %s, %s); SELECT last_value FROM stops_stop_id_seq", 
-                  (stop['StopCode'], stop['StopName'], stop['X'], stop['Y'], nowdate))
+    dbcur.execute("INSERT INTO stops (stop_code, stop_name, x, y, facing, stop_type, created_date) VALUES (%s, %s, %s, %s, %s, %s, %s); SELECT last_value FROM stops_stop_id_seq",
+                  (stop['StopCode'], stop['StopName'], stop['X'], stop['Y'], stop['Facing'], stop['StopType'], nowdate))
     stop['DbStopId'] = dbcur.fetchone()[0]
-    db.commit()
-
-# Finally, populate the link table between services and stops
-for stop in stops.values():
-    for serviceName in stop['Services']:
-        if services.has_key(serviceName):
-            service = services[serviceName]
-            dbcur.execute("INSERT INTO stops_services (stop_id, service_id, created_date) VALUES (%s, %s, %s)", 
-                          (stop['DbStopId'], service['DbServiceId'], nowdate))
-    db.commit()
+db.commit()
 
 # DONE
 dbcur.close()
