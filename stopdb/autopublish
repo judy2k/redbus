@@ -34,7 +34,7 @@ $INSTDIR/getnaptandata $INSTDIR/stopdata/NaPTAN628.xml $nowdate || exit 1
 
 # Generate new stops database
 $INSTDIR/makestopsdat $INSTDIR/$dataformat || exit 1
-cat $INSTDIR/$dataformat.tree $INSTDIR/$dataformat.stopnames $INSTDIR/$dataformat.services > $INSTDIR/$dataformat.dat
+cat $INSTDIR/$dataformat.tree $INSTDIR/$dataformat.services $INSTDIR/$dataformat.stopnames > $INSTDIR/$dataformat.dat
 /bin/gzip -n -f -9 $INSTDIR/$dataformat.dat || exit 1
 newsum=`/usr/bin/md5sum $INSTDIR/$dataformat.dat.gz | cut -f1 -d ' '` || exit 1
 
