@@ -28,7 +28,7 @@ import re
 import lxml.html
 
 if len(sys.argv) != 2:
-    print("Syntax: getlrtservices <nowdate>", file=sys.stderr)
+    print("Syntax: getlrtdata <nowdate>", file=sys.stderr)
     sys.exit(1)
 nowdate = sys.argv[1]
 
@@ -97,11 +97,10 @@ for service in services.values():
     service['DbServiceId'] = dbcur.fetchone()[0]
 db.commit()
 
-# Add any stops that weren't in NAPTAN (sigh!) to the DB
+# Add stops to the DB
 for stop in stops.values():
     dbcur.execute("INSERT INTO stops (stop_code, stop_name, x, y, facing, stop_type, source, created_date) " +
-                  "SELECT %(stop_code)s, %(stop_name)s, %(x)s, %(y)s, %(facing)s, %(stop_type)s, %(source)s, %(date)s " +
-                  "WHERE NOT EXISTS (SELECT stop_code FROM stops where stop_code = %(stop_code)s AND created_date = %(date)s) ",
+                  "SELECT %(stop_code)s, %(stop_name)s, %(x)s, %(y)s, %(facing)s, %(stop_type)s, %(source)s, %(date)s ",
                   { 'stop_code': stop['StopCode'],
                     'stop_name': stop['StopName'],
                     'x': stop['X'],
@@ -110,10 +109,6 @@ for stop in stops.values():
                     'stop_type': 'BCT',
                     'source': 'LRT',
                     'date': nowdate });
-
-    if dbcur.statusmessage != 'INSERT 0 0':
-        print("Created entry for non-NAPTAN stop %s (%s)" % (stop['StopCode'], stop['StopName']))
-
 db.commit()
 
 # Populate the link table between services and stops

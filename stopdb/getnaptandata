@@ -26,7 +26,7 @@ import xml.sax
 from NaptanSaxDocumentHandler import NaptanSaxDocumentHandler
 
 if len(sys.argv) != 3:
-    print("Syntax: getstops <xml file> <nowdate>", file=sys.stderr)
+    print("Syntax: getnaptandata <xml file> <nowdate>", file=sys.stderr)
     sys.exit(1)
 xmlfile = sys.argv[1]
 nowdate = sys.argv[2]
@@ -40,11 +40,18 @@ xml.sax.parse(xmlfile, handler)
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
 dbcur = db.cursor()
 
-# Add stops to the database
+# Add/update stops in the database
 for stop in stops.values():
-    dbcur.execute("INSERT INTO stops (stop_code, stop_name, x, y, facing, stop_type, source, created_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s); SELECT last_value FROM stops_stop_id_seq",
-                  (stop['StopCode'], stop['StopName'], stop['X'], stop['Y'], stop['Facing'], stop['StopType'], 'NAPTAN', nowdate))
-    stop['DbStopId'] = dbcur.fetchone()[0]
+    dbcur.execute("UPDATE stops SET stop_name = %(stop_name)s, facing=%(facing)s, source=source || ' NAPTAN' " +
+                  "WHERE stop_code = %(stop_code)s AND created_date=%(date)s",
+                  { 'stop_name': stop['StopName'],
+                    'facing': stop['Facing'],
+                    'stop_code': stop['StopCode'],
+                    'date': nowdate })
+
+    if dbcur.statusmessage != 'UPDATE 1':
+        dbcur.execute("INSERT INTO stops (stop_code, stop_name, x, y, facing, stop_type, source, created_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                      (stop['StopCode'], stop['StopName'], stop['X'], stop['Y'], stop['Facing'], stop['StopType'], 'NAPTAN', nowdate))
 db.commit()
 
 # DONE

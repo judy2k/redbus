@@ -32,6 +32,7 @@ class NaptanSaxDocumentHandler(handler.ContentHandler):
         self.stopType = ''
         self.inStopPoint = False
         self.inPlace = False
+        self.inAlternativeDescriptors = False
 
     def startDocument(self):
         pass
@@ -53,6 +54,9 @@ class NaptanSaxDocumentHandler(handler.ContentHandler):
 
         elif name == 'Place':
             self.inPlace = True
+
+        elif name == 'AlternativeDescriptors':
+            self.inAlternativeDescriptors = True
 
         self.curElementName = name
 
@@ -84,18 +88,23 @@ class NaptanSaxDocumentHandler(handler.ContentHandler):
         elif name == 'Place':
             self.inPlace = False
 
+        elif name == 'AlternativeDescriptors':
+            self.inAlternativeDescriptors = False
+
     def characters(self, chrs):
         if not self.inStopPoint:
             return
 
         if self.curElementName == 'NaptanCode':
             self.stopCode += chrs
-        elif self.curElementName == 'CommonName':
-            self.stopName += chrs
         elif self.curElementName == 'CompassPoint':
             self.facing += chrs
         elif self.curElementName == 'StopType':
             self.stopType += chrs
+
+        if not self.inAlternativeDescriptors:
+            if self.curElementName == 'CommonName':
+                self.stopName += chrs
 
         if self.inPlace:
             if self.curElementName == 'Longitude':
