@@ -102,10 +102,11 @@ if len(stops) > 32767:
     sys.exit(1)
 
 
-# Open file and write header - 8 bytes - magic, integer root pos
+# Open treefile and write header
 treeFile = open(destfile + ".tree", "wb")
-treeFile.write(struct.pack(">BBBB", ord('b'), ord('u'), ord('s'), ord('3')))
-treeFile.seek(8,os.SEEK_SET)
+treeFile.write(struct.pack(">BBBB", ord('b'), ord('u'), ord('s'), ord('3'))) # magic
+treeFile.write(struct.pack(">I", 0)) # integer root tree pos placeholder
+treeFile.write(struct.pack(">ii", 55946052, -3188879)) # Default map pos at centre of Edinburgh
 
 # The stop names file
 stopNamesFile = open(destfile + ".stopnames", "wb")
