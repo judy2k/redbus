@@ -27,8 +27,8 @@ import time
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
 dbcur = db.cursor()
 
-dates = [] 
-dbcur.execute("SELECT DISTINCT created_date FROM services ORDER BY created_date ASC")
+dates = []
+dbcur.execute("SELECT DISTINCT created_date FROM stops ORDER BY created_date ASC")
 for row in dbcur:
     dates.append(row[0])
 
@@ -39,7 +39,7 @@ else:
     date = sys.argv[1]
     if date == "LATEST":
         date = dates[len(dates)-1]
-    
+
     dbcur.execute("DELETE FROM stops_services WHERE created_date = %s", (date, ));
     dbcur.execute("DELETE FROM services WHERE created_date = %s", (date, ));
     dbcur.execute("DELETE FROM stops WHERE created_date = %s", (date, ));

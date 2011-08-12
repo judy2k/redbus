@@ -27,6 +27,11 @@ import time
 import re
 import lxml.html
 
+if len(sys.argv) != 2:
+    print("Syntax: getlrtservices <nowdate>", file=sys.stderr)
+    sys.exit(1)
+nowdate = sys.argv[1]
+
 # grab the list of all bus services
 services = {}
 resp = urllib.request.urlopen("http://www.mybustracker.co.uk/")
@@ -43,6 +48,7 @@ for option in tree.xpath("//select[@name='serviceRef']/option"):
 # Now grab the stop details for each
 addBusStopMarkerRe = re.compile('addBusStopMarker\s*\((.*)\);')
 addBusStopParamsRe = re.compile('(.*),"([^"]*)","([^"]*)",(.*),(true|false),([0-9]+)')
+latLngRe = re.compile('new\s*google.maps.LatLng\s*\(\s*([+-]?[0-9.]+)\s*,\s*([+-]?[0-9.]+)\s*\)')
 serviceRe = re.compile('new\s*Array\("([^"]*)"\s*,\s*"([^"]*)"\)')
 stops = {}
 for service in services:
@@ -56,8 +62,14 @@ for service in services:
         paramsTxt = m.group(1)
 
         pm = addBusStopParamsRe.match(paramsTxt)
+        latLngTxt = pm.group(1)
+        stopName = pm.group(2)
         servicesTxt = pm.group(4)
         stopCode = pm.group(6)
+
+        llm = latLngRe.match(latLngTxt)
+        x = llm.group(1)
+        y = llm.group(2)
 
         servicesAtThisStop = ()
         for sm in serviceRe.finditer(servicesTxt):
@@ -67,22 +79,16 @@ for service in services:
             if not tmpservice in services:
                 print >>sys.stderr, "Warning: Stop %s has services which do not exist (%s)" % (stopCode, tmpservice)
 
-        if stopCode in stops:
-            oldStop = stops[stopCode]
-
-            if ','.join(oldStop['Services']) != ','.join(servicesAtThisStop):
-                print >>sys.stderr, "Warning: Stop %s has differing services list (%s != %s) between services" % (stopCode, ','.join(oldStop['Services']), ','.join(servicesAtThisStop))
-        else:
+        if not stopCode in stops:
             stops[stopCode] = { 'StopCode': stopCode,
+                                'StopName': stopName,
+                                'X':        x,
+                                'Y':        y,
                                 'Services': servicesAtThisStop }
 
 # Connect to database
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
 dbcur = db.cursor()
-
-# Get the latest date in the database
-dbcur.execute("SELECT DISTINCT created_date FROM stops ORDER BY created_date DESC LIMIT 1")
-nowdate = dbcur.fetchone()[0]
 
 # Add services to the database
 for service in services.values():
@@ -91,7 +97,26 @@ for service in services.values():
     service['DbServiceId'] = dbcur.fetchone()[0]
 db.commit()
 
-# Finally, populate the link table between services and stops
+# Add any stops that weren't in NAPTAN (sigh!) to the DB
+for stop in stops.values():
+    dbcur.execute("INSERT INTO stops (stop_code, stop_name, x, y, facing, stop_type, source, created_date) " +
+                  "SELECT %(stop_code)s, %(stop_name)s, %(x)s, %(y)s, %(facing)s, %(stop_type)s, %(source)s, %(date)s " +
+                  "WHERE NOT EXISTS (SELECT stop_code FROM stops where stop_code = %(stop_code)s AND created_date = %(date)s) ",
+                  { 'stop_code': stop['StopCode'],
+                    'stop_name': stop['StopName'],
+                    'x': stop['X'],
+                    'y': stop['X'],
+                    'facing': '',
+                    'stop_type': 'BCT',
+                    'source': 'LRT',
+                    'date': nowdate });
+
+    if dbcur.statusmessage != 'INSERT 0 0':
+        print("Created entry for non-NAPTAN stop %s (%s)" % (stop['StopCode'], stop['StopName']))
+
+db.commit()
+
+# Populate the link table between services and stops
 for stop in stops.values():
     for serviceName in stop['Services']:
         if serviceName in services:
@@ -103,7 +128,11 @@ for stop in stops.values():
                           "AND services.service_provider = 'LRT' AND services.service_name = %(service)s AND services.created_date = %(date)s",
                           { 'date': nowdate,
                             'stopcode': stop['StopCode'],
-                            'service': serviceName })
+                            'service': serviceName})
+
+            if dbcur.statusmessage != 'INSERT 0 1':
+                print("Failed to insert entry for stop %s service %s" % (stop['StopCode'], serviceName))
+
 db.commit()
 
 # DONE

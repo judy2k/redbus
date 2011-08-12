@@ -25,12 +25,11 @@ import time
 import xml.sax
 from NaptanSaxDocumentHandler import NaptanSaxDocumentHandler
 
-if len(sys.argv) != 2:
-    print("Syntax: getstops <xml file>", file=sys.stderr)
+if len(sys.argv) != 3:
+    print("Syntax: getstops <xml file> <nowdate>", file=sys.stderr)
     sys.exit(1)
 xmlfile = sys.argv[1]
-
-nowdate = datetime.datetime.today()
+nowdate = sys.argv[2]
 
 # Parse the XML stop information
 stops = {}
@@ -43,8 +42,8 @@ dbcur = db.cursor()
 
 # Add stops to the database
 for stop in stops.values():
-    dbcur.execute("INSERT INTO stops (stop_code, stop_name, x, y, facing, stop_type, created_date) VALUES (%s, %s, %s, %s, %s, %s, %s); SELECT last_value FROM stops_stop_id_seq",
-                  (stop['StopCode'], stop['StopName'], stop['X'], stop['Y'], stop['Facing'], stop['StopType'], nowdate))
+    dbcur.execute("INSERT INTO stops (stop_code, stop_name, x, y, facing, stop_type, source, created_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s); SELECT last_value FROM stops_stop_id_seq",
+                  (stop['StopCode'], stop['StopName'], stop['X'], stop['Y'], stop['Facing'], stop['StopType'], 'NAPTAN', nowdate))
     stop['DbStopId'] = dbcur.fetchone()[0]
 db.commit()
 

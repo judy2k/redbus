@@ -16,16 +16,22 @@
 #  You should have received a copy of the GNU General Public License
 #  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
 
-. /etc/redbus.conf
+#. /etc/redbus.conf
 
 INSTDIR=/usr/local/redbus
+INSTDIR=.
+
+nowdate=`date +%Y-%m-%dT%H:%M:%S`
 
 # Extract stops from XML
-$INSTDIR/getstops $INSTDIR/stopdata/NaPTAN620.xml || exit 1
-$INSTDIR/getstops $INSTDIR/stopdata/NaPTAN628.xml || exit 1
+$INSTDIR/getstops $INSTDIR/stopdata/NaPTAN620.xml $nowdate || exit 1
+$INSTDIR/getstops $INSTDIR/stopdata/NaPTAN627.xml $nowdate || exit 1
+$INSTDIR/getstops $INSTDIR/stopdata/NaPTAN628.xml $nowdate || exit 1
 
 # Download services from website
-$INSTDIR/getlrtservices || exit 1
+$INSTDIR/getlrtservices $nowdate || exit 1
+
+exit 0 # HACK
 
 # Generate new stops database
 $INSTDIR/makestopsdat $INSTDIR/bus2 || exit 1
