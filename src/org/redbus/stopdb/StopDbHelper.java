@@ -46,29 +46,38 @@ public class StopDbHelper {
 
 	private static StopDbHelper pointTree = null;
 	private static Integer syncObj = new Integer(0);
-	private static String filesPath = "/data/data/org.redbus/files";
+	private static final String filesPath = "/data/data/org.redbus/files";
+	public static final String DatabaseVersion = "bus3";
 
 	public static final int SERVICE_MAP_LONG_COUNT = 2;
-	public static final int KDTREE_RECORD_SIZE = 28;
-	public static final int METADATA_RECORD_SIZE = 20;
+	public static final int HEADER_SIZE = 16;
+	public static final int TREE_NODE_SIZE = 37;
 
-	private byte[] stopMetadata;
 	public short[] left;
 	public short[] right;
+	private Map<Integer, Integer> nodeIdxByStopCode;
+	public int[] stopCode;
 	public int[] lat;
 	public int[] lon;
 	public long[] serviceMap0;
 	public long[] serviceMap1;
+	public byte[] facing;
+	public int[] stopNameOffset;
+	public byte[] rawStopNames;
+
 	public int rootRecordNum;
-	private Map<Integer, Integer> nodeIdxByStopCode;
 	final HashMap<Integer, Integer> serviceBitToSortIndex = new HashMap<Integer, Integer>();
 	public HashMap<String, Integer> serviceNameToServiceBit = new HashMap<String, Integer>();
 	private String[] serviceBitToServiceName;
+	private byte[] serviceBitToServiceProviderId;
 
 	public int lowerLeftLat;
 	public int lowerLeftLon;
 	public int upperRightLat;
 	public int upperRightLon;
+	
+	public int defaultMapLocationLat;
+	public int defaultMapLocationLon;
 
 	public static StopDbHelper Load(Context ctx)
 	{
@@ -83,11 +92,11 @@ public class StopDbHelper {
 				} catch (Exception ex) {
 				}
 
-				File file = new File(dir, "bus2.dat");
+				File file = new File(dir, DatabaseVersion + ".dat");
 				try {
 					// first of all, if the file doesn't exist on disk, extract it from our resources and save it out to there
 					if (!file.exists()) {
-						stopsStream = ctx.getResources().openRawResource(R.raw.stops);
+						stopsStream = ctx.getResources().openRawResource(R.raw.bus3);
 						outStream = new FileOutputStream(file);
 						byte b[] = new byte[4096];
 						int len = 0;
@@ -156,8 +165,8 @@ public class StopDbHelper {
 			} catch (Exception ex) {
 			}
 
-			File outFile = new File(dir, "bus2.dat.new");
-			File dbFile = new File(dir, "bus2.dat");
+			File outFile = new File(dir, DatabaseVersion + ".dat.new");
+			File dbFile = new File(dir, DatabaseVersion + ".dat");
 			try {
 				outStream = new FileOutputStream(outFile);
 
@@ -240,18 +249,16 @@ public class StopDbHelper {
 
 	public String lookupStopNameByStopNodeIdx(int stopNodeIdx)
 	{
-		int off = stopNodeIdx * METADATA_RECORD_SIZE;
+		int startoff = stopNameOffset[stopNodeIdx];
+		int off = startoff;
+		while(rawStopNames[off] != 0)
+			off++;
+
 		try {
-			return new String(stopMetadata, off + 4, 16, "utf-8").trim();
+			return new String(rawStopNames, startoff, off - startoff, "utf-8");
 		} catch (Throwable t) {
 			return "???";
 		}
-	}
-
-	public int lookupStopCodeByStopNodeIdx(int stopNodeIdx) 
-	{
-		int off = stopNodeIdx * METADATA_RECORD_SIZE;
-		return readInt(stopMetadata, off);
 	}
 
 	public ServiceBitmap lookupServiceBitmapByStopNodeIdx(int stopNodeIdx)
@@ -310,36 +317,44 @@ public class StopDbHelper {
 		is.read(b);
 
 		// check it is valid
-		if ((b[0] != 'b') || (b[1] != 'u') || (b[2] != 's') || (b[3] != '2'))
+		if ((b[0] != DatabaseVersion.charAt(0)) || (b[1] != DatabaseVersion.charAt(1)) || (b[2] != DatabaseVersion.charAt(2)) || (b[3] != DatabaseVersion.charAt(3)))
 			throw new RuntimeException("Invalid file format");
 
-		// get the root record number
+		// get the header information
 		rootRecordNum = readInt(b, 4);
+		this.defaultMapLocationLat = readInt(b, 8);
+		this.defaultMapLocationLon = readInt(b, 12);
 
 		// setup the lookup arrays
 		this.left = new short[rootRecordNum+1];
 		this.right = new short[rootRecordNum+1];
+		this.stopCode = new int[rootRecordNum+1];
+		this.nodeIdxByStopCode = new HashMap<Integer, Integer>();
 		this.lat = new int[rootRecordNum+1];
 		this.lon = new int[rootRecordNum+1];
 		this.serviceMap0 = new long[rootRecordNum+1];
 		this.serviceMap1 = new long[rootRecordNum+1];
-		this.stopMetadata = new byte[(rootRecordNum+1) * METADATA_RECORD_SIZE];
-		this.nodeIdxByStopCode = new HashMap<Integer, Integer>();
+		this.facing = new byte[rootRecordNum+1];
+		this.stopNameOffset = new int[rootRecordNum+1];
 		this.lowerLeftLat = Integer.MAX_VALUE;
 		this.lowerLeftLon = Integer.MAX_VALUE;
 		this.upperRightLat = Integer.MIN_VALUE;
 		this.upperRightLon = Integer.MIN_VALUE;
 
 		// read in the kdtree
-		int off = 8;
+		int off = HEADER_SIZE;
 		for(int i = 0; i <= rootRecordNum; ++i)
 		{
 			left[i] = readShort(b, off + 0);
 			right[i] = readShort(b, off + 2);
-			lat[i] = readInt(b, off + 4);
-			lon[i] = readInt(b, off + 8);
-			serviceMap1[i] = readLong(b, off + 12);
-			serviceMap0[i] = readLong(b, off + 20);
+			stopCode[i] = readInt(b, off + 4);
+			nodeIdxByStopCode.put(new Integer(stopCode[i]), new Integer(i));
+			lat[i] = readInt(b, off + 8);
+			lon[i] = readInt(b, off + 12);
+			serviceMap1[i] = readLong(b, off + 16);
+			serviceMap0[i] = readLong(b, off + 24);
+			facing[i] = b[off + 32];
+			stopNameOffset[i] = readInt(b, off + 33);
 
 			if (lat[i] < this.lowerLeftLat)
 				this.lowerLeftLat = lat[i];
@@ -350,23 +365,19 @@ public class StopDbHelper {
 			if (lon[i] > this.upperRightLon)
 				this.upperRightLon = lon[i];
 
-			off += KDTREE_RECORD_SIZE;
-		}
-
-		// read in the service metadata
-		System.arraycopy(b, off, stopMetadata, 0, stopMetadata.length);
-		for(int i=0; i<= rootRecordNum; i++) {
-			nodeIdxByStopCode.put(new Integer(readInt(b, off + 0)), new Integer(i));
-			off += METADATA_RECORD_SIZE;
+			off += TREE_NODE_SIZE;
 		}
 
 		// read in the services
 		int servicesCount = readInt(b, off);
 		off += 4;
 		this.serviceBitToServiceName = new String[servicesCount];
-		int startoff = off;
+		this.serviceBitToServiceProviderId = new byte[servicesCount];
 		ArrayList<String> sortedServices = new ArrayList<String>();
 		for(int i =0; i< servicesCount; i++) {
+			serviceBitToServiceProviderId[i] = b[off++];
+			
+			int startoff = off;
 			while(b[off] != 0)
 				off++;
 
@@ -375,8 +386,11 @@ public class StopDbHelper {
 			this.serviceNameToServiceBit.put(serviceName, new Integer(i));
 			sortedServices.add(serviceName);
 			off++;
-			startoff = off;
 		}
+
+		// read in the raw stop name strings 
+		rawStopNames = new byte[b.length - off];
+		System.arraycopy(b, off, rawStopNames, 0, rawStopNames.length);
 
 		// now sort the services
 		final HashMap<String, Integer> baseServices = new HashMap<String, Integer>();

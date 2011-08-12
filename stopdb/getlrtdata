@@ -104,7 +104,7 @@ for stop in stops.values():
                   { 'stop_code': stop['StopCode'],
                     'stop_name': stop['StopName'],
                     'x': stop['X'],
-                    'y': stop['X'],
+                    'y': stop['Y'],
                     'facing': '',
                     'stop_type': 'BCT',
                     'source': 'LRT',

@@ -111,12 +111,14 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
             Location gpsLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             Location networkLocation = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             
-            if ((gpsLocation != null) && (gpsLocation.getAccuracy() < 100))
+            if ((gpsLocation != null) && (gpsLocation.getAccuracy() < 100)) {
         		mapController.setCenter(new GeoPoint((int) (gpsLocation.getLatitude() * 1000000), (int) (gpsLocation.getLongitude() * 1000000)));
-            else if ((networkLocation != null) && (networkLocation.getAccuracy() < 100))
+            } else if ((networkLocation != null) && (networkLocation.getAccuracy() < 100)) {
         		mapController.setCenter(new GeoPoint((int) (networkLocation.getLatitude() * 1000000), (int) (networkLocation.getLongitude() * 1000000)));
-            else
-        		mapController.setCenter(new GeoPoint(55946052, -3188879)); // centre of edinburgh
+            } else {
+        		StopDbHelper stopDb = StopDbHelper.Load(this);
+        		mapController.setCenter(new GeoPoint(stopDb.defaultMapLocationLat, stopDb.defaultMapLocationLon));
+            }
 			updateMyLocationStatus(true);
 		} else {
 			mapController.setCenter(new GeoPoint(lat, lng));
@@ -222,7 +224,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	{
 		StopDbHelper pt = StopDbHelper.Load(this);
 		final int nearestStopNodeIdx = pt.findNearest(point.getLatitudeE6(), point.getLongitudeE6());
-		final int stopCode = pt.lookupStopCodeByStopNodeIdx(nearestStopNodeIdx);
+		final int stopCode = pt.stopCode[nearestStopNodeIdx];
 		final double stopLat = pt.lat[nearestStopNodeIdx] / 1E6;
 		final double stopLon = pt.lon[nearestStopNodeIdx] / 1E6;
 

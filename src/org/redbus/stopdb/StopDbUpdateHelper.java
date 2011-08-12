@@ -34,7 +34,7 @@ import android.util.Log;
 
 public class StopDbUpdateHelper {
 	
-	private static final Pattern busUpdateRegex = Pattern.compile("bus2.dat-([0-9]+).gz");
+	private static final Pattern busUpdateRegex = Pattern.compile(StopDbHelper.DatabaseVersion + ".dat-([0-9]+).gz");
 
 	private static Integer RequestId = new Integer(0);
 
@@ -105,7 +105,7 @@ public class StopDbUpdateHelper {
 		}
 
 		private void getUpdate(UpdateRequest ur) throws MalformedURLException {
-			ur.updateData = doGetBinaryUrl(new URL("http://redbus.googlecode.com/files/bus2.dat-" + ur.updateDate + ".gz"));
+			ur.updateData = doGetBinaryUrl(new URL("http://redbus.googlecode.com/files/" + StopDbHelper.DatabaseVersion + ".dat-" + ur.updateDate + ".gz"));
 		}
 
 		private String doGetStringUrl(URL url) {
