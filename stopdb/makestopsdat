@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 # Copyright 2010, 2011 Colin Paton - cozzarp@googlemail.com
@@ -23,30 +23,28 @@ from kdtree import *
 import struct,os
 import sys
 
-if len(sys.argv) != 2:
-  print >>sys.stderr, "Syntax: makestopsdat <destination file prefix>"
-  sys.exit(1)
+if len(sys.argv) != 3:
+    print("Syntax: makestopsdat <destination file prefix> <nowdate>", file=sys.stderr)
+    sys.exit(1)
+destfile = sys.argv[1]
+nowdate = sys.argv[2]
 
 # Connect to database
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
 curs = db.cursor()
 mapcurs = db.cursor()
 
-# Use only the latest data
-curs.execute("SELECT max(created_date) FROM services")
-latestdate = curs.fetchone()[0]
-
 # Get the list of services from the database
 servicesById = {}
 servicesList = []
-curs.execute("SELECT service_id, service_name FROM services WHERE created_date = %s ORDER BY service_name", (latestdate, ))
+curs.execute("SELECT service_id, service_name FROM services WHERE created_date = %s ORDER BY service_name", (nowdate, ))
 for row in curs:
     dbserviceid = row[0]
     service_name  = row[1]
-    service = { 'DbServiceId' : dbserviceid, 
+    service = { 'DbServiceId' : dbserviceid,
                 'ServiceName' : service_name,
-                'ServiceIdx'  : len(servicesList) 
-              };             
+                'ServiceIdx'  : len(servicesList)
+              };
     servicesById[dbserviceid] = service
     servicesList.append(service);
 if len(servicesList) > 128:
@@ -55,22 +53,50 @@ if len(servicesList) > 128:
 
 # Get the list of stops from the database
 stops=[]
-curs.execute("SELECT stop_id, stop_code, stop_name, x, y FROM stops WHERE created_date = %s order by stop_code desc", (latestdate, ))
+curs.execute("SELECT stop_id, stop_code, stop_name, x, y, facing FROM stops WHERE created_date = %s order by stop_code desc", (nowdate, ))
 for row in curs:
     # stop data
     dbstopid = row[0]
-    code = row[1]
-    name = row[2]
+    stopcode = row[1]
+    stopname = row[2]
     x = float(row[3])
     y = float(row[4])
+    facingTxt = row[5]
 
+    # Figure out the stopmap bitmap
     stopmap = 0
-    mapcurs.execute("SELECT service_id FROM stops_services WHERE created_date = %s AND stop_id = %s", (latestdate, dbstopid))
+    mapcurs.execute("SELECT service_id FROM stops_services WHERE created_date = %s AND stop_id = %s", (nowdate, dbstopid))
     for maprow in mapcurs:
         service = servicesById[maprow[0]]
         stopmap |= 1 << service['ServiceIdx']
 
-    stops.append(((x,y),code,name,(stopmap >> 64) & 0xffffffffffffffff,stopmap & 0xffffffffffffffff))
+    # figure out the facing field
+    facing = 0
+    if facingTxt == 'N':
+        facing |= 0x08 | 0
+    elif facingTxt == 'NE':
+        facing |= 0x08 | 1
+    elif facingTxt == 'E':
+        facing |= 0x08 | 2
+    elif facingTxt == 'SE':
+        facing |= 0x08 | 3
+    elif facingTxt == 'S':
+        facing |= 0x08 | 4
+    elif facingTxt == 'SW':
+        facing |= 0x08 | 5
+    elif facingTxt == 'W':
+        facing |= 0x08 | 6
+    elif facingTxt == 'NW':
+        facing |= 0x08 | 7
+
+    # Only add the stop if we actually have services arriving at it
+    if stopmap != 0:
+        stops.append({  'xy': (x,y),
+                        'stopcode': stopcode,
+                        'stopname': stopname,
+                        'stopmap': stopmap,
+                        'facing': facing })
+
 if len(stops) > 32767:
     print >>sys.stderr, "Error: more than 32767 stops found - need to fix file format!"
     sys.exit(1)
@@ -83,27 +109,27 @@ def recordnumgenerator():
         yield num
         num+=1
 
-# Header - 8 bytes - 'bus2', integer root pos
-treeFile = file(sys.argv[1] + ".kdt", "wb")
-treeFile.write(struct.pack(">4s", 'bus2'))
+# Header - 8 bytes - magic, integer root pos
+treeFile = open(destfile + ".tree", "wb")
+treeFile.write(struct.pack(">BBBB", ord('b'), ord('u'), ord('s'), ord('3')))
 treeFile.seek(8,os.SEEK_SET)
 
-metadataFile = file(sys.argv[1] + ".met", "wb")
+# The stop names file
+stopNamesFile = open(destfile + ".stopnames", "wb")
 
 # Write the tree
 recordnumgen=recordnumgenerator()
-rootpos=tree.write(treeFile,metadataFile,recordnumgen)
+rootpos=tree.write(treeFile,stopNamesFile,recordnumgen)
 
 # output file headers and close 'em
 treeFile.seek(4,os.SEEK_SET)
 treeFile.write(struct.pack('>i',rootpos))
 treeFile.close()
-metadataFile.close()
+stopNamesFile.close()
 
-# output the services - 'bus2', integer number of services
-servicesFile = file(sys.argv[1] + ".srv", "wb")
+# output the services
+servicesFile = open(destfile + ".servicenames", "wb")
 servicesFile.write(struct.pack('>i', len(servicesList)));
 for service in servicesList:
-    servicesFile.write(service['ServiceName'])
-    servicesFile.write("\0")
+    servicesFile.write((service['ServiceName'] + '\0').encode('utf-8'))
 servicesFile.close();
