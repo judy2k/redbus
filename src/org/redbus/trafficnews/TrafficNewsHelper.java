@@ -58,6 +58,7 @@ public class TrafficNewsHelper {
 			String url = "http://twitter.com/statuses/user_timeline.rss?user_id=141165868&count=" + count;
 			if (lastTweetId != null)
 				url += "&since_id=" + lastTweetId;				
+			url += "&randomThing=" + new Date().getTime();
 			return new URL(url);
 		} catch (MalformedURLException e) {
 			Log.e("BusDataHelper", "Malformed URL reported");
