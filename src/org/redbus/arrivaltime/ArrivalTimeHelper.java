@@ -122,16 +122,8 @@ public class ArrivalTimeHelper {
 						String classAttr = parser.getAttributeValue(null, "class");
 						if (classAttr == null)
 							continue;
-						classAttr = classAttr.toLowerCase();
-						if ((!classAttr.contains("tblanc")) && (!classAttr.contains("tgris")))
+						if (!classAttr.contains("YnzhTmte"))
 							continue;
-						
-						String styleAttr = parser.getAttributeValue(null, "style");
-						if (styleAttr != null) {
-							styleAttr = styleAttr.toLowerCase();
-							if (styleAttr.contains("display") && styleAttr.contains("none"))
-								continue;
-						}
 						
 						ArrivalTime bt = parseStopTime(parser, request.stopCode);
 						if (bt.isDiverted) {
