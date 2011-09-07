@@ -156,6 +156,14 @@ public class StopDbHelper {
 					} catch (Throwable t) {
 					}
 				}
+				
+				// delete old file to save space
+				try {
+					File oldFile = new File(dir, "bus2.dat");
+					if (oldFile.exists())
+						oldFile.delete();
+				} catch (Throwable t) {
+				}
 			}
 
 			return pointTree;
