@@ -85,9 +85,18 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		setContentView(R.layout.bustimes);
 		registerForContextMenu(getListView());
 		busyDialog = new BusyDialog(this);
+
+		try {
+			String intentData = getIntent().getDataString(); 
+			if (intentData.startsWith("http://mobile.mybustracker.co.uk/?busStopCode=")) {
+				stopCode = Integer.parseInt(intentData.substring(intentData.indexOf('=') + 1));
+			}
+		} catch (Throwable t) {			
+		}
 		
 		// get the stop code from the intent
-		stopCode = (int) getIntent().getLongExtra("StopCode", -1);
+		if (stopCode == -1)
+			stopCode = (int) getIntent().getLongExtra("StopCode", -1);
 		if (stopCode != -1)
 			findViewById(android.R.id.empty).setVisibility(View.GONE);
 		

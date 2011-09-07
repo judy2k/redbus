@@ -40,11 +40,13 @@ import android.app.ListActivity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.pm.PackageInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
@@ -186,9 +188,6 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 		return false;
 	}
 	
-	
-	
-	
 	private void doShowArrivalTimes(int stopCode) {
 		ArrivalTimeActivity.showActivity(this, stopCode);		
 	}
@@ -202,17 +201,17 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	
 	private void doEnterStopcode() {
 		LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		View dialogView = layoutInflater.inflate(R.layout.enterstopcode, null);
+		View stopCodeDialogView = layoutInflater.inflate(R.layout.enterstopcode, null);
 
-		final EditText stopCodeText = (EditText) dialogView.findViewById(R.id.enterstopcode_code);
-		final CheckBox addbookmarkCb = (CheckBox) dialogView.findViewById(R.id.enterstopcode_addbookmark);
+		final EditText stopCodeText = (EditText) stopCodeDialogView.findViewById(R.id.enterstopcode_code);
+		final CheckBox addbookmarkCb = (CheckBox) stopCodeDialogView.findViewById(R.id.enterstopcode_addbookmark);
 		stopCodeText.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
 
 		// show the dialog!
 		new AlertDialog.Builder(this)
-			.setView(dialogView)
+			.setView(stopCodeDialogView)
 			.setTitle("Enter Stopcode")
-		.setPositiveButton(android.R.string.ok,
+			.setPositiveButton(android.R.string.ok,
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int whichButton) {
 						long stopCode = -1;
@@ -226,26 +225,77 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 									.show();
 							return;
 						}
-						StopDbHelper pt = StopDbHelper.Load(BookmarksActivity.this);
-						int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
-						if (stopNodeIdx == -1) {
+						
+						doHandleEnterStopcode(stopCode, addbookmarkCb.isChecked());
+					}
+				})
+			.setNeutralButton("Scan", 
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						try {
+					        Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+					        intent.setPackage("com.google.zxing.client.android");
+					        intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+					        startActivityForResult(intent, addbookmarkCb.isChecked() ? 1 : 0);	        
+						} catch (ActivityNotFoundException ex) {
 							new AlertDialog.Builder(BookmarksActivity.this)
-									.setTitle("Error")
-									.setMessage("The stopcode was invalid; please try again")
-									.setPositiveButton(android.R.string.ok, null)
-									.show();
-							return;
-						}
-
-						ArrivalTimeActivity.showActivity(BookmarksActivity.this, (int) stopCode);
-						if (addbookmarkCb.isChecked()) {
-							String stopName = pt.lookupStopNameByStopNodeIdx(stopNodeIdx);
-							Common.doAddBookmark(BookmarksActivity.this, (int) stopCode, stopName);
+								.setTitle("Barcode Scanner required")
+								.setMessage("You will need Barcode Scanner installed for this to work. Would you like to go to the Android Market to install it?")
+								.setPositiveButton(android.R.string.ok, 
+										new DialogInterface.OnClickListener() {
+						                    public void onClick(DialogInterface dialog, int whichButton) {
+						                    	try {
+						                    		startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.zxing.client.android")));
+						                    	} catch (Throwable t) {
+						                    		Toast.makeText(BookmarksActivity.this, "Sorry, I couldn't find the Android Market either!", 5000).show();
+						                    	}
+						                    }
+										})
+								.setNegativeButton(android.R.string.cancel, null)
+						        .show();
 						}
 					}
 				})
 			.setNegativeButton(android.R.string.cancel, null)
 			.show();
+	}
+	
+	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+		boolean addBookmark = requestCode == 1;
+		
+	    if ((requestCode == 0) || (requestCode == 1)) {
+	        if (resultCode == RESULT_OK) {
+	            String contents = intent.getStringExtra("SCAN_RESULT");
+				try {	            
+		            if (!contents.startsWith("http://mobile.mybustracker.co.uk/?busStopCode="))
+		            	throw new RuntimeException();
+		            
+		            long stopCode = Long.parseLong(contents.substring(contents.indexOf('=') + 1));
+		            doHandleEnterStopcode(stopCode, addBookmark);
+				} catch (Throwable t) {
+	            	Toast.makeText(this, "That doesn't look like a bus stop barcode", 5000).show();
+				}
+	        }
+	    }
+	}
+	
+	private void doHandleEnterStopcode(long stopCode, boolean addBookmark) {
+		StopDbHelper pt = StopDbHelper.Load(BookmarksActivity.this);
+		int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
+		if (stopNodeIdx == -1) {
+			new AlertDialog.Builder(BookmarksActivity.this)
+					.setTitle("Error")
+					.setMessage("The stopcode was invalid; please try again")
+					.setPositiveButton(android.R.string.ok, null)
+					.show();
+			return;
+		}
+
+		ArrivalTimeActivity.showActivity(BookmarksActivity.this, (int) stopCode);
+		if (addBookmark) {
+			String stopName = pt.lookupStopNameByStopNodeIdx(stopNodeIdx);
+			Common.doAddBookmark(BookmarksActivity.this, (int) stopCode, stopName);
+		}		
 	}
 	
 	private void doBookmarksBackup() {

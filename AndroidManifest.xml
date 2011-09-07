@@ -41,6 +41,12 @@
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 			</intent-filter>
+		 	<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT"/>
+				<category android:name="android.intent.category.BROWSABLE"/>	
+				<data android:scheme="http" android:host="mobile.mybustracker.co.uk" />
+			</intent-filter>
 		</activity>
 		
 		<activity-alias android:name="BusTimesActivity" android:targetActivity=".ui.arrivaltime.ArrivalTimeActivity" android:label="Bus Times">

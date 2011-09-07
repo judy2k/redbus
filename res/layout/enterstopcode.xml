@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="fill_parent"
-  android:layout_height="wrap_content" android:orientation="vertical">
+  android:layout_height="wrap_content" android:orientation="vertical" android:layout_width="match_parent">
     <CheckBox android:text="Add bookmark" android:id="@+id/enterstopcode_addbookmark" android:layout_width="fill_parent" android:layout_height="wrap_content"></CheckBox>
     <EditText android:id="@+id/enterstopcode_code" android:layout_width="fill_parent" android:layout_height="wrap_content" android:inputType="phone">
         <requestFocus></requestFocus>
