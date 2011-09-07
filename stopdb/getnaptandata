@@ -50,7 +50,7 @@ for stop in stops.values():
 
     if dbcur.statusmessage == 'UPDATE 1':
         dbcur.execute("UPDATE stops SET stop_name = %(stop_name)s " +
-                    "WHERE stop_code = %(stop_code)s AND created_date=%(date)s AND %(stop_name)s LIKE stop_name || '%'",
+                      "WHERE stop_code = %(stop_code)s AND created_date=%(date)s AND %(stop_name)s LIKE stop_name || '%%'",
                     { 'stop_name': stop['StopName'],
                         'stop_code': stop['StopCode'],
                         'date': nowdate })
