@@ -5,7 +5,8 @@
   android:layout_height="wrap_content"
   android:orientation="vertical">
   
-  <Spinner android:id="@+id/futuredepartures_date" android:layout_width="fill_parent" android:layout_height="wrap_content" />
+<!-- <Spinner android:id="@+id/futuredepartures_date" android:layout_width="fill_parent" android:layout_height="wrap_content" />  -->  
+  <TextView android:text="Future departures beyond the current day is currently broken on the bus tracker website :(" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
   
   <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content" android:gravity="center">
 	  <Spinner android:id="@+id/futuredepartures_time_hour" android:layout_width="wrap_content" android:layout_height="wrap_content"  />

@@ -243,7 +243,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 		View v = vi.inflate(R.layout.futuredepartures, null);
 
 		final GregorianCalendar calendar = new GregorianCalendar();
-        final Spinner datePicker = (Spinner) v.findViewById(R.id.futuredepartures_date);
+//        final Spinner datePicker = (Spinner) v.findViewById(R.id.futuredepartures_date);
         String[] dates = new String[4];
         for(int i=0; i < 4; i++) {
                 dates[i] = advanceDateFormat.format(calendar.getTime());
@@ -251,7 +251,7 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
         }
         ArrayAdapter<String> dateAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, dates);
         dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        datePicker.setAdapter(dateAdapter);
+//        datePicker.setAdapter(dateAdapter);
         calendar.add(Calendar.DAY_OF_MONTH, -4);
         
 		final Spinner hourPicker = (Spinner) v.findViewById(R.id.futuredepartures_time_hour);
@@ -271,10 +271,10 @@ public class ArrivalTimeActivity extends ListActivity implements IArrivalTimeRes
 			.setPositiveButton(android.R.string.ok,
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int whichButton) {
-							calendar.add(Calendar.DAY_OF_MONTH, datePicker.getSelectedItemPosition());
+//							calendar.add(Calendar.DAY_OF_MONTH, datePicker.getSelectedItemPosition());
 							calendar.set(Calendar.HOUR_OF_DAY, hourPicker.getSelectedItemPosition());
 							calendar.set(Calendar.MINUTE, minPicker.getSelectedItemPosition() * 15);
-							doRefreshArrivalTimes(datePicker.getSelectedItemPosition(), calendar.getTime());
+							doRefreshArrivalTimes(0, calendar.getTime());
 						}
 					})
 			.setNegativeButton(android.R.string.cancel, null)
