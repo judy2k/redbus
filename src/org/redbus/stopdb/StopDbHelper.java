@@ -52,6 +52,15 @@ public class StopDbHelper {
 	public static final int SERVICE_MAP_LONG_COUNT = 2;
 	public static final int HEADER_SIZE = 16;
 	public static final int TREE_NODE_SIZE = 37;
+	
+	public static final int STOP_FACING_N = 0x08;
+	public static final int STOP_FACING_NE = 0x09;
+	public static final int STOP_FACING_E = 0x0a;
+	public static final int STOP_FACING_SE = 0x0b;
+	public static final int STOP_FACING_S = 0x0c;
+	public static final int STOP_FACING_SW = 0x0d;
+	public static final int STOP_FACING_W = 0x0e;
+	public static final int STOP_FACING_NW = 0x0f;
 
 	public short[] left;
 	public short[] right;

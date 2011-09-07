@@ -18,10 +18,12 @@
 
 package org.redbus.ui.stopmap;
 
+import org.redbus.R;
 import org.redbus.stopdb.ServiceBitmap;
 import org.redbus.stopdb.StopDbHelper;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -64,8 +66,16 @@ public class StopMapOverlay extends Overlay {
 	private int lon_br;
 	
 	private Paint blackBrush;
-	private Bitmap normalStopBitmap;
 	private Paint normalStopPaint;
+	private Bitmap xStopBitmap;
+	private Bitmap nStopBitmap;
+	private Bitmap neStopBitmap;
+	private Bitmap eStopBitmap;
+	private Bitmap seStopBitmap;
+	private Bitmap sStopBitmap;
+	private Bitmap swStopBitmap;
+	private Bitmap wStopBitmap;
+	private Bitmap nwStopBitmap;
 	
 	private Bitmap showMoreStopsBitmap;
 	private Bitmap showServicesBitmap;
@@ -86,10 +96,16 @@ public class StopMapOverlay extends Overlay {
 		normalStopPaint = new Paint();
 		normalStopPaint.setARGB(250, 187, 39, 66); // rEdB[r]us[h] ;-)
 		normalStopPaint.setAntiAlias(true);
-		normalStopBitmap = Bitmap.createBitmap(stopRadius * 2, stopRadius * 2, Config.ARGB_8888);
-		normalStopBitmap.eraseColor(Color.TRANSPARENT);
-		Canvas stopCanvas = new Canvas(normalStopBitmap);
-		stopCanvas.drawOval(new RectF(0,0,stopRadius*2,stopRadius*2), normalStopPaint);
+		
+		xStopBitmap = BitmapFactory.decodeResource(stopMapActivity.getResources(), R.drawable.compass_x);
+		nStopBitmap = BitmapFactory.decodeResource(stopMapActivity.getResources(), R.drawable.compass_n);
+		neStopBitmap = BitmapFactory.decodeResource(stopMapActivity.getResources(), R.drawable.compass_ne);
+		eStopBitmap = BitmapFactory.decodeResource(stopMapActivity.getResources(), R.drawable.compass_e);
+		seStopBitmap = BitmapFactory.decodeResource(stopMapActivity.getResources(), R.drawable.compass_se);
+		sStopBitmap = BitmapFactory.decodeResource(stopMapActivity.getResources(), R.drawable.compass_s);
+		swStopBitmap = BitmapFactory.decodeResource(stopMapActivity.getResources(), R.drawable.compass_sw);
+		wStopBitmap = BitmapFactory.decodeResource(stopMapActivity.getResources(), R.drawable.compass_w);
+		nwStopBitmap = BitmapFactory.decodeResource(stopMapActivity.getResources(), R.drawable.compass_nw);
 
 		Rect bounds = new Rect();
 		normalStopPaint.getTextBounds(showMoreStopsText, 0, showMoreStopsText.length(), bounds);
@@ -271,7 +287,34 @@ public class StopMapOverlay extends Overlay {
 			boolean validServices = ((pointTree.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
 									((pointTree.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
 			
-			Bitmap bmp = normalStopBitmap;
+			Bitmap bmp = xStopBitmap;
+			switch(pointTree.facing[stopNodeIdx]) {
+			case StopDbHelper.STOP_FACING_N:
+				bmp = nStopBitmap;
+				break;
+			case StopDbHelper.STOP_FACING_NE:
+				bmp = neStopBitmap;
+				break;
+			case StopDbHelper.STOP_FACING_E:
+				bmp = eStopBitmap;
+				break;
+			case StopDbHelper.STOP_FACING_SE:
+				bmp = seStopBitmap;
+				break;
+			case StopDbHelper.STOP_FACING_S:
+				bmp = sStopBitmap;
+				break;
+			case StopDbHelper.STOP_FACING_SW:
+				bmp = swStopBitmap;
+				break;
+			case StopDbHelper.STOP_FACING_W:
+				bmp = wStopBitmap;
+				break;
+			case StopDbHelper.STOP_FACING_NW:
+				bmp = nwStopBitmap;
+				break;
+			}
+			
 			Canvas canvas = bitmapRedCanvas;
 			if (validServices) {				
 				projection.toPixels(new GeoPoint(lat, lon), stopCircle);				
