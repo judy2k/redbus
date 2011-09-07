@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.HashMap;
 
 import org.apache.http.protocol.HTTP;
+import org.redbus.stopdb.StopDbHelper;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -109,38 +110,79 @@ public class ArrivalTimeHelper {
 		
 		HashMap<String, ArrivalTime> wasDiverted = new HashMap<String, ArrivalTime>();
 		HashMap<String, ArrivalTime> hasTime = new HashMap<String, ArrivalTime>();
-		ArrayList<ArrivalTime> busTimes = new ArrayList<ArrivalTime>();
+		HashMap<String, Boolean> validServices = new HashMap<String, Boolean>();
+		ArrayList<ArrivalTime> allBusTimes = new ArrayList<ArrivalTime>();
+		ArrayList<ArrivalTime> validBusTimes = new ArrayList<ArrivalTime>();
 		try {
 			XmlPullParser parser = Xml.newPullParser();
 			parser.setInput(new StringReader(request.content));
 			
+			boolean inBusStopServiceSelector = false;
+			boolean grabValidService = false;
 			while(parser.next() != XmlPullParser.END_DOCUMENT) {
+				String tagName = parser.getName();
 				switch(parser.getEventType()) {
 				case XmlPullParser.START_TAG:
-					String tagName = parser.getName();
 					if (tagName == "tr") {
 						String classAttr = parser.getAttributeValue(null, "class");
 						if (classAttr == null)
 							continue;
-						if (!classAttr.contains("YnzhTmte"))
+						if ((!classAttr.contains("tblanc")) && (!classAttr.contains("tblanc")))
 							continue;
-						
+
 						ArrivalTime bt = parseStopTime(parser, request.stopCode);
 						if (bt.isDiverted) {
 							if (wasDiverted.containsKey(bt.service))
 								continue;
-							wasDiverted.put(bt.service, bt);
+							wasDiverted.put(bt.service.toLowerCase(), bt);
 						} else {
-							hasTime.put(bt.service, bt);
-							busTimes.add(bt);
+							hasTime.put(bt.service.toLowerCase(), bt);
+							allBusTimes.add(bt);
 						}
+					} else if (tagName == "select") {
+						String idAttr = parser.getAttributeValue(null, "id");
+						if (idAttr == null)
+							continue;
+						if (!idAttr.contains("busStopService"))
+							continue;
+						
+						inBusStopServiceSelector = true;
+					} else if (tagName == "option") {
+						if (!inBusStopServiceSelector)
+							break;
+						grabValidService = true;
 					}
+					break;
+				case XmlPullParser.TEXT:
+					if (grabValidService) {
+						String serviceName = parser.getText().toLowerCase();
+						validServices.put(serviceName.substring(0, serviceName.indexOf(' ')), new Boolean(true));						
+					}
+					grabValidService = false;
+					break;
+				case XmlPullParser.END_TAG:
+					if (tagName == "select")
+						inBusStopServiceSelector = false;
+					break;
 				}
 			}
 			
-			for(ArrivalTime bt: wasDiverted.values())
-				if (!hasTime.containsKey(bt.service))
-					busTimes.add(bt);
+			// now, filter out the invalid services
+			for(ArrivalTime at: allBusTimes) {
+				if (!validServices.containsKey(at.service.toLowerCase()))
+					continue;
+				validBusTimes.add(at);
+			}
+			
+			// and add in any diverted services
+			for(ArrivalTime at: wasDiverted.values()) {
+				if (!validServices.containsKey(at.service.toLowerCase()))
+					continue;
+				if (hasTime.containsKey(at.service.toLowerCase()))
+					continue;
+
+				allBusTimes.add(at);				
+			}
 			
 		} catch (Throwable t) {
 			Log.e("BusDataHelper.GetBusTimesResponse", request.content, t);
@@ -152,7 +194,7 @@ public class ArrivalTimeHelper {
 		}
 		
 		try {
-			request.callback.onAsyncGetBusTimesSuccess(request.requestId, busTimes);
+			request.callback.onAsyncGetBusTimesSuccess(request.requestId, validBusTimes);
 		} catch (Throwable t) {
 		}
 	}
