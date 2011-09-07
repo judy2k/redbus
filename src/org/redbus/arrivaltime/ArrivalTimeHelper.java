@@ -127,7 +127,7 @@ public class ArrivalTimeHelper {
 						String classAttr = parser.getAttributeValue(null, "class");
 						if (classAttr == null)
 							continue;
-						if ((!classAttr.contains("tblanc")) && (!classAttr.contains("tblanc")))
+						if ((!classAttr.contains("tblanc")) && (!classAttr.contains("tgris")))
 							continue;
 
 						ArrivalTime bt = parseStopTime(parser, request.stopCode);
