@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 	<item android:id="@+id/trafficinfo_menu_refresh" android:title="Refresh"></item>
+	<item android:id="@+id/trafficinfo_menu_automatic" android:title="Enable Auto Checking"></item>
+	<item android:id="@+id/trafficinfo_menu_manual" android:title="Disable Auto Checking"></item>
 </menu>

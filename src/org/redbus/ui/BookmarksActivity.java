@@ -326,11 +326,14 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
             }
             
             // check for new traffic information every TrafficCheckInternal seconds
-			long lastTrafficCheck = Long.parseLong(db.getGlobalSetting("LASTTRAFFICCHECK", "-1"));
-			if ((lastTrafficCheck + TrafficCheckInterval) <= nowSecs) {
-				db.setGlobalSetting("LASTTRAFFICCHECK", Long.toString(nowSecs));
-				TrafficNewsHelper.getTrafficNewsAsync(db.getGlobalSetting("trafficLastTweetId", null), 1, this);
-			}
+    		String doAutoTraffic = db.getGlobalSetting("AUTO_TRAFFIC", "0");
+    		if (doAutoTraffic.equals("1")) {
+				long lastTrafficCheck = Long.parseLong(db.getGlobalSetting("LASTTRAFFICCHECK", "-1"));
+				if ((lastTrafficCheck + TrafficCheckInterval) <= nowSecs) {
+					db.setGlobalSetting("LASTTRAFFICCHECK", Long.toString(nowSecs));
+					TrafficNewsHelper.getTrafficNewsAsync(db.getGlobalSetting("trafficLastTweetId", null), 1, this);
+				}
+    		}
             
         } catch (Throwable t) {
         	// ignore

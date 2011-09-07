@@ -83,17 +83,39 @@ public class TrafficInfoActivity extends ListActivity implements ITrafficNewsRes
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.trafficinfo_menu, menu);		
+		inflater.inflate(R.menu.trafficinfo_menu, menu);
 		return true;
 	}
-
+	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		SettingsHelper settings = new SettingsHelper(this);
+		String autoTraffic = settings.getGlobalSetting("AUTO_TRAFFIC", "0");
+		
+		menu.findItem(R.id.trafficinfo_menu_automatic).setVisible(true);
+		menu.findItem(R.id.trafficinfo_menu_manual).setVisible(true);
+		if (autoTraffic.equals("1")) {
+			menu.findItem(R.id.trafficinfo_menu_automatic).setVisible(false);
+		} else {
+			menu.findItem(R.id.trafficinfo_menu_manual).setVisible(false);
+		}
+		return true;
+	}
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		SettingsHelper settings = new SettingsHelper(this);
 
 		switch (item.getItemId()) {
 		case R.id.trafficinfo_menu_refresh:
 			doRefreshTrafficInfo();
 			return true;
+		case R.id.trafficinfo_menu_automatic:
+			settings.setGlobalSetting("AUTO_TRAFFIC", "1");
+			break;			
+		case R.id.trafficinfo_menu_manual:
+			settings.setGlobalSetting("AUTO_TRAFFIC", "0");
+			break;			
 		}
 		
 		return false;
