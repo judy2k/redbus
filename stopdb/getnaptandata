@@ -42,14 +42,19 @@ dbcur = db.cursor()
 
 # Add/update stops in the database
 for stop in stops.values():
-    dbcur.execute("UPDATE stops SET stop_name = %(stop_name)s, facing=%(facing)s, source=source || ' NAPTAN' " +
+    dbcur.execute("UPDATE stops SET facing=%(facing)s, source=source || ' NAPTAN' " +
                   "WHERE stop_code = %(stop_code)s AND created_date=%(date)s",
-                  { 'stop_name': stop['StopName'],
-                    'facing': stop['Facing'],
+                  { 'facing': stop['Facing'],
                     'stop_code': stop['StopCode'],
                     'date': nowdate })
 
-    if dbcur.statusmessage != 'UPDATE 1':
+    if dbcur.statusmessage == 'UPDATE 1':
+        dbcur.execute("UPDATE stops SET stop_name = %(stop_name)s " +
+                    "WHERE stop_code = %(stop_code)s AND created_date=%(date)s AND %(stop_name)s LIKE stop_name || '%'",
+                    { 'stop_name': stop['StopName'],
+                        'stop_code': stop['StopCode'],
+                        'date': nowdate })
+    else:
         dbcur.execute("INSERT INTO stops (stop_code, stop_name, x, y, facing, stop_type, source, created_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                       (stop['StopCode'], stop['StopName'], stop['X'], stop['Y'], stop['Facing'], stop['StopType'], 'NAPTAN', nowdate))
 db.commit()
