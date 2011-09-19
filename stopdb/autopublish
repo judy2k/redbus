@@ -16,7 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
 
-#. /etc/redbus.conf
+. /etc/redbus.conf
 
 INSTDIR=/usr/local/redbus
 INSTDIR=.
@@ -46,8 +46,6 @@ fi
 oldsum=`/usr/bin/md5sum $INSTDIR/$dataformat.dat.gz.old | cut -f1 -d ' '` || exit 1
 rm -f $INSTDIR/$dataformat.dat.gz.old
 cp -f $INSTDIR/$dataformat.dat.gz $INSTDIR/$dataformat.dat.gz.old
-
-exit 0 # HACK
 
 # Publish if something has changed!
 if [ x$oldsum != x$newsum ]; then
