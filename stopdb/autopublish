@@ -19,7 +19,6 @@
 . /etc/redbus.conf
 
 INSTDIR=/usr/local/redbus
-INSTDIR=.
 
 nowdate=`date +%Y-%m-%dT%H:%M:%S`
 dataformat=bus3
