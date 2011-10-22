@@ -5,10 +5,9 @@
 	<string name="shortcuthelp">&quot;No bookmarks\n\nUse the Edinburgh Bus Tracker app to add bookmarks first\n\n</string>
 	<string name="bookmarkhelp">&quot;No bookmarks\n\nPress the 'map' button above to view a map of stops.\n\nFrom the map touch a stop on the map to display times, and then press menu to add a bookmark.&quot;</string>
 	<string name="newversiontext">&quot;Changes:\n
-* Implement bus travel direction on map.\n
-* Implement stop barcode scanning support.\n
-* Update for website changes.\n
-* Nearby stops now uses WIFI as well as GPS for location.\n
-* Auto traffic alerts now disabled by default; can be re-enabled in menu of traffic alerts display.\n
+* Update bus data automatically.\n
+* Deal with crash in nearby stops if a bookmark is no longer valid.\n
+* Add map zoom-out when filtering services.\n
+* Serverside: Missing services (e.g. X48) should be visible on the map again.\n
 &quot;</string>
 </resources>
