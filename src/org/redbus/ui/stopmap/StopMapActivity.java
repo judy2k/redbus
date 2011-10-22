@@ -372,6 +372,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	
 	private void updateServiceFilter(ServiceBitmap filter) {
 		serviceFilter.setTo(filter);
+		mapController.setZoom(12);
 		StopMapActivity.this.invalidate();		
 	}
 	
