@@ -45,55 +45,60 @@ for option in tree.xpath("//select[@name='serviceRef']/option"):
     serviceRoute = option.text.split('-', 1)[1].strip();
     services[serviceName] = { 'ServiceName': serviceName,
                               'ServiceRef': serviceCode,
-                              'ServiceRoute': serviceRoute }
+                              'ServiceRoute': serviceRoute,
+                              'StopCount': 0 }
 
-# Now grab the stop details for each
+# First of all, get service details from the new website
+addBusStopMarkerRe = re.compile('addBusStopMarker\s*\((.*)\);')
+addBusStopParamsRe = re.compile('(.*),"([^"]*)","([^"]*)",(.*),(true|false),([0-9]+)')
+latLngRe = re.compile('new\s*google.maps.LatLng\s*\(\s*([+-]?[0-9.]+)\s*,\s*([+-]?[0-9.]+)\s*\)')
+serviceRe = re.compile('new\s*Array\("([^"]*)"\s*,\s*"([^"]*)"\)')
 stops = {}
 for service in services:
+    params = urllib.parse.urlencode({ 'mode': 'serviceSearch',
+                                      'displayMap': 'true',
+                                      'googleMapMode': '3',
+                                      'serviceRef': services[service]['ServiceRef'] })
+
+    resp = urllib.request.urlopen("http://www.mybustracker.co.uk/", params.encode('utf-8'))
+    for m in addBusStopMarkerRe.finditer(resp.read().decode('utf-8')):
+        paramsTxt = m.group(1)
+
+        pm = addBusStopParamsRe.match(paramsTxt)
+        latLngTxt = pm.group(1)
+        stopName = pm.group(2)
+        servicesTxt = pm.group(4)
+        stopCode = pm.group(6)
+
+        llm = latLngRe.match(latLngTxt)
+        x = llm.group(1)
+        y = llm.group(2)
+
+        servicesAtThisStop = ()
+        for sm in serviceRe.finditer(servicesTxt):
+            servicesAtThisStop += ( sm.group(2), )
+
+        for tmpservice in servicesAtThisStop:
+            if not tmpservice in services:
+                print >>sys.stderr, "Warning: Stop %s has services which do not exist (%s)" % (stopCode, tmpservice)
+            else:
+                services[tmpservice]['StopCount'] += 1
+
+        if not stopCode in stops:
+            stops[stopCode] = { 'StopCode': stopCode,
+                                'StopName': stopName,
+                                'X':        x,
+                                'Y':        y,
+                                'Services': servicesAtThisStop }
+
+# Now use the old website to merge in services whose data is completely missing from the new website
+for service in services:
+    if services[service]['StopCount'] != 0:
+        continue
+
     resp = urllib.request.urlopen('http://old.mybustracker.co.uk/getServicePoints.php?serviceMnemo=%s' % service)
-    handler = BusServiceSaxDocumentHandler(services, stops)
+    handler = BusServiceSaxDocumentHandler(services, stops, service)
     xml.sax.parse(resp, handler)
-
-# DISABLED while new bus website is screwed
-#addBusStopMarkerRe = re.compile('addBusStopMarker\s*\((.*)\);')
-#addBusStopParamsRe = re.compile('(.*),"([^"]*)","([^"]*)",(.*),(true|false),([0-9]+)')
-#latLngRe = re.compile('new\s*google.maps.LatLng\s*\(\s*([+-]?[0-9.]+)\s*,\s*([+-]?[0-9.]+)\s*\)')
-#serviceRe = re.compile('new\s*Array\("([^"]*)"\s*,\s*"([^"]*)"\)')
-#stops = {}
-#for service in services:
-    #params = urllib.parse.urlencode({ 'mode': 'serviceSearch',
-                                      #'displayMap': 'true',
-                                      #'googleMapMode': '3',
-                                      #'serviceRef': services[service]['ServiceRef'] })
-
-    #resp = urllib.request.urlopen("http://www.mybustracker.co.uk/", params.encode('utf-8'))
-    #for m in addBusStopMarkerRe.finditer(resp.read().decode('utf-8')):
-        #paramsTxt = m.group(1)
-
-        #pm = addBusStopParamsRe.match(paramsTxt)
-        #latLngTxt = pm.group(1)
-        #stopName = pm.group(2)
-        #servicesTxt = pm.group(4)
-        #stopCode = pm.group(6)
-
-        #llm = latLngRe.match(latLngTxt)
-        #x = llm.group(1)
-        #y = llm.group(2)
-
-        #servicesAtThisStop = ()
-        #for sm in serviceRe.finditer(servicesTxt):
-            #servicesAtThisStop += ( sm.group(2), )
-
-        #for tmpservice in servicesAtThisStop:
-            #if not tmpservice in services:
-                #print >>sys.stderr, "Warning: Stop %s has services which do not exist (%s)" % (stopCode, tmpservice)
-
-        #if not stopCode in stops:
-            #stops[stopCode] = { 'StopCode': stopCode,
-                                #'StopName': stopName,
-                                #'X':        x,
-                                #'Y':        y,
-                                #'Services': servicesAtThisStop }
 
 # Connect to database
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")

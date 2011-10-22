@@ -4,9 +4,10 @@ import sys, string
 from xml.sax import handler, make_parser
 
 class BusServiceSaxDocumentHandler(handler.ContentHandler):
-    def __init__(self, services, stops):
+    def __init__(self, services, stops, mergeService):
         self.services = services
         self.stops = stops
+        self.mergeService = mergeService
 
         self.inBusStop = False
         self.curElementName = ''
@@ -39,28 +40,12 @@ class BusServiceSaxDocumentHandler(handler.ContentHandler):
 
     def endElement(self, name):
         if name == 'busStop':
-            for tmpservice in self.servicesAtThisStop:
-                if not tmpservice in self.services:
-                    print("Warning: Stop %s has services which do not exist (%s)" % (self.stopCode, tmpservice), file=sys.stderr)
-
+            if self.mergeService in self.servicesAtThisStop:
                 if self.stopCode in self.stops:
                     oldStop = self.stops[self.stopCode]
+                    oldStop['Services'] += ( self.mergeService, )
 
-                    if oldStop['StopName'] != self.stopName:
-                        print("Warning: Stop %s has differing names (%s != %s) between services" % (self.stopCode, oldStop['StopName'], self.stopName), file=sys.stderr)
-                    if oldStop['X'] != self.x:
-                        print("Warning: Stop %s has differing X coordinate (%s != %s) between services" % (self.stopCode, oldStop['X'], self.x), file=sys.stderr)
-                    if oldStop['Y'] != self.y:
-                        print("Warning: Stop %s has differing Y coordinate (%s != %s) between services" % (self.stopCode, oldStop['Y'], self.y), file=sys.stderr)
-                    if ','.join(oldStop['Services']) != ','.join(self.servicesAtThisStop):
-                        print("Warning: Stop %s has differing services list (%s != %s) between services" % (self.stopCode, ','.join(oldStop['Services']), ','.join(self.servicesAtThisStop)), file=sys.stderr)
-                else:
-                    self.stops[self.stopCode] = {   'StopCode': self.stopCode,
-                                                    'StopName': self.stopName,
-                                                    'X': self.x,
-                                                    'Y': self.y,
-                                                    'Services': self.servicesAtThisStop }
-                self.inBusStop = False
+            self.inBusStop = False
 
         elif name == 'mnemo':
             self.servicesAtThisStop += ( self.curService.strip(), )
