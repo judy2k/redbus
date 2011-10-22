@@ -441,20 +441,11 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 			return;
 		}
 
-		// if its an automatic update check, we use a notification so we don't spam the user with unexpected popups.
-		// if its a manual check, we /do/ show a popup
+		// if its an auto-update, download it right away, otherwise prompt user
 		if (!isManualUpdateCheck) {
-			Intent i = new Intent(this, BookmarksActivity.class);
-			i.putExtra("DoManualUpdate", true);
-			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
-
-			Notification notification = new Notification(R.drawable.icon38, "New bus stop data available", System.currentTimeMillis());
-			notification.defaults  = 0;
-			notification.flags |= Notification.FLAG_AUTO_CANCEL;
-			notification.setLatestEventInfo(this, "New bus stop data available", "Press to download", contentIntent);
-
-			NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-			nm.notify(AlertUtils.ALERT_NOTIFICATION_ID, notification);
+        	if (busyDialog != null)
+        		busyDialog.show(BookmarksActivity.this, "Downloading bus data update...");
+        	stopDbExpectedRequestId = StopDbUpdateHelper.getUpdate(updateDate, BookmarksActivity.this);
 		} else {
 			final long updateDateF = updateDate;
 			new AlertDialog.Builder(this)
