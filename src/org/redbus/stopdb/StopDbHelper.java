@@ -245,9 +245,12 @@ public class StopDbHelper {
             
             for(Integer stop : stops)
             {
-                    double distance = distance(lookupStopNodeIdxByStopCode(stop), x, y);
-                    if (distance < radius)
-                            stopsWithinRange.add(stop);
+            	int stopNodeIdx = lookupStopNodeIdxByStopCode(stop);
+            	if (stopNodeIdx == -1)
+            		continue;
+                double distance = distance(stopNodeIdx, x, y);
+                if (distance < radius)
+                        stopsWithinRange.add(stop);
             }
             
             return stopsWithinRange;
