@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:id="@+id/stopbookmarks_menu_bustimes" android:title="Enter/Scan stopcode"></item>
+   	<item android:id="@+id/stopbookmarks_menu_bustimes" android:title="Enter/Scan stopcode"></item>
 
-	<item android:title="Backup / Restore" android:id="@+id/stopbookmarks_menu_backuprestore">
-		<menu>
-			<item android:id="@+id/stopbookmarks_menu_backup" android:title="Backup"></item>
-			<item android:id="@+id/stopbookmarks_menu_restore"
-				android:title="Restore"></item>
-		</menu>
-	</item>
+	<item android:id="@+id/stopbookmarks_menu_checktraffic" android:title="View traffic alerts"></item>	
 	
-	<item android:id="@+id/stopbookmarks_menu_checktraffic" android:title="View traffic alerts"></item>
-
-	<item android:id="@+id/stopbookmarks_menu_checkupdates" android:title="Update bus data"></item>
+	<item android:id="@+id/stopbookmarks_menu_view" android:title="View">
+		<menu>
+			<item android:id="@+id/stopbookmarks_menu_viewmap" android:title="View Map" />
+			<item android:id="@+id/stopbookmarks_menu_viewnearby" android:title="View Nearby Stops" /><item android:id="@+id/stopbookmarks_menu_checktraffic2" android:title="View traffic alerts"></item>
+		</menu>
+	</item><item android:id="@+id/stopbookmarks_menu_settings" android:title="Settings">
+	<menu><item android:id="@+id/stopbookmarks_menu_checkupdates" android:title="Update bus data"></item><item android:id="@+id/stopbookmarks_menu_backup" android:title="Backup Bookmarks"></item><item android:id="@+id/stopbookmarks_menu_restore" android:title="Restore Bookmarks"></item>
+	<item android:id="@+id/stopbookmarks_menu_tabs" android:title="Enable Tabs"/>
+</menu>
+</item>
+	
 </menu>

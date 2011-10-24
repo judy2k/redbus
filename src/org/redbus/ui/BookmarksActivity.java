@@ -31,6 +31,7 @@ import org.redbus.trafficnews.NewsItem;
 import org.redbus.trafficnews.TrafficNewsHelper;
 import org.redbus.ui.alert.AlertUtils;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
+import org.redbus.ui.arrivaltime.NearbyBookmarkedArrivalTimeActivity;
 import org.redbus.ui.stopmap.StopMapActivity;
 import org.redbus.ui.trafficinfo.TrafficInfoActivity;
 
@@ -87,6 +88,9 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
         setContentView(R.layout.stopbookmarks);
         registerForContextMenu(getListView());
         busyDialog = new BusyDialog(this);
+
+	    
+	    SettingsHelper.triggerInitialGoogleBackup(this);
 	}
 
 	@Override
@@ -157,10 +161,32 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {		
 	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.stopbookmarks_menu, menu);
+	    inflater.inflate(R.menu.stopbookmarks_menu, menu);			
 	    return true;
 	}
 	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+	    
+	    // Update the tabs menu option
+	    MenuItem settingsMI = menu.findItem(R.id.stopbookmarks_menu_settings);
+	    MenuItem tabsMI = settingsMI.getSubMenu().findItem(R.id.stopbookmarks_menu_tabs);
+	    MenuItem viewMI = menu.findItem(R.id.stopbookmarks_menu_view);
+	    MenuItem checkTrafficMI = menu.findItem(R.id.stopbookmarks_menu_checktraffic);
+		SettingsHelper settings = new SettingsHelper(this);
+		if (settings.getGlobalSetting("TABSENABLED", "true").equals("true")) {
+			tabsMI.setTitle("Disable tabs");
+			viewMI.setVisible(false);
+			checkTrafficMI.setVisible(true);
+		} else {
+			tabsMI.setTitle("Enable tabs");
+			viewMI.setVisible(true);
+			checkTrafficMI.setVisible(false);
+		}
+		
+		return super.onPrepareOptionsMenu(menu);
+	}
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
@@ -177,11 +203,24 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 			return true;
 			
 		case R.id.stopbookmarks_menu_checktraffic:
+		case R.id.stopbookmarks_menu_checktraffic2:
 			doCheckTraffic();
 			return true;
 		
 		case R.id.stopbookmarks_menu_checkupdates:
 			doCheckStopDbUpdate();
+			return true;
+			
+		case R.id.stopbookmarks_menu_tabs:
+			doTabsSetting();
+			return true;
+			
+		case R.id.stopbookmarks_menu_viewmap:
+			startActivity(new Intent().setClass(this, StopMapActivity.class));			
+			return true;
+			
+		case R.id.stopbookmarks_menu_viewnearby:
+			startActivity(new Intent().setClass(this, NearbyBookmarkedArrivalTimeActivity.class));			
 			return true;
 		}
 
@@ -334,6 +373,19 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	
 	private void doCheckTraffic() {
 		TrafficInfoActivity.showActivity(this);
+	}
+	
+	private void doTabsSetting() {		
+        SettingsHelper db = new SettingsHelper(this);
+        if (db.getGlobalSetting("TABSENABLED", "true").equals("true")) {
+        	db.setGlobalSetting("TABSENABLED", "false");
+        } else {
+        	db.setGlobalSetting("TABSENABLED", "true");
+        }
+        
+    	Intent intent = new Intent(this, RedbusTabView.class);
+    	intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    	startActivity(intent);
 	}
 
 	

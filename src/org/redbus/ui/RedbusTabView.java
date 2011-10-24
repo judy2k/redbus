@@ -34,6 +34,14 @@ public class RedbusTabView extends TabActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
+	    
+		SettingsHelper db = new SettingsHelper(this);
+		if (!db.getGlobalSetting("TABSENABLED", "true").equals("true")) {
+			startActivity(new Intent().setClass(this, BookmarksActivity.class));
+			finish();
+			return;
+		}
+	    
 	    setContentView(R.layout.redbustablayout);
 
 	    TabHost tabHost = getTabHost();
@@ -46,8 +54,6 @@ public class RedbusTabView extends TabActivity {
 	    
 	    tabHost.addTab(tabHost.newTabSpec("nearby").setIndicator("Nearby")
                 .setContent(new Intent().setClass(this, NearbyBookmarkedArrivalTimeActivity.class)));
-	    
-	    SettingsHelper.triggerInitialGoogleBackup(this);
 	}
 	
 	@Override
