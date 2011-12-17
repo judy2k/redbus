@@ -294,7 +294,7 @@ public class SettingsHelper
 				switch(parser.getEventType()) {
 				case XmlPullParser.START_TAG:
 					String tagName = parser.getName();
-					if (tagName == "busstop") {
+					if (tagName.equals("busstop")) {
 						long stopCode = Long.parseLong(parser.getAttributeValue(null, "stopcode"));
 						String stopName = parser.getAttributeValue(null, "name");
 						addBookmark(stopCode, stopName);

@@ -100,14 +100,14 @@ public class TrafficNewsHelper {
 				
 				switch(parser.getEventType()) {
 				case XmlPullParser.START_TAG:
-					if (tagName == "item") {
-					} else if (tagName == "title") {
+					if (tagName.equals("item")) {
+					} else if (tagName.equals("title")) {
 						titleSb = new StringBuilder();
 						inTitle = true;
-					} else if (tagName == "pubDate") {
+					} else if (tagName.equals("pubDate")) {
 						dateSb = new StringBuilder();
 						inDate = true;
-					} else if (tagName == "guid") {
+					} else if (tagName.equals("guid")) {
 						guidSb = new StringBuilder();
 						inGuid = true;
 					}
@@ -123,7 +123,7 @@ public class TrafficNewsHelper {
 					break;
 					
 				case XmlPullParser.END_TAG:
-					if (tagName == "item") {
+					if (tagName.equals("item")) {
 						try {
 							Date date = new Date(Date.parse(dateSb.toString().trim()));
 							String title = titleSb.toString().trim();
@@ -132,11 +132,11 @@ public class TrafficNewsHelper {
 							newsItems.add(new NewsItem(guid, date, title));
 						} catch (Throwable t) {
 						}
-					} else if (tagName == "title") {
+					} else if (tagName.equals("title")) {
 						inTitle = false;
-					} else if (tagName == "pubDate") {
+					} else if (tagName.equals("pubDate")) {
 						inDate = false;
-					} else if (tagName == "guid") {
+					} else if (tagName.equals("guid")) {
 						inGuid = false;
 					}
 				}

@@ -30,7 +30,6 @@ import java.util.Date;
 import java.util.HashMap;
 
 import org.apache.http.protocol.HTTP;
-import org.redbus.stopdb.StopDbHelper;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -107,7 +106,6 @@ public class ArrivalTimeHelper {
 			}
 			return;
 		}
-		
 		HashMap<String, ArrivalTime> wasDiverted = new HashMap<String, ArrivalTime>();
 		HashMap<String, ArrivalTime> hasTime = new HashMap<String, ArrivalTime>();
 		HashMap<String, Boolean> validServices = new HashMap<String, Boolean>();
@@ -116,14 +114,13 @@ public class ArrivalTimeHelper {
 		try {
 			XmlPullParser parser = Xml.newPullParser();
 			parser.setInput(new StringReader(request.content));
-			
 			boolean inBusStopServiceSelector = false;
 			boolean grabValidService = false;
 			while(parser.next() != XmlPullParser.END_DOCUMENT) {
 				String tagName = parser.getName();
 				switch(parser.getEventType()) {
 				case XmlPullParser.START_TAG:
-					if (tagName == "tr") {
+					if (tagName.equals("tr")) {
 						String classAttr = parser.getAttributeValue(null, "class");
 						if (classAttr == null)
 							continue;
@@ -139,7 +136,7 @@ public class ArrivalTimeHelper {
 							hasTime.put(bt.service.toLowerCase(), bt);
 							allBusTimes.add(bt);
 						}
-					} else if (tagName == "select") {
+					} else if (tagName.equals("select")) {
 						String idAttr = parser.getAttributeValue(null, "id");
 						if (idAttr == null)
 							continue;
@@ -147,7 +144,7 @@ public class ArrivalTimeHelper {
 							continue;
 						
 						inBusStopServiceSelector = true;
-					} else if (tagName == "option") {
+					} else if (tagName.equals("option")) {
 						if (!inBusStopServiceSelector)
 							break;
 						grabValidService = true;
@@ -161,7 +158,7 @@ public class ArrivalTimeHelper {
 					grabValidService = false;
 					break;
 				case XmlPullParser.END_TAG:
-					if (tagName == "select")
+					if (tagName.equals("select"))
 						inBusStopServiceSelector = false;
 					break;
 				}
