@@ -36,7 +36,9 @@ public class RedbusTabView extends TabActivity {
 	    super.onCreate(savedInstanceState);
 	    
 		SettingsHelper db = new SettingsHelper(this);
-		if (!db.getGlobalSetting("TABSENABLED", "true").equals("true")) {
+		boolean tabsEnabled = db.getGlobalSetting("TABSENABLED", "true").equals("true");
+		db.close();
+		if (!tabsEnabled) {
 			startActivity(new Intent().setClass(this, BookmarksActivity.class));
 			finish();
 			return;
@@ -55,6 +57,7 @@ public class RedbusTabView extends TabActivity {
 	    tabHost.addTab(tabHost.newTabSpec("nearby").setIndicator("Nearby")
                 .setContent(new Intent().setClass(this, NearbyBookmarkedArrivalTimeActivity.class)));
 	}
+	
 	
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event) {
