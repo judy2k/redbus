@@ -5,6 +5,9 @@
 	<string name="shortcuthelp">&quot;No bookmarks\n\nUse the Edinburgh Bus Tracker app to add bookmarks first\n\n</string>
 	<string name="bookmarkhelp">&quot;No bookmarks\n\nPress the 'map' button above to view a map of stops.\n\nFrom the map touch a stop on the map to display times, and then press menu to add a bookmark.&quot;</string>
 	<string name="newversiontext">&quot;Changes:\n
-* Allow tabbed interface to be disabled (see Disable tabs under the Settings menu).\n
+* Fixes for Ice Cream Sandwich.\n
+* Filter out more invalid bus arrival times.\n
+* Increased server-side bus data updates to every day.\n
+Apologies for the recent missing stops fiasco: they'll be back as soon as the app auto-downloads the newest bus data update (or use Menu->Settings->Update bus data to do it manually).
 &quot;</string>
 </resources>

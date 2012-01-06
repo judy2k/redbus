@@ -126,8 +126,12 @@ public class ArrivalTimeHelper {
 							continue;
 						if ((!classAttr.contains("tblanc")) && (!classAttr.contains("tgris")))
 							continue;
-
+						classAttr = classAttr.replace("tblanc", "");
+						classAttr = classAttr.replace("tgris", "");
+						classAttr = classAttr.trim().toLowerCase();
+						
 						ArrivalTime bt = parseStopTime(parser, request.stopCode);
+						bt.cssClass = classAttr;
 						if (bt.isDiverted) {
 							if (wasDiverted.containsKey(bt.service))
 								continue;
@@ -164,13 +168,22 @@ public class ArrivalTimeHelper {
 				}
 			}
 			
-			// now, filter out the invalid services
+			// find the "bad" css class
+			String badCssClass = null;
 			for(ArrivalTime at: allBusTimes) {
-				if (!validServices.containsKey(at.service.toLowerCase()))
+				if (!validServices.containsKey(at.service.toLowerCase())) {
+					badCssClass = at.cssClass;
+					break;
+				}
+			}
+
+			// filter out bad times
+			for(ArrivalTime at: allBusTimes) {
+				if ((!validServices.containsKey(at.service.toLowerCase())) || at.cssClass.equals(badCssClass))
 					continue;
 				validBusTimes.add(at);
 			}
-			
+
 			// and add in any diverted services
 			for(ArrivalTime at: wasDiverted.values()) {
 				if (!validServices.containsKey(at.service.toLowerCase()))
@@ -178,7 +191,7 @@ public class ArrivalTimeHelper {
 				if (hasTime.containsKey(at.service.toLowerCase()))
 					continue;
 
-				allBusTimes.add(at);				
+				allBusTimes.add(at);
 			}
 			
 		} catch (Throwable t) {

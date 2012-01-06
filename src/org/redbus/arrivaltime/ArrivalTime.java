@@ -29,6 +29,7 @@ public class ArrivalTime
 	public int arrivalMinutesLeft;
 	public String arrivalAbsoluteTime;
 	public long stopCode;
+	public String cssClass;
 	
 	public int arrivalSortingIndex;
 
