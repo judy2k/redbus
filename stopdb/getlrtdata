@@ -65,6 +65,9 @@ for service in services:
         paramsTxt = m.group(1)
 
         pm = addBusStopParamsRe.match(paramsTxt)
+        if pm == None:
+          continue
+
         latLngTxt = pm.group(1)
         stopName = pm.group(2)
         servicesTxt = pm.group(4)
