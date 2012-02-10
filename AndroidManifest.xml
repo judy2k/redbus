@@ -66,6 +66,22 @@
 		
 		<activity android:name=".ui.arrivaltime.NearbyBookmarkedArrivalTimeActivity" android:label="Nearby arrivals" />
 		
+		<activity android:name=".ui.SpeakWhereIamActivity"
+		    android:configChanges="orientation"
+		    android:theme="@android:style/Theme.Dialog" 
+		    android:label="Where I am"
+		    />
+
+		<!--  Handle media button press in order to start speech. -->
+		<!--  Deliberate low priority so never called unless via an app like 'media button router' -->
+		<!--  http://code.google.com/p/media-button-router/ -->
+
+		<receiver android:name=".ui.MediaButtonPressedReceiver">
+			<intent-filter  android:priority="1">
+				<action android:name="android.intent.action.MEDIA_BUTTON"/>
+			</intent-filter>
+		</receiver>
+				
 		<activity android:name=".ui.stopmap.StopMapActivity" android:label="Map" />
 		<activity android:name=".ui.BookmarksActivity" android:label="Edinburgh Bus Tracker" />
 		<uses-library android:name="com.google.android.maps" />
