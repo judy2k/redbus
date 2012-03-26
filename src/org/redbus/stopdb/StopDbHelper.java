@@ -420,14 +420,22 @@ public class StopDbHelper {
 				if (baseServices.containsKey(arg0)) {
 					arg0BaseService = baseServices.get(arg0);
 				} else {
-					arg0BaseService = new Integer(Integer.parseInt(arg0.replaceAll("[^0-9]", "").trim()));
+					try {
+						arg0BaseService = new Integer(Integer.parseInt(arg0.replaceAll("[^0-9]", "").trim()));
+					} catch (NumberFormatException ex) {
+						arg0BaseService = new Integer(999);
+					}
 					baseServices.put(arg0, arg0BaseService);
 				}
 				Integer arg1BaseService;
 				if (baseServices.containsKey(arg1)) {
 					arg1BaseService = baseServices.get(arg1);
 				} else {
-					arg1BaseService = new Integer(Integer.parseInt(arg1.replaceAll("[^0-9]", "").trim()));
+					try  {
+						arg1BaseService = new Integer(Integer.parseInt(arg1.replaceAll("[^0-9]", "").trim()));
+					} catch (NumberFormatException ex) {
+						arg1BaseService = new Integer(999);						
+					}
 					baseServices.put(arg1, arg1BaseService);
 				}
 

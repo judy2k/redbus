@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="org.redbus" android:versionName="1.0.41" android:versionCode="42">
+	package="org.redbus" android:versionName="1.0.43" android:versionCode="44">
 	
 	<application android:label="@string/app_name" android:icon="@drawable/icon72" android:backupAgent=".settings.SettingsBackupAgent" android:restoreAnyVersion="true" android:allowBackup="true">
 	    

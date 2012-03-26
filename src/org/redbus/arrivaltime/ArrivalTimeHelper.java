@@ -121,14 +121,21 @@ public class ArrivalTimeHelper {
 				switch(parser.getEventType()) {
 				case XmlPullParser.START_TAG:
 					if (tagName.equals("tr")) {
-						String classAttr = parser.getAttributeValue(null, "class");
-						if (classAttr == null)
-							continue;
-						if ((!classAttr.contains("tblanc")) && (!classAttr.contains("tgris")))
-							continue;
-						classAttr = classAttr.replace("tblanc", "");
-						classAttr = classAttr.replace("tgris", "");
-						classAttr = classAttr.trim().toLowerCase();
+						String classAttr = "";
+						String styleAttr = parser.getAttributeValue(null, "style");
+						if (styleAttr != null) {
+							if (styleAttr.contains("display") && styleAttr.contains("none"))
+								classAttr = "BADTIME";
+						} else {
+							classAttr = parser.getAttributeValue(null, "class");
+							if (classAttr == null)
+								continue;
+							if ((!classAttr.contains("tblanc")) && (!classAttr.contains("tgris")))
+								continue;
+							classAttr = classAttr.replace("tblanc", "");
+							classAttr = classAttr.replace("tgris", "");
+							classAttr = classAttr.trim().toLowerCase();
+						}
 						
 						ArrivalTime bt = parseStopTime(parser, request.stopCode);
 						bt.cssClass = classAttr;
@@ -169,7 +176,7 @@ public class ArrivalTimeHelper {
 			}
 			
 			// find the "bad" css class
-			String badCssClass = null;
+			String badCssClass = "BADTIME";
 			for(ArrivalTime at: allBusTimes) {
 				if (!validServices.containsKey(at.service.toLowerCase())) {
 					badCssClass = at.cssClass;
