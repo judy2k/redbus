@@ -37,7 +37,11 @@ public class ArrivalTime
 	public ArrivalTime(String service, long stopCode, String destination, boolean isDiverted, boolean arrivalEstimated, boolean arrivalIsDue, int arrivalMinutesLeft, String arrivalAbsoluteTime) 
 	{
 		this.service = service;
-		this.baseService = Integer.parseInt(service.replaceAll("[^0-9]", "").trim());
+		String tmp = service.replaceAll("[^0-9]", "").trim();
+		if (tmp.length() > 0)
+			this.baseService = Integer.parseInt(tmp);
+		else
+			this.baseService = 0;
 		this.destination = destination;
 		this.isDiverted = isDiverted;
 		this.arrivalEstimated = arrivalEstimated;
