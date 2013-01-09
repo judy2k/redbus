@@ -73,7 +73,28 @@ for service in services:
         y = m['y']
         servicesAtThisStop = [name for (_code, name) in m['content']['lignes']]
 
-        # FIXME: do something with the img
+        facing = ''
+        marker = m['img']['url'].split('/')[-1]
+        if marker == 'marker_0.png':
+            facing = 'N'
+        elif marker == 'marker_1.png':
+            facing = 'NE'
+        elif marker == 'marker_2.png':
+            facing = 'E'
+        elif marker == 'marker_3.png':
+            facing = 'SE'
+        elif marker == 'marker_4.png':
+            facing = 'S'
+        elif marker == 'marker_5.png':
+            facing = 'SW'
+        elif marker == 'marker_6.png':
+            facing = 'W'
+        elif marker == 'marker_7.png':
+            facing = 'NW'
+        elif marker == 'marker_x.png':
+            facing = 'X'
+        elif marker == 'diversion.png':
+            facing = 'D'
 
         for tmpservice in servicesAtThisStop:
             if not tmpservice in services:
@@ -86,7 +107,8 @@ for service in services:
                                 'StopName': stopName,
                                 'X':        x,
                                 'Y':        y,
-                                'Services': servicesAtThisStop }
+                                'Services': servicesAtThisStop,
+                                'Facing':   facing }
 
 # Connect to database
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
@@ -107,7 +129,7 @@ for stop in stops.values():
                     'stop_name': stop['StopName'],
                     'x': stop['X'],
                     'y': stop['Y'],
-                    'facing': '',
+                    'facing': stop['Facing'],
                     'stop_type': 'BCT',
                     'source': 'LRT',
                     'date': nowdate });
