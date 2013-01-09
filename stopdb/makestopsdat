@@ -88,6 +88,10 @@ for row in curs:
         facing |= 0x08 | 6
     elif facingTxt == 'NW':
         facing |= 0x08 | 7
+    elif facingTxt == 'X':
+        facing |= 0x08 | 0x10
+    elif facingTxt == 'D':
+        facing |= 0x08 | 0x20
 
     # Only add the stop if we actually have services arriving at it
     if stopmap != 0:
