@@ -27,9 +27,9 @@ dataformat=bus3
 $INSTDIR/getlrtdata $nowdate || exit 1
 
 # Extract stops from XML
-$INSTDIR/getnaptandata $INSTDIR/stopdata/NaPTAN620.xml $nowdate || exit 1
-$INSTDIR/getnaptandata $INSTDIR/stopdata/NaPTAN627.xml $nowdate || exit 1
-$INSTDIR/getnaptandata $INSTDIR/stopdata/NaPTAN628.xml $nowdate || exit 1
+#$INSTDIR/getnaptandata $INSTDIR/stopdata/NaPTAN620.xml $nowdate || exit 1
+#$INSTDIR/getnaptandata $INSTDIR/stopdata/NaPTAN627.xml $nowdate || exit 1
+#$INSTDIR/getnaptandata $INSTDIR/stopdata/NaPTAN628.xml $nowdate || exit 1
 
 # Generate new stops database
 $INSTDIR/makestopsdat $INSTDIR/$dataformat $nowdate || exit 1
@@ -39,8 +39,8 @@ newsum=`/usr/bin/md5sum $INSTDIR/$dataformat.dat.gz | cut -f1 -d ' '` || exit 1
 
 # handle old data
 if [ ! -f $INSTDIR/$dataformat.dat.gz.old ]; then
-	echo "Old data file is missing!"
-	exit 1
+  echo "Old data file is missing!"
+  exit 1
 fi
 oldsum=`/usr/bin/md5sum $INSTDIR/$dataformat.dat.gz.old | cut -f1 -d ' '` || exit 1
 rm -f $INSTDIR/$dataformat.dat.gz.old
@@ -48,11 +48,11 @@ cp -f $INSTDIR/$dataformat.dat.gz $INSTDIR/$dataformat.dat.gz.old
 
 # Publish if something has changed!
 if [ x$oldsum != x$newsum ]; then
-	OUTFILE=$dataformat.dat-`date +%s`.gz
-	mv $INSTDIR/$dataformat.dat.gz $INSTDIR/$OUTFILE
-	$INSTDIR/googlecode_upload.py -s "new bus data for `date`" -p redbus -u $GCODE_USER -w $GCODE_PASS $INSTDIR/$OUTFILE || exit 1
-	rm -f $OUTFILE
+  OUTFILE=$dataformat.dat-`date +%s`.gz
+  mv $INSTDIR/$dataformat.dat.gz $INSTDIR/$OUTFILE
+  $INSTDIR/googlecode_upload.py -s "new bus data for `date`" -p redbus -u $GCODE_USER -w $GCODE_PASS $INSTDIR/$OUTFILE || exit 1
+  rm -f $OUTFILE
 else
-	# Otherwise, no changed => delete the duplicated data from the database
-	$INSTDIR/removedata LATEST
+  # Otherwise, no changed => delete the duplicated data from the database
+  $INSTDIR/removedata LATEST
 fi
