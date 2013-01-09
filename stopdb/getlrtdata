@@ -26,9 +26,10 @@ import psycopg2
 import time
 import re
 import lxml.html
+from lxml import etree
 import xml.sax
 from BusServiceSaxDocumentHandler import BusServiceSaxDocumentHandler
-
+import json
 
 if len(sys.argv) != 2:
     print("Syntax: getlrtdata <nowdate>", file=sys.stderr)
@@ -49,37 +50,30 @@ for option in tree.xpath("//select[@name='serviceRef']/option"):
                               'StopCount': 0 }
 
 # First of all, get service details from the new website
-addBusStopMarkerRe = re.compile('addBusStopMarker\s*\((.*)\);')
-addBusStopParamsRe = re.compile('(.*),"([^"]*)","([^"]*)",(.*),(true|false),([0-9]+)')
-latLngRe = re.compile('new\s*google.maps.LatLng\s*\(\s*([+-]?[0-9.]+)\s*,\s*([+-]?[0-9.]+)\s*\)')
-serviceRe = re.compile('new\s*Array\("([^"]*)"\s*,\s*"([^"]*)"\)')
 stops = {}
 for service in services:
-    params = urllib.parse.urlencode({ 'mode': 'serviceSearch',
-                                      'displayMap': 'true',
-                                      'googleMapMode': '3',
-                                      'serviceRef': services[service]['ServiceRef'] })
+    params = urllib.parse.urlencode({ 'googleMapMode': '2',
+                                      'googleServiceRef': services[service]['ServiceRef'],
+                                      })
 
-    resp = urllib.request.urlopen("http://www.mybustracker.co.uk/", params.encode('utf-8'))
-    for m in addBusStopMarkerRe.finditer(resp.read().decode('utf-8')):
-        paramsTxt = m.group(1)
+    resp = urllib.request.urlopen("http://www.mybustracker.co.uk/update.php?widget=BTMap&widgetId=main&updateId=updateMap", params.encode('utf-8'))
+    updateXml = etree.fromstring(resp.read())
+    updateJson = json.loads(updateXml.xpath('/ajaxUpdate/updateElement')[0].text)
 
-        pm = addBusStopParamsRe.match(paramsTxt)
-        if pm == None:
-          continue
+#    if len(updateJson['deviations']):
+#        print(updateJson['deviations'])
 
-        latLngTxt = pm.group(1)
-        stopName = pm.group(2)
-        servicesTxt = pm.group(4)
-        stopCode = pm.group(6)
+    for m in updateJson['markers']:
+        if 'content' not in m:
+            continue
 
-        llm = latLngRe.match(latLngTxt)
-        x = llm.group(1)
-        y = llm.group(2)
+        stopName = m['content']['name']
+        stopCode = m['content']['stopId']
+        x = m['x']
+        y = m['y']
+        servicesAtThisStop = [name for (_code, name) in m['content']['lignes']]
 
-        servicesAtThisStop = ()
-        for sm in serviceRe.finditer(servicesTxt):
-            servicesAtThisStop += ( sm.group(2), )
+        # FIXME: do something with the img
 
         for tmpservice in servicesAtThisStop:
             if not tmpservice in services:
@@ -93,15 +87,6 @@ for service in services:
                                 'X':        x,
                                 'Y':        y,
                                 'Services': servicesAtThisStop }
-
-# Now use the old website to merge in services whose data is completely missing from the new website
-for service in services:
-    if services[service]['StopCount'] != 0:
-        continue
-
-    resp = urllib.request.urlopen('http://old.mybustracker.co.uk/getServicePoints.php?serviceMnemo=%s' % service)
-    handler = BusServiceSaxDocumentHandler(services, stops, service)
-    xml.sax.parse(resp, handler)
 
 # Connect to database
 db = psycopg2.connect("host=beyond dbname=redbus user=redbus password=password")
