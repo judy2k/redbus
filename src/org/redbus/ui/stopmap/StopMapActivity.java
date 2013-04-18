@@ -21,6 +21,9 @@ package org.redbus.ui.stopmap;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.Activity;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 import org.redbus.R;
 import org.redbus.geocode.GeocodingHelper;
 import org.redbus.geocode.IGeocodingResponseListener;
@@ -50,17 +53,14 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
-import com.google.android.maps.MapView;
+import com.google.android.gms.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 
-public class StopMapActivity extends MapActivity implements IGeocodingResponseListener, OnCancelListener  {
+public class StopMapActivity extends Activity implements IGeocodingResponseListener, OnCancelListener  {
 
-	private MapView mapView;
-	private MapController mapController;
-	private MyLocationOverlay myLocationOverlay;
-	private StopMapOverlay stopOverlay;
+    private GoogleMap map;
+	// private StopMapOverlay stopOverlay;
 	private ServiceBitmap serviceFilter = new ServiceBitmap();
 
 	private BusyDialog busyDialog = null;
@@ -68,9 +68,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	
 	private final int StopTapRadiusMetres = 50;
 	private boolean isFirstResume = true;
-	
-	
-	
+
 	public static void showActivity(Context context) {
 		Intent i = new Intent(context, StopMapActivity.class);
 		context.startActivity(i);
@@ -87,19 +85,20 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) { 
-		super.onCreate(savedInstanceState); 
+		super.onCreate(savedInstanceState);
 		setContentView(R.layout.stop_map);
 		busyDialog = new BusyDialog(this);
 
-		mapView = (MapView) findViewById(R.id.mapview);
-		mapView.setBuiltInZoomControls(true);
+        map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+		// mapView.setBuiltInZoomControls(true);
 
-		mapController = mapView.getController();
-		mapController.setZoom(17);
+
+		// mapController = mapView.getController();
+		// mapController.setZoom(17);
 
 		// Make map update automatically as user moves around
-		myLocationOverlay = new ReallyMyLocationOverlay(this, mapView);
-		mapView.getOverlays().add(myLocationOverlay);
+		// myLocationOverlay = new ReallyMyLocationOverlay(this, mapView);
+		// mapView.getOverlays().add(myLocationOverlay);
 
 		// Check to see if we've been passed data
 		int lat = getIntent().getIntExtra("Lat", -1);
@@ -112,27 +111,27 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
             Location networkLocation = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             
             if ((gpsLocation != null) && (gpsLocation.getAccuracy() < 100)) {
-        		mapController.setCenter(new GeoPoint((int) (gpsLocation.getLatitude() * 1000000), (int) (gpsLocation.getLongitude() * 1000000)));
+        		// mapController.setCenter(new GeoPoint((int) (gpsLocation.getLatitude() * 1000000), (int) (gpsLocation.getLongitude() * 1000000)));
             } else if ((networkLocation != null) && (networkLocation.getAccuracy() < 100)) {
-        		mapController.setCenter(new GeoPoint((int) (networkLocation.getLatitude() * 1000000), (int) (networkLocation.getLongitude() * 1000000)));
+        		// mapController.setCenter(new GeoPoint((int) (networkLocation.getLatitude() * 1000000), (int) (networkLocation.getLongitude() * 1000000)));
             } else {
         		StopDbHelper stopDb = StopDbHelper.Load(this);
-        		mapController.setCenter(new GeoPoint(stopDb.defaultMapLocationLat, stopDb.defaultMapLocationLon));
+        		// mapController.setCenter(new GeoPoint(stopDb.defaultMapLocationLat, stopDb.defaultMapLocationLon));
             }
 			updateMyLocationStatus(true);
 		} else {
-			mapController.setCenter(new GeoPoint(lat, lng));
+			// mapController.setCenter(new GeoPoint(lat, lng));
 			updateMyLocationStatus(false);
 		}
 
-		stopOverlay = new StopMapOverlay(this);
-		mapView.getOverlays().add(stopOverlay);
+		// stopOverlay = new StopMapOverlay(this);
+		// mapView.getOverlays().add(stopOverlay);
 	}
 	
 	public void invalidate()
 	{
-		this.stopOverlay.invalidate();
-		this.mapView.invalidate();
+		// this.stopOverlay.invalidate();
+		//this.mapView.invalidate();
 	}
 	
 	public ServiceBitmap getServiceFilter() {
@@ -140,14 +139,9 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	}
 
 	@Override
-	protected boolean isRouteDisplayed() {
-		return false;
-	}
-
-	@Override
 	public void onPause() {
 		updateMyLocationStatus(false);
-		stopOverlay.onPause();
+		// stopOverlay.onPause();
 		super.onPause();
 	}
 
@@ -180,10 +174,10 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		if (mapView.isSatellite())
-			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Map View");
-		else
-			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Satellite View");		
+//		if (mapView.isSatellite())
+//			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Map View");
+//		else
+//			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Satellite View");
 		
 		if (serviceFilter.areAllSet)
 			menu.findItem(R.id.stopmap_menu_showall).setEnabled(false);
@@ -320,7 +314,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	}
 	
 	private void doSetMapType() {
-		mapView.setSatellite(!mapView.isSatellite());
+		// mapView.setSatellite(!mapView.isSatellite());
 	}
 	
 	private void doSetMyLocation() {
@@ -372,16 +366,16 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 	
 	private void updateServiceFilter(ServiceBitmap filter) {
 		serviceFilter.setTo(filter);
-		mapController.setZoom(12);
+		// mapController.setZoom(12);
 		StopMapActivity.this.invalidate();		
 	}
 	
 	private void updateMyLocationStatus(boolean status) {
 		if (status) {
-			myLocationOverlay.enableMyLocation();
+			// myLocationOverlay.enableMyLocation();
 			Toast.makeText(this, "Finding your location...", Toast.LENGTH_SHORT).show();
 		} else {
-			myLocationOverlay.disableMyLocation();
+			// myLocationOverlay.disableMyLocation();
 		}
 	}	
 
@@ -411,7 +405,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 		if (addresses_.size() == 1) {
 			Address address = addresses_.get(0);
 			GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
-			mapController.animateTo(gp);
+			// mapController.animateTo(gp);
 			return;
 		}
 		
@@ -435,7 +429,7 @@ public class StopMapActivity extends MapActivity implements IGeocodingResponseLi
 					
 					Address address = addresses.get(which);
 					GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
-					mapController.animateTo(gp);
+					// mapController.animateTo(gp);
 					dialog.dismiss();
 				}
   	       })
