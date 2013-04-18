@@ -1,0 +1,6 @@
+.DS_Store
+gen
+out
+*.iml
+*.swp
+.idea
