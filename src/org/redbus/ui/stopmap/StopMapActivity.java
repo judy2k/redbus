@@ -115,24 +115,25 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
                 Location networkLocation = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
                 if ((gpsLocation != null) && (gpsLocation.getAccuracy() < 100)) {
-                              Log.d(TAG, "Using GPS for location.");
-                    zoomTo(new LatLng((int) (gpsLocation.getLatitude() * 1000000), (int) (gpsLocation.getLongitude() * 1000000)));
+                    Log.d(TAG, "Using GPS for location. " + gpsLocation);
+
+                    zoomTo(new LatLng(gpsLocation.getLatitude(), gpsLocation.getLongitude()));
                     // mapController.setCenter(new GeoPoint((int) (gpsLocation.getLatitude() * 1000000), (int) (gpsLocation.getLongitude() * 1000000)));
                 } else if ((networkLocation != null) && (networkLocation.getAccuracy() < 100)) {
                     Log.d(TAG, "Using network for location.");
                     // mapController.setCenter(new GeoPoint((int) (networkLocation.getLatitude() * 1000000), (int) (networkLocation.getLongitude() * 1000000)));
-                    zoomTo(new LatLng((int) (networkLocation.getLatitude() * 1000000), (int) (networkLocation.getLongitude() * 1000000)));
+                    zoomTo(new LatLng(networkLocation.getLatitude(), networkLocation.getLongitude()));
 
                 } else {
                     Log.d(TAG, "Using default location from db.");
                     StopDbHelper stopDb = StopDbHelper.Load(this);
-                    zoomTo(new LatLng(stopDb.defaultMapLocationLat, stopDb.defaultMapLocationLon));
+                    zoomTo(new LatLng(stopDb.defaultMapLocationLat / 1000000.0, stopDb.defaultMapLocationLon / 1000000.0));
                     // mapController.setCenter(new GeoPoint(stopDb.defaultMapLocationLat, stopDb.defaultMapLocationLon));
                 }
                 updateMyLocationStatus(true);
             } else {
                 Log.d(TAG, "Using supplied lat and lng.");
-                zoomTo(new LatLng(lat, lng));
+                zoomTo(new LatLng(lat / 1000000.0, lng / 1000000.0));
                 // mapController.setCenter(new GeoPoint(lat, lng));
                 updateMyLocationStatus(false);
             }
@@ -382,6 +383,7 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 	
 	
 	public void onAsyncGeocodeResponseError(int requestId, String message) {
+        Log.w(TAG, "Geocode response error!");
 		if (requestId != expectedRequestId)
 			return;
 		
@@ -395,11 +397,12 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 	}
 
     public void zoomTo(LatLng pos) {
+        Log.i(TAG, "Zooming to: " + pos);
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 17));
     }
 
 	public void onAsyncGeocodeResponseSucccess(int requestId, List<Address> addresses_) {
-        Log.d(TAG, "Async Geocode response!");
+        Log.i(TAG, "Async Geocode success!");
 		if (requestId != expectedRequestId)
 			return;
 		
@@ -410,8 +413,6 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 			Address address = addresses_.get(0);
             LatLng pos = new LatLng((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
             zoomTo(pos);
-			//GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
-			// mapController.animateTo(gp);
 			return;
 		}
 		
