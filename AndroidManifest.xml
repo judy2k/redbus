@@ -1,103 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="org.redbus" android:versionName="1.0.46" android:versionCode="47">
-	
-	<application android:label="@string/app_name" android:icon="@drawable/icon72" android:backupAgent=".settings.SettingsBackupAgent" android:restoreAnyVersion="true" android:allowBackup="true">
-	    
-	   	<activity android:name=".ui.RedbusTabView" android:label="Edinburgh Bus Tracker">
-			  <intent-filter>
-				<action android:name="android.intent.action.MAIN"></action>
-				<category android:name="android.intent.category.LAUNCHER"></category>
-			</intent-filter>
-		</activity>
-		
-		<activity-alias android:name="RedbusTabView" android:targetActivity=".ui.RedbusTabView" android:label="Edinburgh Bus Tracker">
-			  <intent-filter>
-				<action android:name="android.intent.action.MAIN"></action>
-				<!-- do not add LAUNCHER here or you end up with multiple entries! -->
-			</intent-filter>
-		</activity-alias>
-				
-		<activity-alias android:name="StopBookmarksActivity" android:targetActivity=".ui.RedbusTabView" android:label="Edinburgh Bus Tracker">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN"></action>
-				<!-- do not add LAUNCHER here or you end up with multiple entries! -->
-			</intent-filter>
-		</activity-alias>
+          package="org.redbus"
+          android:versionName="1.0.46"
+          android:versionCode="47"
+        >
+    <supports-screens
+            android:smallScreens="true"
+            android:largeScreens="true"/>
+    <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="17"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-feature
+            android:name="android.hardware.location.gps"
+            android:required="false"/>
+    <application
+            android:label="@string/app_name"
+            android:icon="@drawable/icon72"
+            android:backupAgent=".settings.SettingsBackupAgent"
+            android:restoreAnyVersion="true"
+            android:allowBackup="true"
+            >
+
+        <activity
+                android:name=".ui.RedbusTabView"
+                android:label="Edinburgh Bus Tracker">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity-alias
+                android:name="RedbusTabView"
+                android:targetActivity=".ui.RedbusTabView"
+                android:label="Edinburgh Bus Tracker">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <!-- do not add LAUNCHER here or you end up with multiple entries! -->
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+                android:name="StopBookmarksActivity"
+                android:targetActivity=".ui.RedbusTabView"
+                android:label="Edinburgh Bus Tracker">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <!-- do not add LAUNCHER here or you end up with multiple entries! -->
+            </intent-filter>
+        </activity-alias>
 
 
-
-		
-		<activity android:name=".ui.CreateShortcutActivity" android:theme="@android:style/Theme.Dialog" android:label="Bus Bookmark">
-        	<intent-filter>
-        		<action android:name="android.intent.action.CREATE_SHORTCUT"></action>
-        		<category android:name="android.intent.category.DEFAULT"></category>
-        	</intent-filter>
-		</activity>
-
-
-		
-		<activity android:name=".ui.arrivaltime.ArrivalTimeActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-			</intent-filter>
-		 	<intent-filter>
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.DEFAULT"/>
-				<category android:name="android.intent.category.BROWSABLE"/>	
-				<data android:scheme="http" android:host="mobile.mybustracker.co.uk" />
-			</intent-filter>
-		</activity>
-		
-		<activity-alias android:name="BusTimesActivity" android:targetActivity=".ui.arrivaltime.ArrivalTimeActivity" android:label="Bus Times">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-			</intent-filter>
-		</activity-alias>
+        <activity
+                android:name=".ui.CreateShortcutActivity"
+                android:theme="@android:style/Theme.Dialog"
+                android:label="Bus Bookmark">
+            <intent-filter>
+                <action android:name="android.intent.action.CREATE_SHORTCUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
 
+        <activity android:name=".ui.arrivaltime.ArrivalTimeActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
 
-		<activity android:name=".ui.trafficinfo.TrafficInfoActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-			</intent-filter>
-		</activity>
-		
-		
-		<activity android:name=".ui.arrivaltime.NearbyBookmarkedArrivalTimeActivity" android:label="Nearby arrivals" />
-		
-		<activity android:name=".ui.SpeakWhereIamActivity"
-		    android:configChanges="orientation"
-		    android:theme="@android:style/Theme.Dialog" 
-		    android:label="Where I am"
-		    />
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
 
-		<!--  Handle media button press in order to start speech. -->
-		<!--  Deliberate low priority so never called unless via an app like 'media button router' -->
-		<!--  http://code.google.com/p/media-button-router/ -->
+                <data
+                        android:scheme="http"
+                        android:host="mobile.mybustracker.co.uk"/>
+            </intent-filter>
+        </activity>
 
-		<!-- 
+        <activity-alias
+                android:name="BusTimesActivity"
+                android:targetActivity=".ui.arrivaltime.ArrivalTimeActivity"
+                android:label="Bus Times">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+            </intent-filter>
+        </activity-alias>
+
+
+        <activity android:name=".ui.trafficinfo.TrafficInfoActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+            </intent-filter>
+        </activity>
+
+
+        <activity
+                android:name=".ui.arrivaltime.NearbyBookmarkedArrivalTimeActivity"
+                android:label="Nearby arrivals"/>
+
+        <activity
+                android:name=".ui.SpeakWhereIamActivity"
+                android:configChanges="orientation"
+                android:theme="@android:style/Theme.Dialog"
+                android:label="Where I am"
+                />
+
+        <!--  Handle media button press in order to start speech. -->
+        <!--  Deliberate low priority so never called unless via an app like 'media button router' -->
+        <!--  http://code.google.com/p/media-button-router/ -->
+
+        <!--
                 <receiver android:name=".ui.MediaButtonPressedReceiver">
 			<intent-filter  android:priority="1">
 				<action android:name="android.intent.action.MEDIA_BUTTON"/>
 			</intent-filter>
 		</receiver> -->
-				
-		<activity android:name=".ui.stopmap.StopMapActivity" android:label="Map" />
-		<activity android:name=".ui.BookmarksActivity" android:label="Edinburgh Bus Tracker" />
-		<uses-library android:name="com.google.android.maps" />
-		<receiver android:name=".ui.alert.TemporalAlert"/>
-		<receiver android:name=".ui.alert.ProximityAlert"/>
-		<receiver android:name=".ui.alert.AlertNotificationPressedReceiver"/>
 
-		<meta-data android:name="com.google.android.backup.api_key" android:value="AEdPqrEAAAAIbuJf7aPvzjJ8aS4zUoIy5bLO70X_y_AnJNTFSw" />
-	</application>
+        <activity
+                android:name=".ui.stopmap.StopMapActivity"
+                android:label="Map"/>
+        <activity
+                android:name=".ui.BookmarksActivity"
+                android:label="Edinburgh Bus Tracker"/>
 
-	<uses-sdk android:minSdkVersion="3"/>
-	<supports-screens android:smallScreens="true" android:largeScreens="true" />
-	<uses-permission android:name="android.permission.INTERNET"/>
-	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.VIBRATE" />
-	<uses-feature android:name="android.hardware.location.gps" android:required="false"/>
+        <uses-library android:name="com.google.android.maps"/>
+
+        <receiver android:name=".ui.alert.TemporalAlert"/>
+        <receiver android:name=".ui.alert.ProximityAlert"/>
+        <receiver android:name=".ui.alert.AlertNotificationPressedReceiver"/>
+
+        <meta-data
+                android:name="com.google.android.backup.api_key"
+                android:value="AEdPqrEAAAAIbuJf7aPvzjJ8aS4zUoIy5bLO70X_y_AnJNTFSw"/>
+    </application>
 </manifest>
