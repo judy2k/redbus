@@ -22,8 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import org.redbus.R;
 import org.redbus.geocode.GeocodingHelper;
 import org.redbus.geocode.IGeocodingResponseListener;
@@ -45,6 +47,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -52,12 +55,10 @@ import android.view.MotionEvent;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapController;
 import com.google.android.gms.maps.MapView;
-import com.google.android.maps.MyLocationOverlay;
 
 public class StopMapActivity extends Activity implements IGeocodingResponseListener, OnCancelListener  {
+    private static final String TAG = "StopMapActivity";
 
     private GoogleMap map;
 	// private StopMapOverlay stopOverlay;
@@ -90,42 +91,57 @@ public class StopMapActivity extends Activity implements IGeocodingResponseListe
 		busyDialog = new BusyDialog(this);
 
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
-		// mapView.setBuiltInZoomControls(true);
+        if (map != null) {
+            map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            map.setMyLocationEnabled(true);
+
+            // mapView.setBuiltInZoomControls(true);
 
 
-		// mapController = mapView.getController();
-		// mapController.setZoom(17);
+            // mapController = mapView.getController();
+            // mapController.setZoom(17);
 
-		// Make map update automatically as user moves around
-		// myLocationOverlay = new ReallyMyLocationOverlay(this, mapView);
-		// mapView.getOverlays().add(myLocationOverlay);
+            // Make map update automatically as user moves around
+            // myLocationOverlay = new ReallyMyLocationOverlay(this, mapView);
+            // mapView.getOverlays().add(myLocationOverlay);
 
-		// Check to see if we've been passed data
-		int lat = getIntent().getIntExtra("Lat", -1);
-		int lng = getIntent().getIntExtra("Lng", -1);
-		
-		if (lat == -1 && lng == -1) {
-			// if we don't have a location supplied, try and use the last known one.
-			LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);			
-            Location gpsLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            Location networkLocation = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            
-            if ((gpsLocation != null) && (gpsLocation.getAccuracy() < 100)) {
-        		// mapController.setCenter(new GeoPoint((int) (gpsLocation.getLatitude() * 1000000), (int) (gpsLocation.getLongitude() * 1000000)));
-            } else if ((networkLocation != null) && (networkLocation.getAccuracy() < 100)) {
-        		// mapController.setCenter(new GeoPoint((int) (networkLocation.getLatitude() * 1000000), (int) (networkLocation.getLongitude() * 1000000)));
+            // Check to see if we've been passed data
+            int lat = getIntent().getIntExtra("Lat", -1);
+            int lng = getIntent().getIntExtra("Lng", -1);
+
+            if (lat == -1 || lng == -1) {
+                Log.d(TAG, "Not supplied with either lat or lng");
+                // if we don't have a location supplied, try and use the last known one.
+                LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
+                Location gpsLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                Location networkLocation = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+                if ((gpsLocation != null) && (gpsLocation.getAccuracy() < 100)) {
+                              Log.d(TAG, "Using GPS for location.");
+                    zoomTo(new LatLng((int) (gpsLocation.getLatitude() * 1000000), (int) (gpsLocation.getLongitude() * 1000000)));
+                    // mapController.setCenter(new GeoPoint((int) (gpsLocation.getLatitude() * 1000000), (int) (gpsLocation.getLongitude() * 1000000)));
+                } else if ((networkLocation != null) && (networkLocation.getAccuracy() < 100)) {
+                    Log.d(TAG, "Using network for location.");
+                    // mapController.setCenter(new GeoPoint((int) (networkLocation.getLatitude() * 1000000), (int) (networkLocation.getLongitude() * 1000000)));
+                    zoomTo(new LatLng((int) (networkLocation.getLatitude() * 1000000), (int) (networkLocation.getLongitude() * 1000000)));
+
+                } else {
+                    Log.d(TAG, "Using default location from db.");
+                    StopDbHelper stopDb = StopDbHelper.Load(this);
+                    zoomTo(new LatLng(stopDb.defaultMapLocationLat, stopDb.defaultMapLocationLon));
+                    // mapController.setCenter(new GeoPoint(stopDb.defaultMapLocationLat, stopDb.defaultMapLocationLon));
+                }
+                updateMyLocationStatus(true);
             } else {
-        		StopDbHelper stopDb = StopDbHelper.Load(this);
-        		// mapController.setCenter(new GeoPoint(stopDb.defaultMapLocationLat, stopDb.defaultMapLocationLon));
+                Log.d(TAG, "Using supplied lat and lng.");
+                zoomTo(new LatLng(lat, lng));
+                // mapController.setCenter(new GeoPoint(lat, lng));
+                updateMyLocationStatus(false);
             }
-			updateMyLocationStatus(true);
-		} else {
-			// mapController.setCenter(new GeoPoint(lat, lng));
-			updateMyLocationStatus(false);
-		}
 
-		// stopOverlay = new StopMapOverlay(this);
-		// mapView.getOverlays().add(stopOverlay);
+            // stopOverlay = new StopMapOverlay(this);
+            // mapView.getOverlays().add(stopOverlay);
+        }
 	}
 	
 	public void invalidate()
@@ -174,10 +190,10 @@ public class StopMapActivity extends Activity implements IGeocodingResponseListe
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-//		if (mapView.isSatellite())
-//			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Map View");
-//		else
-//			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Satellite View");
+        if (this.map.getMapType() == GoogleMap.MAP_TYPE_NORMAL)
+			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Satellite View");
+		else
+			menu.findItem(R.id.stopmap_menu_satellite_or_map).setTitle("Map View");
 		
 		if (serviceFilter.areAllSet)
 			menu.findItem(R.id.stopmap_menu_showall).setEnabled(false);
@@ -214,29 +230,29 @@ public class StopMapActivity extends Activity implements IGeocodingResponseListe
 		return false;
 	}
 
-	public boolean onStopMapTap(GeoPoint point, MapView mapView)
-	{
-		StopDbHelper pt = StopDbHelper.Load(this);
-		final int nearestStopNodeIdx = pt.findNearest(point.getLatitudeE6(), point.getLongitudeE6());
-		final int stopCode = pt.stopCode[nearestStopNodeIdx];
-		final double stopLat = pt.lat[nearestStopNodeIdx] / 1E6;
-		final double stopLon = pt.lon[nearestStopNodeIdx] / 1E6;
-
-		// Yuk - there must be a better way to convert GeoPoint->Point than this?			
-		Location touchLoc = new Location("");
-		touchLoc.setLatitude(point.getLatitudeE6() / 1E6);
-		touchLoc.setLongitude(point.getLongitudeE6() / 1E6);
-
-		Location stopLoc = new Location("");
-		stopLoc.setLatitude(stopLat);
-		stopLoc.setLongitude(stopLon);
-
-		if (touchLoc.distanceTo(stopLoc) >= StopTapRadiusMetres)
-			return false;
-		
-		new StopMapPopup(this, stopCode);
-		return true;
-	}
+//	public boolean onStopMapTap(GeoPoint point, MapView mapView)
+//	{
+//		StopDbHelper pt = StopDbHelper.Load(this);
+//		final int nearestStopNodeIdx = pt.findNearest(point.getLatitudeE6(), point.getLongitudeE6());
+//		final int stopCode = pt.stopCode[nearestStopNodeIdx];
+//		final double stopLat = pt.lat[nearestStopNodeIdx] / 1E6;
+//		final double stopLon = pt.lon[nearestStopNodeIdx] / 1E6;
+//
+//		// Yuk - there must be a better way to convert GeoPoint->Point than this?
+//		Location touchLoc = new Location("");
+//		touchLoc.setLatitude(point.getLatitudeE6() / 1E6);
+//		touchLoc.setLongitude(point.getLongitudeE6() / 1E6);
+//
+//		Location stopLoc = new Location("");
+//		stopLoc.setLatitude(stopLat);
+//		stopLoc.setLongitude(stopLon);
+//
+//		if (touchLoc.distanceTo(stopLoc) >= StopTapRadiusMetres)
+//			return false;
+//
+//		new StopMapPopup(this, stopCode);
+//		return true;
+//	}
 	
 	public boolean onStopMapTouchEvent(MotionEvent e, MapView mapView) {
 		// disable my location if user drags the map
@@ -245,21 +261,6 @@ public class StopMapActivity extends Activity implements IGeocodingResponseListe
 		return false;
 	}
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	private void doSearchForLocation() {
 		final EditText input = new EditText(this);
 		new AlertDialog.Builder(this)
@@ -314,7 +315,7 @@ public class StopMapActivity extends Activity implements IGeocodingResponseListe
 	}
 	
 	private void doSetMapType() {
-		// mapView.setSatellite(!mapView.isSatellite());
+        map.setMapType(map.getMapType() == GoogleMap.MAP_TYPE_NORMAL ? GoogleMap.MAP_TYPE_SATELLITE : GoogleMap.MAP_TYPE_NORMAL);
 	}
 	
 	private void doSetMyLocation() {
@@ -395,7 +396,12 @@ public class StopMapActivity extends Activity implements IGeocodingResponseListe
 			show();
 	}
 
+    public void zoomTo(LatLng pos) {
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 17));
+    }
+
 	public void onAsyncGeocodeResponseSucccess(int requestId, List<Address> addresses_) {
+        Log.d(TAG, "Async Geocode response!");
 		if (requestId != expectedRequestId)
 			return;
 		
@@ -404,7 +410,9 @@ public class StopMapActivity extends Activity implements IGeocodingResponseListe
 		
 		if (addresses_.size() == 1) {
 			Address address = addresses_.get(0);
-			GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
+            LatLng pos = new LatLng((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
+            zoomTo(pos);
+			//GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
 			// mapController.animateTo(gp);
 			return;
 		}
@@ -428,8 +436,8 @@ public class StopMapActivity extends Activity implements IGeocodingResponseListe
 						return;
 					
 					Address address = addresses.get(which);
-					GeoPoint gp = new GeoPoint((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
-					// mapController.animateTo(gp);
+                    LatLng pos = new LatLng((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
+                    zoomTo(pos);
 					dialog.dismiss();
 				}
   	       })
