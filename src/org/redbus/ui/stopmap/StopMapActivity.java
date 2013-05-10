@@ -22,9 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
+import android.support.v4.app.FragmentActivity;
+import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.LatLng;
 import org.redbus.R;
 import org.redbus.geocode.GeocodingHelper;
@@ -55,9 +54,7 @@ import android.view.MotionEvent;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.MapView;
-
-public class StopMapActivity extends Activity implements IGeocodingResponseListener, OnCancelListener  {
+public class StopMapActivity extends FragmentActivity implements IGeocodingResponseListener, OnCancelListener  {
     private static final String TAG = "StopMapActivity";
 
     private GoogleMap map;
@@ -72,6 +69,7 @@ public class StopMapActivity extends Activity implements IGeocodingResponseListe
 
 	public static void showActivity(Context context) {
 		Intent i = new Intent(context, StopMapActivity.class);
+
 		context.startActivity(i);
 	}
 	
@@ -90,7 +88,7 @@ public class StopMapActivity extends Activity implements IGeocodingResponseListe
 		setContentView(R.layout.stop_map);
 		busyDialog = new BusyDialog(this);
 
-        map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+        map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
         if (map != null) {
             map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             map.setMyLocationEnabled(true);
