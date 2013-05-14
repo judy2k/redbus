@@ -28,7 +28,7 @@
             android:required="false"/>
     <application
             android:label="@string/app_name"
-            android:icon="@drawable/icon96"
+            android:icon="@drawable/AppIcon"
             android:backupAgent=".settings.SettingsBackupAgent"
             android:restoreAnyVersion="true"
             android:allowBackup="true"
