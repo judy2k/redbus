@@ -70,14 +70,12 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 {	
 	private static final String bookmarksXmlFile = "/sdcard/redbus-stops.xml";
 	
-	private final int TrafficCheckInterval = 15 * 60;
+	private static final int TRAFFIC_CHECK_INTERVAL = 15 * 60;
 	
 	private BusyDialog busyDialog = null;
 	private int stopDbExpectedRequestId = -1;
 
-	private long stopCode = -1;
-	private String bookmarkName = null;
-	private boolean isManualUpdateCheck = false;
+    private boolean isManualUpdateCheck = false;
 	private SettingsHelper listDb;
 
 	@Override
@@ -134,8 +132,8 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-		stopCode = menuInfo.id;
-		bookmarkName = ((TextView) menuInfo.targetView.findViewById(R.id.stopbookmarks_name)).getText().toString();
+		long stopCode = menuInfo.id;
+        String bookmarkName = ((TextView) menuInfo.targetView.findViewById(R.id.stopbookmarks_name)).getText().toString();
 
 		switch(item.getItemId()) {
 		case R.id.stopbookmarks_item_menu_bustimes:
@@ -431,7 +429,7 @@ public class BookmarksActivity extends ListActivity implements IStopDbUpdateResp
     		String doAutoTraffic = db.getGlobalSetting("AUTO_TRAFFIC", "0");
     		if (doAutoTraffic.equals("1")) {
 				long lastTrafficCheck = Long.parseLong(db.getGlobalSetting("LASTTRAFFICCHECK", "-1"));
-				if ((lastTrafficCheck + TrafficCheckInterval) <= nowSecs) {
+				if ((lastTrafficCheck + TRAFFIC_CHECK_INTERVAL) <= nowSecs) {
 					db.setGlobalSetting("LASTTRAFFICCHECK", Long.toString(nowSecs));
 					TrafficNewsHelper.getTrafficNewsAsync(db.getGlobalSetting("trafficLastTweetId", null), 1, this);
 				}

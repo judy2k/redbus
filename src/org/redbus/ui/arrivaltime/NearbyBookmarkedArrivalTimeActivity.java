@@ -48,8 +48,6 @@ import android.view.View;
 import android.widget.ListView;
 
 public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IArrivalTimeResponseListener, OnCancelListener {
-	
-	private final long LastKnownLocationExpiry = 3 * 60 * 1000;
 
     private LocationListener locationListener;
     private ArrayList<Integer> bookmarkIds; // Stop codes of current bookmarks
@@ -58,7 +56,8 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
     private BusyDialog busyDialog = null;
 	private int expectedRequestId = -1;
 	private ArrivalTimeArrayAdapter lvAdapter;
-	
+    public static final long LAST_KNOWN_LOCATION_EXPIRY = 3 * 60 * 1000;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
@@ -125,9 +124,9 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
         Location networkLocation = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
         long now = new Date().getTime();
-        if ((gpsLocation != null) && (gpsLocation.getAccuracy() < 100) && ((now - gpsLocation.getTime()) < LastKnownLocationExpiry)) {
+        if ((gpsLocation != null) && (gpsLocation.getAccuracy() < 100) && ((now - gpsLocation.getTime()) < LAST_KNOWN_LOCATION_EXPIRY)) {
         	locationUpdated(gpsLocation);
-        } else if ((networkLocation != null) && (networkLocation.getAccuracy() < 100) && ((now - networkLocation.getTime()) < LastKnownLocationExpiry)) {
+        } else if ((networkLocation != null) && (networkLocation.getAccuracy() < 100) && ((now - networkLocation.getTime()) < LAST_KNOWN_LOCATION_EXPIRY)) {
         	locationUpdated(networkLocation);
         } else {
         	startLocationListener();

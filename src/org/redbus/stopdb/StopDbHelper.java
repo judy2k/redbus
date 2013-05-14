@@ -80,7 +80,6 @@ public class StopDbHelper {
     final HashMap<Integer, Integer> serviceBitToSortIndex = new HashMap<Integer, Integer>();
     public HashMap<String, Integer> serviceNameToServiceBit = new HashMap<String, Integer>();
     private String[] serviceBitToServiceName;
-    private byte[] serviceBitToServiceProviderId;
 
     public int lowerLeftLat;
     public int lowerLeftLon;
@@ -394,7 +393,7 @@ public class StopDbHelper {
         int servicesCount = readInt(b, off);
         off += 4;
         this.serviceBitToServiceName = new String[servicesCount];
-        this.serviceBitToServiceProviderId = new byte[servicesCount];
+        byte[] serviceBitToServiceProviderId = new byte[servicesCount];
         ArrayList<String> sortedServices = new ArrayList<String>();
         for(int i =0; i< servicesCount; i++) {
             serviceBitToServiceProviderId[i] = b[off++];
