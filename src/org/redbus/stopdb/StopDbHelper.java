@@ -393,7 +393,7 @@ public class StopDbHelper {
         int servicesCount = readInt(b, off);
         off += 4;
         this.serviceBitToServiceName = new String[servicesCount];
-        byte[] serviceBitToServiceProviderId = new byte[servicesCount];
+            byte[] serviceBitToServiceProviderId = new byte[servicesCount];
         ArrayList<String> sortedServices = new ArrayList<String>();
         for(int i =0; i< servicesCount; i++) {
             serviceBitToServiceProviderId[i] = b[off++];

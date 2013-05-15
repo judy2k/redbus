@@ -18,13 +18,13 @@
 
 package org.redbus.ui.stopmap;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-import android.app.Activity;
 import android.support.v4.app.FragmentActivity;
+import android.util.SparseArray;
+import android.util.SparseIntArray;
 import com.google.android.gms.maps.*;
-import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.*;
 import org.redbus.R;
 import org.redbus.geocode.GeocodingHelper;
 import org.redbus.geocode.IGeocodingResponseListener;
@@ -33,7 +33,6 @@ import org.redbus.stopdb.StopDbHelper;
 import org.redbus.ui.BusyDialog;
 import org.redbus.ui.Common;
 import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
-
 
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -54,7 +53,7 @@ import android.view.MotionEvent;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class StopMapActivity extends FragmentActivity implements IGeocodingResponseListener, OnCancelListener  {
+public class StopMapActivity extends FragmentActivity implements IGeocodingResponseListener, OnCancelListener, GoogleMap.OnCameraChangeListener {
     private static final String TAG = "StopMapActivity";
 
     private GoogleMap map;
@@ -67,11 +66,21 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 	private final int StopTapRadiusMetres = 50;
 	private boolean isFirstResume = true;
 
-	public static void showActivity(Context context) {
-		Intent i = new Intent(context, StopMapActivity.class);
+    private Map<Integer, Marker> visibleMarkers = new HashMap<Integer, Marker>();
 
-		context.startActivity(i);
-	}
+    private StopDbHelper pointTree;
+
+    private BitmapDescriptor unknownStopBitmap;
+    private BitmapDescriptor outoforderStopBitmap;
+    private BitmapDescriptor divertedStopBitmap;
+    private BitmapDescriptor nStopBitmap;
+    private BitmapDescriptor neStopBitmap;
+    private BitmapDescriptor eStopBitmap;
+    private BitmapDescriptor seStopBitmap;
+    private BitmapDescriptor sStopBitmap;
+    private BitmapDescriptor swStopBitmap;
+    private BitmapDescriptor wStopBitmap;
+    private BitmapDescriptor nwStopBitmap;
 	
 	public static void showActivity(Context context, 
 			int lat,
@@ -88,13 +97,25 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 		setContentView(R.layout.stop_map);
 		busyDialog = new BusyDialog(this);
 
-        map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
+        this.pointTree = StopDbHelper.Load(this);
+
+        nStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_n);
+        neStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_ne);
+        eStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_e);
+        seStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_se);
+        sStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_s);
+        swStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_sw);
+        wStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_w);
+        nwStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_nw);
+        unknownStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.stop_unknown);
+        outoforderStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.stop_outoforder);
+        divertedStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.stop_diverted);
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        map = mapFragment.getMap();
         if (map != null) {
             map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             map.setMyLocationEnabled(true);
-
-            // mapView.setBuiltInZoomControls(true);
-
 
             // mapController = mapView.getController();
             // mapController.setZoom(17);
@@ -127,21 +148,146 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
                 } else {
                     Log.d(TAG, "Using default location from db.");
                     StopDbHelper stopDb = StopDbHelper.Load(this);
-                    zoomTo(new LatLng(stopDb.defaultMapLocationLat / 1000000.0, stopDb.defaultMapLocationLon / 1000000.0));
+                    zoomTo(new LatLng(stopDb.defaultMapLocationLat / 1E6, stopDb.defaultMapLocationLon / 1E6));
                     // mapController.setCenter(new GeoPoint(stopDb.defaultMapLocationLat, stopDb.defaultMapLocationLon));
                 }
                 updateMyLocationStatus(true);
             } else {
                 Log.d(TAG, "Using supplied lat and lng.");
-                zoomTo(new LatLng(lat / 1000000.0, lng / 1000000.0));
+                zoomTo(new LatLng(lat / 1E6, lng / 1E6));
                 // mapController.setCenter(new GeoPoint(lat, lng));
                 updateMyLocationStatus(false);
             }
+
+            map.setOnCameraChangeListener(this);
 
             // stopOverlay = new StopMapOverlay(this);
             // mapView.getOverlays().add(stopOverlay);
         }
 	}
+
+    @Override
+    public void onCameraChange(CameraPosition pos) {
+        // Get the visible bounds:
+        updateMap();
+    }
+
+    public void updateMap() {
+        // Add the stops:
+        /* Marker m = map.addMarker(new MarkerOptions()
+                .position(KIEL)
+                .title("Kiel")
+                .snippet("Kiel is cool"));
+                */
+        LatLngBounds bounds = this.map.getProjection().getVisibleRegion().latLngBounds;
+
+        for (Marker m: visibleMarkers.values()) {
+            if (!bounds.contains(m.getPosition())) {
+                Log.d(TAG, "Removing: " + m.toString());
+                m.remove();
+            }
+        }
+
+        /*.icon(BitmapDescriptorFactory
+                            .fromResource(R.drawable.compass_e)));*/
+        addMarkers(pointTree.rootRecordNum, 0,
+                (int)(bounds.northeast.latitude * 1E6),
+                (int)(bounds.northeast.longitude * 1E6),
+                (int)(bounds.southwest.latitude * 1E6),
+                (int)(bounds.southwest.longitude * 1E6));
+    }
+
+    public void addMarkers(int stopNodeIdx, int depth,
+                           int lat_tl, int lon_tl, int lat_br, int lon_br) {
+        Log.d(TAG, "addMarkers: " + lat_tl + ", " + lon_tl + ", " + lat_br + ", " + lon_br);
+        int tl, br, here, lat, lon;
+
+        if (stopNodeIdx==-1) {
+            return;
+        }
+
+        lat=pointTree.lat[stopNodeIdx];
+        lon=pointTree.lon[stopNodeIdx];
+
+        if (depth % 2 == 0) {
+            here = lat;
+            tl = lat_tl;
+            br = lat_br;
+        }
+        else {
+            here = lon;
+            tl = lon_tl;
+            br = lon_br;
+        }
+
+        if (tl > br) {
+            Log.println(Log.ERROR,"redbus", "co-ord error!");
+        }
+
+        if (br > here)
+            addMarkers(pointTree.right[stopNodeIdx],depth+1,
+                    lat_tl, lon_tl, lat_br, lon_br);
+
+        if (tl < here)
+            addMarkers(pointTree.left[stopNodeIdx],depth+1,
+                    lat_tl, lon_tl, lat_br, lon_br);
+
+        if (visibleMarkers.containsKey(stopNodeIdx)) {
+            return;
+        }
+
+        Log.d(TAG, "LatLon: " + lat + ", " + lon);
+        Log.d(TAG, "  Left? " + (lat_tl <= lat) + ", Right? " + (lat_br >= lat));
+        Log.d(TAG, "  Above? " + (lon_tl <= lon) + " Below? " + (lon_br >= lon));
+
+        // If this node falls within range, add it
+        if (lat_tl <= lat && lat_br >= lat && lon_tl <= lon && lon_br >= lon) {
+            boolean validServices = ((pointTree.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
+                    ((pointTree.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
+
+            BitmapDescriptor bmp = unknownStopBitmap;
+            switch(pointTree.facing[stopNodeIdx]) {
+                case StopDbHelper.STOP_FACING_N:
+                    bmp = nStopBitmap;
+                    break;
+                case StopDbHelper.STOP_FACING_NE:
+                    bmp = neStopBitmap;
+                    break;
+                case StopDbHelper.STOP_FACING_E:
+                    bmp = eStopBitmap;
+                    break;
+                case StopDbHelper.STOP_FACING_SE:
+                    bmp = seStopBitmap;
+                    break;
+                case StopDbHelper.STOP_FACING_S:
+                    bmp = sStopBitmap;
+                    break;
+                case StopDbHelper.STOP_FACING_SW:
+                    bmp = swStopBitmap;
+                    break;
+                case StopDbHelper.STOP_FACING_W:
+                    bmp = wStopBitmap;
+                    break;
+                case StopDbHelper.STOP_FACING_NW:
+                    bmp = nwStopBitmap;
+                    break;
+                case StopDbHelper.STOP_OUTOFORDER:
+                    bmp = outoforderStopBitmap;
+                    break;
+                case StopDbHelper.STOP_DIVERTED:
+                    bmp = divertedStopBitmap;
+                    break;
+            }
+
+
+            Marker m = map.addMarker(new MarkerOptions()
+                    .icon(bmp)
+                    .position(new LatLng(pointTree.lat[stopNodeIdx]/1E6, pointTree.lat[stopNodeIdx]/1E6)));
+            // Add marker here
+            Log.d(TAG, "Adding: " + m.toString());
+            visibleMarkers.put(stopNodeIdx, m);
+        }
+    }
 	
 	public void invalidate()
 	{
@@ -228,30 +374,30 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 		
 		return false;
 	}
+/*
+	public boolean onStopMapTap(GeoPoint point, MapView mapView)
+	{
+		StopDbHelper pt = StopDbHelper.Load(this);
+		final int nearestStopNodeIdx = pt.findNearest(point.getLatitudeE6(), point.getLongitudeE6());
+		final int stopCode = pt.stopCode[nearestStopNodeIdx];
+		final double stopLat = pt.lat[nearestStopNodeIdx] / 1E6;
+		final double stopLon = pt.lon[nearestStopNodeIdx] / 1E6;
 
-//	public boolean onStopMapTap(GeoPoint point, MapView mapView)
-//	{
-//		StopDbHelper pt = StopDbHelper.Load(this);
-//		final int nearestStopNodeIdx = pt.findNearest(point.getLatitudeE6(), point.getLongitudeE6());
-//		final int stopCode = pt.stopCode[nearestStopNodeIdx];
-//		final double stopLat = pt.lat[nearestStopNodeIdx] / 1E6;
-//		final double stopLon = pt.lon[nearestStopNodeIdx] / 1E6;
-//
-//		// Yuk - there must be a better way to convert GeoPoint->Point than this?
-//		Location touchLoc = new Location("");
-//		touchLoc.setLatitude(point.getLatitudeE6() / 1E6);
-//		touchLoc.setLongitude(point.getLongitudeE6() / 1E6);
-//
-//		Location stopLoc = new Location("");
-//		stopLoc.setLatitude(stopLat);
-//		stopLoc.setLongitude(stopLon);
-//
-//		if (touchLoc.distanceTo(stopLoc) >= StopTapRadiusMetres)
-//			return false;
-//
-//		new StopMapPopup(this, stopCode);
-//		return true;
-//	}
+		// Yuk - there must be a better way to convert GeoPoint->Point than this?
+		Location touchLoc = new Location("");
+		touchLoc.setLatitude(point.getLatitudeE6() / 1E6);
+		touchLoc.setLongitude(point.getLongitudeE6() / 1E6);
+
+		Location stopLoc = new Location("");
+		stopLoc.setLatitude(stopLat);
+		stopLoc.setLongitude(stopLon);
+
+		if (touchLoc.distanceTo(stopLoc) >= StopTapRadiusMetres)
+			return false;
+
+		new StopMapPopup(this, stopCode);
+		return true;
+	}*/
 	
 	public boolean onStopMapTouchEvent(MotionEvent e, MapView mapView) {
 		// disable my location if user drags the map
