@@ -32,7 +32,7 @@ import android.util.Log;
 
 public class GeocodingHelper {
 
-	private static Integer RequestId = new Integer(0);
+	private static Integer RequestId = 0;
 
 	public static int geocode(Context ctx, String location, IGeocodingResponseListener callback)
 	{
@@ -42,9 +42,7 @@ public class GeocodingHelper {
 		
 		return requestId;
 	}
-	
-	
-	
+
 	
 	private static class AsyncGeocodeRequestTask extends AsyncTask<GeocodingRequest, Integer, GeocodingRequest> {
 		
