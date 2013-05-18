@@ -21,8 +21,6 @@ package org.redbus.ui.stopmap;
 import java.util.*;
 
 import android.support.v4.app.FragmentActivity;
-import android.util.SparseArray;
-import android.util.SparseIntArray;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 import org.redbus.R;
