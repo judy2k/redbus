@@ -177,10 +177,11 @@ public class StopDbHelper {
             FileOutputStream outStream = null;
             GZIPInputStream inStream = null;
             File dir = new File(filesPath);
-            try {
-                if (!dir.exists())
-                    dir.mkdir();
-            } catch (Exception ex) {
+            if (!dir.exists()) {
+                dir.mkdir();
+            }
+            if (!dir.isDirectory()) {
+                throw new IOException("Could not create directory: " + dir.getAbsolutePath());
             }
 
             File outFile = new File(dir, DatabaseVersion + ".dat.new");
@@ -197,31 +198,22 @@ public class StopDbHelper {
                 outStream.flush();
 
                 // now delete the old database and rename the new file to the old filename
-                try {
-                    dbFile.delete();
-                } catch (Throwable t) {
-                }
+                dbFile.delete();
                 outFile.renameTo(dbFile);
                 pointTree = null;
             } catch (Throwable t) {
-                try {
-                    outFile.delete();
-                } catch (Throwable t2) {
-                }
-                try {
-                    dbFile.delete();
-                } catch (Throwable t2) {
-                }
+                outFile.delete();
+                dbFile.delete();
             } finally {
                 try {
                     if (outStream != null)
                         outStream.close();
-                } catch (Throwable t) {
+                } catch (Throwable ignored) {
                 }
                 try {
                     if (inStream != null)
                         inStream.close();
-                } catch (Throwable t) {
+                } catch (Throwable ignored) {
                 }
             }
         }
