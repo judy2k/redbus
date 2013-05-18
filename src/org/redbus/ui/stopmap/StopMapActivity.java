@@ -188,103 +188,72 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 
         /*.icon(BitmapDescriptorFactory
                             .fromResource(R.drawable.compass_e)));*/
-        addMarkers(pointTree.rootRecordNum, 0,
-                (int)(bounds.northeast.latitude * 1E6),
-                (int)(bounds.northeast.longitude * 1E6),
+
+//        List<Integer> markers = pointTree.findRect((int)(bounds.northeast.latitude * 1E6),
+//                (int)(bounds.northeast.longitude * 1E6),
+//                (int)(bounds.southwest.latitude * 1E6),
+//                (int)(bounds.southwest.longitude * 1E6));
+        List<Integer> markers = pointTree.findRect(
                 (int)(bounds.southwest.latitude * 1E6),
-                (int)(bounds.southwest.longitude * 1E6));
+                (int)(bounds.southwest.longitude * 1E6),
+                (int)(bounds.northeast.latitude * 1E6),
+                (int)(bounds.northeast.longitude * 1E6));
+        for (int stopNodeIdx : markers) {
+            addMarker(stopNodeIdx);
+        }
+        Log.d(TAG, "Markers in bounds: " + markers.size());
     }
 
-    public void addMarkers(int stopNodeIdx, int depth,
-                           int lat_tl, int lon_tl, int lat_br, int lon_br) {
-        Log.d(TAG, "addMarkers: " + lat_tl + ", " + lon_tl + ", " + lat_br + ", " + lon_br);
-        int tl, br, here, lat, lon;
-
-        if (stopNodeIdx==-1) {
-            return;
-        }
-
-        lat=pointTree.lat[stopNodeIdx];
-        lon=pointTree.lon[stopNodeIdx];
-
-        if (depth % 2 == 0) {
-            here = lat;
-            tl = lat_tl;
-            br = lat_br;
-        }
-        else {
-            here = lon;
-            tl = lon_tl;
-            br = lon_br;
-        }
-
-        if (tl > br) {
-            Log.println(Log.ERROR,"redbus", "co-ord error!");
-        }
-
-        if (br > here)
-            addMarkers(pointTree.right[stopNodeIdx],depth+1,
-                    lat_tl, lon_tl, lat_br, lon_br);
-
-        if (tl < here)
-            addMarkers(pointTree.left[stopNodeIdx],depth+1,
-                    lat_tl, lon_tl, lat_br, lon_br);
-
+    private void addMarker(int stopNodeIdx) {
         if (visibleMarkers.containsKey(stopNodeIdx)) {
             return;
         }
 
-        Log.d(TAG, "LatLon: " + lat + ", " + lon);
-        Log.d(TAG, "  Left? " + (lat_tl <= lat) + ", Right? " + (lat_br >= lat));
-        Log.d(TAG, "  Above? " + (lon_tl <= lon) + " Below? " + (lon_br >= lon));
+        boolean validServices = ((pointTree.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
+                ((pointTree.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
 
-        // If this node falls within range, add it
-        if (lat_tl <= lat && lat_br >= lat && lon_tl <= lon && lon_br >= lon) {
-            boolean validServices = ((pointTree.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
-                    ((pointTree.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
-
-            BitmapDescriptor bmp = unknownStopBitmap;
-            switch(pointTree.facing[stopNodeIdx]) {
-                case StopDbHelper.STOP_FACING_N:
-                    bmp = nStopBitmap;
-                    break;
-                case StopDbHelper.STOP_FACING_NE:
-                    bmp = neStopBitmap;
-                    break;
-                case StopDbHelper.STOP_FACING_E:
-                    bmp = eStopBitmap;
-                    break;
-                case StopDbHelper.STOP_FACING_SE:
-                    bmp = seStopBitmap;
-                    break;
-                case StopDbHelper.STOP_FACING_S:
-                    bmp = sStopBitmap;
-                    break;
-                case StopDbHelper.STOP_FACING_SW:
-                    bmp = swStopBitmap;
-                    break;
-                case StopDbHelper.STOP_FACING_W:
-                    bmp = wStopBitmap;
-                    break;
-                case StopDbHelper.STOP_FACING_NW:
-                    bmp = nwStopBitmap;
-                    break;
-                case StopDbHelper.STOP_OUTOFORDER:
-                    bmp = outoforderStopBitmap;
-                    break;
-                case StopDbHelper.STOP_DIVERTED:
-                    bmp = divertedStopBitmap;
-                    break;
-            }
-
-
-            Marker m = map.addMarker(new MarkerOptions()
-                    .icon(bmp)
-                    .position(new LatLng(pointTree.lat[stopNodeIdx]/1E6, pointTree.lat[stopNodeIdx]/1E6)));
-            // Add marker here
-            Log.d(TAG, "Adding: " + m.toString());
-            visibleMarkers.put(stopNodeIdx, m);
+        BitmapDescriptor bmp = unknownStopBitmap;
+        switch(pointTree.facing[stopNodeIdx]) {
+            case StopDbHelper.STOP_FACING_N:
+                bmp = nStopBitmap;
+                break;
+            case StopDbHelper.STOP_FACING_NE:
+                bmp = neStopBitmap;
+                break;
+            case StopDbHelper.STOP_FACING_E:
+                bmp = eStopBitmap;
+                break;
+            case StopDbHelper.STOP_FACING_SE:
+                bmp = seStopBitmap;
+                break;
+            case StopDbHelper.STOP_FACING_S:
+                bmp = sStopBitmap;
+                break;
+            case StopDbHelper.STOP_FACING_SW:
+                bmp = swStopBitmap;
+                break;
+            case StopDbHelper.STOP_FACING_W:
+                bmp = wStopBitmap;
+                break;
+            case StopDbHelper.STOP_FACING_NW:
+                bmp = nwStopBitmap;
+                break;
+            case StopDbHelper.STOP_OUTOFORDER:
+                bmp = outoforderStopBitmap;
+                break;
+            case StopDbHelper.STOP_DIVERTED:
+                bmp = divertedStopBitmap;
+                break;
         }
+
+        LatLng location = new LatLng(pointTree.lat[stopNodeIdx]/1E6, pointTree.lon[stopNodeIdx]/1E6);
+        Log.d(TAG, "Location: " + location.latitude + ", " + location.longitude);
+        Marker m = map.addMarker(new MarkerOptions()
+                .icon(bmp)
+                .position(location));
+        // Add marker here
+        Log.d(TAG, "Adding: " + m.toString());
+        visibleMarkers.put(stopNodeIdx, m);
     }
 	
 	public void invalidate()

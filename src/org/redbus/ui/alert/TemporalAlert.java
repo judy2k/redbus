@@ -93,7 +93,7 @@ public class TemporalAlert extends BroadcastReceiver implements IArrivalTimeResp
 			return;
 		ServiceBitmap serviceMap = pt.lookupServiceBitmapByStopNodeIdx(stopNodeIdx);
 		
-		ArrayList<String> servicesList = pt.getServiceNames(serviceMap);
+		List<String> servicesList = pt.getServiceNames(serviceMap);
 		uiServices = servicesList.toArray(new String[servicesList.size()]);
 		uiSelectedServices = new boolean[uiServices.length];
 

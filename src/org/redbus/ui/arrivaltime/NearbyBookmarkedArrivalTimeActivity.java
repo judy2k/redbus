@@ -179,7 +179,7 @@ public class NearbyBookmarkedArrivalTimeActivity extends Activity implements IAr
 
     	// 0.008 empirically determined for now!
     	StopDbHelper pt = StopDbHelper.Load(this);
-    	ArrayList<Integer> nearby = pt.getStopsWithinRadius((int)x, (int)y, bookmarkIds, 0.008);
+    	List<Integer> nearby = pt.getStopsWithinRadius((int)x, (int)y, bookmarkIds, 0.008);
     	
     	// Nearby names toast
     	StringBuilder sb = new StringBuilder();

@@ -28,11 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.Math;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 import org.redbus.R;
@@ -43,7 +39,7 @@ import android.util.Log;
 
 
 public class StopDbHelper {
-
+    private static final String TAG = "StopDbHelper";
     private static StopDbHelper pointTree = null;
     private static Integer syncObj = new Integer(0);
     private static final String filesPath = "/data/data/org.redbus/files";
@@ -220,21 +216,45 @@ public class StopDbHelper {
     }
 
     // Return nodes within a certain rectangle - top-left/bottom-right
-    public ArrayList<Integer> findRect(int xtl, int ytl,
+    public List<Integer> findRect(int xtl, int ytl,
             int xbr, int ybr)
     {
-        ArrayList<Integer> stops = new ArrayList<Integer>();
+        List<Integer> stops = new ArrayList<Integer>();
         return searchRect(xtl,ytl,xbr,ybr,rootRecordNum,stops,0);
+    }
+
+    public List<Integer> findRect2(int xtl, int ytl, int xbr, int ybr) {
+        List<Integer> result = new ArrayList<Integer>();
+        for (int idx = 0; idx < this.lat.length; idx++) {
+            int lat = this.lat[idx];
+            int lon = this.lon[idx];
+
+            if (lat >= xtl && lat <= xbr && lon >= ytl && lon <= ybr) {
+                result.add(idx);
+            } else {
+                if (lat < xtl) {
+                    //Log.d(TAG, "    left");
+                    Log.d(TAG, "left: " + xtl + ", " + lat + ", " + xbr);
+                } else if (lat > xbr) {
+                    //Log.d(TAG, "    right");
+                    Log.d(TAG, "right: " + xtl + ", " + lat + ", " + xbr);
+                } else {
+                    Log.d(TAG, "inside: " + xtl + ", " + lat + ", " + xbr);
+                }
+            }
+        }
+
+        return result;
     }
 
     // Given a location and a list of stop codes return ones
     // within radius. Uses a linear search, but as wanted
     // stops list will be small this doesn't matter.
-    public ArrayList<Integer> getStopsWithinRadius(int x, int y,
-                                                   ArrayList<Integer> stops,
+    public List<Integer> getStopsWithinRadius(int x, int y,
+                                                   List<Integer> stops,
                                                    double radius)
     {
-            ArrayList<Integer> stopsWithinRange = new ArrayList<Integer>();
+            List<Integer> stopsWithinRange = new ArrayList<Integer>();
 
             for(Integer stop : stops)
             {
@@ -279,7 +299,7 @@ public class StopDbHelper {
         return new ServiceBitmap(serviceMap0[stopNodeIdx], serviceMap1[stopNodeIdx]);
     }
 
-    public ArrayList<String> getServiceNames(ServiceBitmap serviceMap)
+    public List<String> getServiceNames(ServiceBitmap serviceMap)
     {
         int maxEntries = serviceBitToServiceName.length;
         String[] tmp = new String[maxEntries];
@@ -287,7 +307,7 @@ public class StopDbHelper {
             if (serviceMap.isBitSet(i))
                 tmp[serviceBitToSortIndex.get(i)] = serviceBitToServiceName[i];
 
-        ArrayList<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<String>();
         for(String cur: tmp) {
             if (cur == null)
                 continue;
@@ -303,7 +323,7 @@ public class StopDbHelper {
 
     public String formatServices(ServiceBitmap servicesMap, int maxServices)
     {
-        ArrayList<String> services = this.getServiceNames(servicesMap);
+        List<String> services = this.getServiceNames(servicesMap);
 
         // Where is string.join()?
         StringBuilder sb = new StringBuilder();
@@ -318,9 +338,6 @@ public class StopDbHelper {
 
         return sb.toString();
     }
-
-
-
 
 
     private StopDbHelper(InputStream is, int length) throws IOException
@@ -527,10 +544,10 @@ public class StopDbHelper {
         return best;
     }
 
-    private ArrayList<Integer> searchRect(int xtl, int ytl,
+    private List<Integer> searchRect(int xtl, int ytl,
             int xbr, int ybr,
             int here,
-            ArrayList<Integer> stops,
+            List<Integer> stops,
             int depth)
             {
         if (here==-1) return stops;
