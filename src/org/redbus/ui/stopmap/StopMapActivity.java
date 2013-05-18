@@ -171,28 +171,24 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
     }
 
     public void updateMap() {
-        // Add the stops:
-        /* Marker m = map.addMarker(new MarkerOptions()
-                .position(KIEL)
-                .title("Kiel")
-                .snippet("Kiel is cool"));
-                */
         LatLngBounds bounds = this.map.getProjection().getVisibleRegion().latLngBounds;
 
-        for (Marker m: visibleMarkers.values()) {
+        // Build up a list of indexes to remove, to avoid concurrent
+        // modification exceptions:
+        List<Integer> toRemove = new ArrayList<Integer>();
+        for (Map.Entry<Integer, Marker> entry : visibleMarkers.entrySet()) {
+            Marker m = entry.getValue();
             if (!bounds.contains(m.getPosition())) {
                 Log.d(TAG, "Removing: " + m.toString());
-                m.remove();
+                toRemove.add(entry.getKey());
             }
         }
+        for (int idx : toRemove) {
+            Marker m = visibleMarkers.get(idx);
+            visibleMarkers.remove(idx);
+            m.remove();
+        }
 
-        /*.icon(BitmapDescriptorFactory
-                            .fromResource(R.drawable.compass_e)));*/
-
-//        List<Integer> markers = pointTree.findRect((int)(bounds.northeast.latitude * 1E6),
-//                (int)(bounds.northeast.longitude * 1E6),
-//                (int)(bounds.southwest.latitude * 1E6),
-//                (int)(bounds.southwest.longitude * 1E6));
         List<Integer> markers = pointTree.findRect(
                 (int)(bounds.southwest.latitude * 1E6),
                 (int)(bounds.southwest.longitude * 1E6),
@@ -260,10 +256,6 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 	{
 		// this.stopOverlay.invalidate();
 		//this.mapView.invalidate();
-	}
-	
-	public ServiceBitmap getServiceFilter() {
-		return serviceFilter;
 	}
 
 	@Override
@@ -541,19 +533,18 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 			addressNames.add(strb.toString());
 		}
 
-		new AlertDialog.Builder(this)
-  	       .setSingleChoiceItems(addressNames.toArray(new String[addressNames.size()]), -1, new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					if (which < 0)
-						return;
-					
-					Address address = addresses.get(which);
-                    LatLng pos = new LatLng((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
-                    zoomTo(pos);
-					dialog.dismiss();
-				}
-  	       })
-  	       .show();
-	}
+        new AlertDialog.Builder(this)
+                .setSingleChoiceItems(addressNames.toArray(new String[addressNames.size()]), -1, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which < 0)
+                            return;
+
+                        Address address = addresses.get(which);
+                        LatLng pos = new LatLng((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
+                        zoomTo(pos);
+                        dialog.dismiss();
+                    }
+                }).show();
+    }
 }
 	
