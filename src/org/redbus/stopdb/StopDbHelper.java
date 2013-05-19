@@ -16,8 +16,6 @@
  *  along with rEdBus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// KD-Tree implementation
-
 package org.redbus.stopdb;
 
 import java.io.ByteArrayInputStream;
@@ -37,14 +35,17 @@ import org.redbus.settings.SettingsHelper;
 import android.content.Context;
 import android.util.Log;
 
-
+/**
+ * The bus-stop database for
+ */
 public class StopDbHelper {
     private static final String TAG = "StopDbHelper";
 
     private static StopDbHelper pointTree = null;
     private static final Object syncObj = new Object();
-    private static final String filesPath = "/data/data/org.redbus/files";
-    public static final String DatabaseVersion = "bus3";
+
+    private static final String FILES_PATH = "/data/data/org.redbus/files";
+    public static final String DATABASE_VERSION = "bus3";
 
     public static final int HEADER_SIZE = 16;
     public static final int TREE_NODE_SIZE = 37;
@@ -91,7 +92,7 @@ public class StopDbHelper {
             if (pointTree == null) {
                 InputStream stopsStream = null;
                 OutputStream outStream = null;
-                File dir = new File(filesPath);
+                File dir = new File(FILES_PATH);
                 try {
                     if (!dir.exists()) {
                         dir.mkdir();
@@ -99,7 +100,7 @@ public class StopDbHelper {
                 } catch (Exception ignored) {
                 }
 
-                File file = new File(dir, DatabaseVersion + ".dat");
+                File file = new File(dir, DATABASE_VERSION + ".dat");
                 try {
                     // first of all, if the file doesn't exist on disk, extract it from our resources and save it out to there
                     if (!file.exists()) {
@@ -166,15 +167,15 @@ public class StopDbHelper {
         synchronized (syncObj) {
             FileOutputStream outStream = null;
             GZIPInputStream inStream = null;
-            File dir = new File(filesPath);
+            File dir = new File(FILES_PATH);
             if (!dir.exists()) {
                 if (!(dir.mkdir() || dir.isDirectory())) {
                     throw new IOException("Could not create directory: " + dir.getAbsolutePath());
                 }
             }
 
-            File outFile = new File(dir, DatabaseVersion + ".dat.new");
-            File dbFile = new File(dir, DatabaseVersion + ".dat");
+            File outFile = new File(dir, DATABASE_VERSION + ".dat.new");
+            File dbFile = new File(dir, DATABASE_VERSION + ".dat");
             try {
                 outStream = new FileOutputStream(outFile);
 
@@ -321,7 +322,7 @@ public class StopDbHelper {
         byte[] b = new byte[length];
         if (is.read(b) > 0) {
             // check it is valid
-            if ((b[0] != DatabaseVersion.charAt(0)) || (b[1] != DatabaseVersion.charAt(1)) || (b[2] != DatabaseVersion.charAt(2)) || (b[3] != DatabaseVersion.charAt(3)))
+            if ((b[0] != DATABASE_VERSION.charAt(0)) || (b[1] != DATABASE_VERSION.charAt(1)) || (b[2] != DATABASE_VERSION.charAt(2)) || (b[3] != DATABASE_VERSION.charAt(3)))
                 throw new RuntimeException("Invalid file format");
 
             // get the header information
