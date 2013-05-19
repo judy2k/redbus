@@ -18,22 +18,30 @@
 
 package org.redbus.ui;
 
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTabHost;
+import android.util.Log;
 import org.redbus.R;
 import org.redbus.settings.SettingsHelper;
 import org.redbus.ui.arrivaltime.NearbyBookmarkedArrivalTimeActivity;
 import org.redbus.ui.stopmap.StopMapActivity;
 
-import android.app.TabActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.widget.TabHost;
 
-public class RedbusTabView extends TabActivity {
+public class RedbusTabView extends FragmentActivity {
+    private static final String TAG = "RedbusTabView";
+    private FragmentTabHost tabHost;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.redbustablayout);
+
+        tabHost = (FragmentTabHost)findViewById(android.R.id.tabhost);
+        tabHost.setup(this, getSupportFragmentManager(), R.id.realtabcontent);
 	    
 		SettingsHelper db = new SettingsHelper(this);
 		boolean tabsEnabled = db.getGlobalSetting("TABSENABLED", "true").equals("true");
@@ -43,20 +51,23 @@ public class RedbusTabView extends TabActivity {
 			finish();
 			return;
 		}
-	    
-	    setContentView(R.layout.redbustablayout);
 
-	    TabHost tabHost = getTabHost();
-	    
-	    tabHost.addTab(tabHost.newTabSpec("bookmarks").setIndicator("Bookmarks")
-            .setContent(new Intent().setClass(this, BookmarksActivity.class)));
+	    tabHost.addTab(tabHost.newTabSpec("bookmarks").setIndicator("Bookmarks"),
+                BookmarksFragment.class, null);
+            //.setContent(new Intent().setClass(this, BookmarksActivity.class)));
 
-	    tabHost.addTab(tabHost.newTabSpec("map").setIndicator("Map")
-	                  .setContent(new Intent().setClass(this, StopMapActivity.class)));
-	    
-	    tabHost.addTab(tabHost.newTabSpec("nearby").setIndicator("Nearby")
-                .setContent(new Intent().setClass(this, NearbyBookmarkedArrivalTimeActivity.class)));
+//	    tabHost.addTab(tabHost.newTabSpec("map").setIndicator("Map"),
+//                StopMapActivity.class, null);
+//	                  //.setContent(new Intent().setClass(this, StopMapActivity.class)));
+//
+//	    tabHost.addTab(tabHost.newTabSpec("nearby").setIndicator("Nearby"),
+//                NearbyBookmarkedArrivalTimeActivity.class, null);
+//                //.setContent(new Intent().setClass(this, NearbyBookmarkedArrivalTimeActivity.class)));
 	}
+
+    private FragmentTabHost getTabHost() {
+        return this.tabHost;
+    }
 	
 	
 	@Override

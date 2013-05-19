@@ -18,6 +18,9 @@
 
 package org.redbus.ui;
 
+import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager;
+import android.widget.ListAdapter;
 import org.redbus.R;
 import org.redbus.settings.SettingsHelper;
 
@@ -30,14 +33,16 @@ import android.widget.EditText;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
-public class Common 
+// TODO: Rename - this class only manages bookmarks.
+public class Common implements LoaderManager.LoaderCallbacks<Cursor>
 {
+
 	private static final String[] columnNames = new String[] { SettingsHelper.ID, SettingsHelper.BOOKMARKS_COL_STOPNAME};
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name};
 	
-	public static SettingsHelper updateBookmarksListAdaptor(ListActivity la)
+	public static SettingsHelper updateBookmarksListAdaptor(ListFragment la)
 	{
-    	SimpleCursorAdapter cursorAdapter = (SimpleCursorAdapter) la.getListAdapter();
+    	ListAdapter cursorAdapter = (ListAdapter) la.getListAdapter();
     	if (cursorAdapter == null) {
             SettingsHelper db = new SettingsHelper(la);
 	        Cursor listContentsCursor = db.getBookmarks();
