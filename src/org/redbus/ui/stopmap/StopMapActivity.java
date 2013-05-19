@@ -51,17 +51,16 @@ import android.view.MotionEvent;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class StopMapActivity extends FragmentActivity implements IGeocodingResponseListener, OnCancelListener, GoogleMap.OnCameraChangeListener {
+public class StopMapActivity extends FragmentActivity implements IGeocodingResponseListener, OnCancelListener,
+        GoogleMap.OnCameraChangeListener {
     private static final String TAG = "StopMapActivity";
 
     private GoogleMap map;
-	// private StopMapOverlay stopOverlay;
 	private ServiceBitmap serviceFilter = new ServiceBitmap();
 
 	private BusyDialog busyDialog = null;
 	private int expectedRequestId = -1;
 	
-	private final int StopTapRadiusMetres = 50;
 	private boolean isFirstResume = true;
 
     private Map<Integer, Marker> visibleMarkers = new HashMap<Integer, Marker>();
@@ -69,20 +68,9 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
     private StopDbHelper pointTree;
 
     private BitmapDescriptor unknownStopBitmap;
-    private BitmapDescriptor outoforderStopBitmap;
-    private BitmapDescriptor divertedStopBitmap;
-    private BitmapDescriptor nStopBitmap;
-    private BitmapDescriptor neStopBitmap;
-    private BitmapDescriptor eStopBitmap;
-    private BitmapDescriptor seStopBitmap;
-    private BitmapDescriptor sStopBitmap;
-    private BitmapDescriptor swStopBitmap;
-    private BitmapDescriptor wStopBitmap;
-    private BitmapDescriptor nwStopBitmap;
-	
-	public static void showActivity(Context context, 
-			int lat,
-			int lng) {
+    private Map<Integer,BitmapDescriptor> compassBitmaps;
+
+    public static void showActivity(Context context, int lat, int lng) {
 		Intent i = new Intent(context, StopMapActivity.class);
 		i.putExtra("Lat", lat);
 		i.putExtra("Lng", lng);
@@ -97,17 +85,19 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 
         this.pointTree = StopDbHelper.Load(this);
 
-        nStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_n);
-        neStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_ne);
-        eStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_e);
-        seStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_se);
-        sStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_s);
-        swStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_sw);
-        wStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_w);
-        nwStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.compass_nw);
         unknownStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.stop_unknown);
-        outoforderStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.stop_outoforder);
-        divertedStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.stop_diverted);
+        compassBitmaps = new HashMap<Integer, BitmapDescriptor>();
+        compassBitmaps.put(StopDbHelper.STOP_FACING_N, BitmapDescriptorFactory.fromResource(R.drawable.compass_n));
+        compassBitmaps.put(StopDbHelper.STOP_FACING_NE, BitmapDescriptorFactory.fromResource(R.drawable.compass_ne));
+        compassBitmaps.put(StopDbHelper.STOP_FACING_E, BitmapDescriptorFactory.fromResource(R.drawable.compass_e));
+        compassBitmaps.put(StopDbHelper.STOP_FACING_SE, BitmapDescriptorFactory.fromResource(R.drawable.compass_se));
+        compassBitmaps.put(StopDbHelper.STOP_FACING_S, BitmapDescriptorFactory.fromResource(R.drawable.compass_s));
+        compassBitmaps.put(StopDbHelper.STOP_FACING_SW, BitmapDescriptorFactory.fromResource(R.drawable.compass_sw));
+        compassBitmaps.put(StopDbHelper.STOP_FACING_W, BitmapDescriptorFactory.fromResource(R.drawable.compass_w));
+        compassBitmaps.put(StopDbHelper.STOP_FACING_NW, BitmapDescriptorFactory.fromResource(R.drawable.compass_nw));
+        compassBitmaps.put(StopDbHelper.STOP_OUTOFORDER, BitmapDescriptorFactory.fromResource(R.drawable.stop_outoforder));
+        compassBitmaps.put(StopDbHelper.STOP_DIVERTED, BitmapDescriptorFactory.fromResource(R.drawable.stop_diverted));
+        // compassBitmaps = Collections.unmodifiableMap(compassBitmaps);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         map = mapFragment.getMap();
@@ -115,12 +105,7 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
             map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             map.setMyLocationEnabled(true);
 
-            // mapController = mapView.getController();
             // mapController.setZoom(17);
-
-            // Make map update automatically as user moves around
-            // myLocationOverlay = new ReallyMyLocationOverlay(this, mapView);
-            // mapView.getOverlays().add(myLocationOverlay);
 
             // Check to see if we've been passed data
             int lat = getIntent().getIntExtra("Lat", -1);
@@ -137,36 +122,27 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
                     Log.d(TAG, "Using GPS for location. " + gpsLocation);
 
                     zoomTo(new LatLng(gpsLocation.getLatitude(), gpsLocation.getLongitude()));
-                    // mapController.setCenter(new GeoPoint((int) (gpsLocation.getLatitude() * 1000000), (int) (gpsLocation.getLongitude() * 1000000)));
                 } else if ((networkLocation != null) && (networkLocation.getAccuracy() < 100)) {
                     Log.d(TAG, "Using network for location.");
-                    // mapController.setCenter(new GeoPoint((int) (networkLocation.getLatitude() * 1000000), (int) (networkLocation.getLongitude() * 1000000)));
                     zoomTo(new LatLng(networkLocation.getLatitude(), networkLocation.getLongitude()));
 
                 } else {
                     Log.d(TAG, "Using default location from db.");
                     StopDbHelper stopDb = StopDbHelper.Load(this);
                     zoomTo(new LatLng(stopDb.defaultMapLocationLat / 1E6, stopDb.defaultMapLocationLon / 1E6));
-                    // mapController.setCenter(new GeoPoint(stopDb.defaultMapLocationLat, stopDb.defaultMapLocationLon));
                 }
                 updateMyLocationStatus(true);
             } else {
                 Log.d(TAG, "Using supplied lat and lng.");
                 zoomTo(new LatLng(lat / 1E6, lng / 1E6));
-                // mapController.setCenter(new GeoPoint(lat, lng));
                 updateMyLocationStatus(false);
             }
-
             map.setOnCameraChangeListener(this);
-
-            // stopOverlay = new StopMapOverlay(this);
-            // mapView.getOverlays().add(stopOverlay);
         }
 	}
 
     @Override
     public void onCameraChange(CameraPosition pos) {
-        // Get the visible bounds:
         updateMap();
     }
 
@@ -179,7 +155,6 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
         for (Map.Entry<Integer, Marker> entry : visibleMarkers.entrySet()) {
             Marker m = entry.getValue();
             if (!bounds.contains(m.getPosition())) {
-                Log.d(TAG, "Removing: " + m.toString());
                 toRemove.add(entry.getKey());
             }
         }
@@ -197,7 +172,6 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
         for (int stopNodeIdx : markers) {
             addMarker(stopNodeIdx);
         }
-        Log.d(TAG, "Markers in bounds: " + markers.size());
     }
 
     private void addMarker(int stopNodeIdx) {
@@ -208,47 +182,15 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
         boolean validServices = ((pointTree.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
                 ((pointTree.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
 
-        BitmapDescriptor bmp = unknownStopBitmap;
-        switch(pointTree.facing[stopNodeIdx]) {
-            case StopDbHelper.STOP_FACING_N:
-                bmp = nStopBitmap;
-                break;
-            case StopDbHelper.STOP_FACING_NE:
-                bmp = neStopBitmap;
-                break;
-            case StopDbHelper.STOP_FACING_E:
-                bmp = eStopBitmap;
-                break;
-            case StopDbHelper.STOP_FACING_SE:
-                bmp = seStopBitmap;
-                break;
-            case StopDbHelper.STOP_FACING_S:
-                bmp = sStopBitmap;
-                break;
-            case StopDbHelper.STOP_FACING_SW:
-                bmp = swStopBitmap;
-                break;
-            case StopDbHelper.STOP_FACING_W:
-                bmp = wStopBitmap;
-                break;
-            case StopDbHelper.STOP_FACING_NW:
-                bmp = nwStopBitmap;
-                break;
-            case StopDbHelper.STOP_OUTOFORDER:
-                bmp = outoforderStopBitmap;
-                break;
-            case StopDbHelper.STOP_DIVERTED:
-                bmp = divertedStopBitmap;
-                break;
+        BitmapDescriptor bmp = compassBitmaps.get(new Integer(pointTree.facing[stopNodeIdx]));
+        if (bmp == null) {
+            bmp = unknownStopBitmap;
         }
 
         LatLng location = new LatLng(pointTree.lat[stopNodeIdx]/1E6, pointTree.lon[stopNodeIdx]/1E6);
-        Log.d(TAG, "Location: " + location.latitude + ", " + location.longitude);
         Marker m = map.addMarker(new MarkerOptions()
                 .icon(bmp)
                 .position(location));
-        // Add marker here
-        Log.d(TAG, "Adding: " + m.toString());
         visibleMarkers.put(stopNodeIdx, m);
     }
 	
@@ -484,9 +426,6 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 		}
 	}	
 
-	
-	
-	
 	public void onAsyncGeocodeResponseError(int requestId, String message) {
         Log.w(TAG, "Geocode response error!");
 		if (requestId != expectedRequestId)
@@ -502,11 +441,11 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 	}
 
     public void zoomTo(LatLng pos) {
-        Log.i(TAG, "Zooming to: " + pos);
+        Log.i(TAG, "Zooming from " + map.getCameraPosition().target + " to: " + pos);
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 17));
     }
 
-	public void onAsyncGeocodeResponseSucccess(int requestId, List<Address> addresses_) {
+	public void onAsyncGeocodeResponseSuccess(int requestId, List<Address> addresses_) {
         Log.i(TAG, "Async Geocode success!");
 		if (requestId != expectedRequestId)
 			return;
@@ -516,13 +455,13 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 		
 		if (addresses_.size() == 1) {
 			Address address = addresses_.get(0);
-            LatLng pos = new LatLng((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
+            LatLng pos = new LatLng(address.getLatitude(), address.getLongitude());
             zoomTo(pos);
 			return;
 		}
 		
 		final List<Address> addresses = addresses_;
-		ArrayList<String> addressNames = new ArrayList<String>();
+		List<String> addressNames = new ArrayList<String>();
 		for(Address a: addresses) {
 			StringBuilder strb = new StringBuilder();
 			for(int i =0; i< a.getMaxAddressLineIndex(); i++) {
@@ -533,18 +472,19 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 			addressNames.add(strb.toString());
 		}
 
-        new AlertDialog.Builder(this)
-                .setSingleChoiceItems(addressNames.toArray(new String[addressNames.size()]), -1, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (which < 0)
-                            return;
+        String[] addressArray = addressNames.toArray(new String[addressNames.size()]);
+        DialogInterface.OnClickListener onClickSetPosition = new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                if (which < 0)
+                    return;
 
-                        Address address = addresses.get(which);
-                        LatLng pos = new LatLng((int) (address.getLatitude() * 1E6), (int) (address.getLongitude() * 1E6));
-                        zoomTo(pos);
-                        dialog.dismiss();
-                    }
-                }).show();
+                Address address = addresses.get(which);
+                LatLng pos = new LatLng(address.getLatitude(), address.getLongitude());
+                zoomTo(pos);
+                dialog.dismiss();
+            }
+        };
+        new AlertDialog.Builder(this).setSingleChoiceItems(addressArray, -1, onClickSetPosition).show();
     }
 }
 	

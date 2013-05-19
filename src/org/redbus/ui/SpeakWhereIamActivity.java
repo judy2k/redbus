@@ -124,7 +124,6 @@ public class SpeakWhereIamActivity extends Activity implements
 		((LocationManager) getSystemService(LOCATION_SERVICE))
 				.removeUpdates(locationListener);
 
-		
 		// Find the nearest stop
 		int x = (int) (location.getLatitude() * 1E6);
 		int y = (int) (location.getLongitude() * 1E6);

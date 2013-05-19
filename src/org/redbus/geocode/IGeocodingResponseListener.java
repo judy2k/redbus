@@ -24,5 +24,5 @@ import android.location.Address;
 
 public interface IGeocodingResponseListener {
 	public void onAsyncGeocodeResponseError(int requestId, String message);
-	public void onAsyncGeocodeResponseSucccess(int requestId, List<Address> addresses);
+	public void onAsyncGeocodeResponseSuccess(int requestId, List<Address> addresses);
 }

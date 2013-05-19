@@ -70,7 +70,7 @@ public class GeocodingHelper {
 				}
 			} else {
 				try {
-					request.callback.onAsyncGeocodeResponseSucccess(request.requestId, request.addresses);
+					request.callback.onAsyncGeocodeResponseSuccess(request.requestId, request.addresses);
 				} catch (Throwable t) {
 				}
 			}
