@@ -85,6 +85,7 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 
         this.pointTree = StopDbHelper.Load(this);
 
+        // Load in all the required BitmapDescriptors:
         unknownStopBitmap = BitmapDescriptorFactory.fromResource(R.drawable.stop_unknown);
         compassBitmaps = new HashMap<Integer, BitmapDescriptor>();
         compassBitmaps.put(StopDbHelper.STOP_FACING_N, BitmapDescriptorFactory.fromResource(R.drawable.compass_n));
@@ -97,12 +98,25 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
         compassBitmaps.put(StopDbHelper.STOP_FACING_NW, BitmapDescriptorFactory.fromResource(R.drawable.compass_nw));
         compassBitmaps.put(StopDbHelper.STOP_OUTOFORDER, BitmapDescriptorFactory.fromResource(R.drawable.stop_outoforder));
         compassBitmaps.put(StopDbHelper.STOP_DIVERTED, BitmapDescriptorFactory.fromResource(R.drawable.stop_diverted));
-        // compassBitmaps = Collections.unmodifiableMap(compassBitmaps);
+        compassBitmaps = Collections.unmodifiableMap(compassBitmaps);
 
+        // Get a reference to the map:
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         map = mapFragment.getMap();
         if (map != null) {
+            map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    LatLng point = marker.getPosition();
+                    final int nearestStopNodeIdx = pointTree.findNearest((int)(point.latitude * 1E6),
+                            (int)(point.longitude * 1E6));
+                    final int stopCode = pointTree.stopCode[nearestStopNodeIdx];
+                    new StopMapPopup(StopMapActivity.this, stopCode);
+                    return true;
+                }
+            });
             map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            map.setIndoorEnabled(false);
             map.setMyLocationEnabled(true);
 
             // mapController.setZoom(17);
@@ -146,7 +160,7 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
         updateMap();
     }
 
-    public void updateMap() {
+    private void updateMap() {
         LatLngBounds bounds = this.map.getProjection().getVisibleRegion().latLngBounds;
 
         // Build up a list of indexes to remove, to avoid concurrent
@@ -182,7 +196,7 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
         boolean validServices = ((pointTree.serviceMap0[stopNodeIdx] & serviceFilter.bits0) != 0) ||
                 ((pointTree.serviceMap1[stopNodeIdx] & serviceFilter.bits1) != 0);
 
-        BitmapDescriptor bmp = compassBitmaps.get(new Integer(pointTree.facing[stopNodeIdx]));
+        BitmapDescriptor bmp = compassBitmaps.get(Integer.valueOf(pointTree.facing[stopNodeIdx]));
         if (bmp == null) {
             bmp = unknownStopBitmap;
         }
@@ -190,11 +204,15 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
         LatLng location = new LatLng(pointTree.lat[stopNodeIdx]/1E6, pointTree.lon[stopNodeIdx]/1E6);
         Marker m = map.addMarker(new MarkerOptions()
                 .icon(bmp)
-                .position(location));
+                .position(location)
+                .title(pointTree.lookupStopNameByStopNodeIdx(stopNodeIdx))
+                .anchor(0.5f, 0.5f)
+        );
+        Log.d(TAG, "Marker title: " + pointTree.lookupStopNameByStopNodeIdx(stopNodeIdx));
         visibleMarkers.put(stopNodeIdx, m);
     }
 	
-	public void invalidate()
+	private void invalidate()
 	{
 		// this.stopOverlay.invalidate();
 		//this.mapView.invalidate();
@@ -300,12 +318,12 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 		return true;
 	}*/
 	
-	public boolean onStopMapTouchEvent(MotionEvent e, MapView mapView) {
-		// disable my location if user drags the map
+/*	public boolean onStopMapTouchEvent(MotionEvent e, MapView mapView) {
+        // disable my location if user drags the map
 		if (e.getAction() == MotionEvent.ACTION_MOVE)
 			updateMyLocationStatus(false);			
 		return false;
-	}
+	}*/
 
 	private void doSearchForLocation() {
 		final EditText input = new EditText(this);
@@ -440,7 +458,7 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
 			show();
 	}
 
-    public void zoomTo(LatLng pos) {
+    private void zoomTo(LatLng pos) {
         Log.i(TAG, "Zooming from " + map.getCameraPosition().target + " to: " + pos);
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 17));
     }
