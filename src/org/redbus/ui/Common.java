@@ -40,18 +40,17 @@ public class Common implements LoaderManager.LoaderCallbacks<Cursor>
 	private static final String[] columnNames = new String[] { SettingsHelper.ID, SettingsHelper.BOOKMARKS_COL_STOPNAME};
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name};
 	
-	public static SettingsHelper updateBookmarksListAdaptor(ListFragment la)
+	public static SettingsHelper updateBookmarksListAdaptor(ListAdapter la)
 	{
-    	ListAdapter cursorAdapter = (ListAdapter) la.getListAdapter();
-    	if (cursorAdapter == null) {
+    	if (la == null) {
             SettingsHelper db = new SettingsHelper(la);
 	        Cursor listContentsCursor = db.getBookmarks();
-	        la.startManagingCursor(listContentsCursor);
-	        SimpleCursorAdapter sca = new SimpleCursorAdapter(la, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds);
-	        la.setListAdapter(sca);
+	        //la.startManagingCursor(listContentsCursor);
+	        //SimpleCursorAdapter sca = new SimpleCursorAdapter(la, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds);
+	        //la.setListAdapter(sca);
 	        return db;
     	} else {
-    		cursorAdapter.getCursor().requery();
+    		//cursorAdapter.getCursor().requery();
     		return null;
     	}
 	}
