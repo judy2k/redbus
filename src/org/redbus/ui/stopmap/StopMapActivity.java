@@ -118,6 +118,11 @@ public class StopMapActivity extends FragmentActivity implements IGeocodingRespo
             map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             map.setIndoorEnabled(false);
             map.setMyLocationEnabled(true);
+            UiSettings mapSettings = map.getUiSettings();
+            mapSettings.setCompassEnabled(false);
+            mapSettings.setRotateGesturesEnabled(false);
+            mapSettings.setTiltGesturesEnabled(false);
+
 
             // mapController.setZoom(17);
 
