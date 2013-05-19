@@ -45,7 +45,7 @@ import android.util.Log;
 public class StopDbHelper {
 
     private static StopDbHelper pointTree = null;
-    private static Integer syncObj = new Integer(0);
+    private static final Integer syncObj = new Integer(0);
     private static final String filesPath = "/data/data/org.redbus/files";
     public static final String DatabaseVersion = "bus3";
 
