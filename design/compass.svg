@@ -13,7 +13,7 @@
    height="1052.3622047"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.4 r9939"
+   inkscape:version="0.48.2 r9819"
    inkscape:export-filename="test.png"
    inkscape:export-xdpi="4.6199999"
    inkscape:export-ydpi="4.6199999"
@@ -28,15 +28,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.49497475"
-     inkscape:cx="238.94"
+     inkscape:cx="-5.5169142"
      inkscape:cy="629.4372"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1920"
-     inkscape:window-height="1060"
-     inkscape:window-x="-2"
-     inkscape:window-y="-3"
+     inkscape:window-width="1436"
+     inkscape:window-height="856"
+     inkscape:window-x="4"
+     inkscape:window-y="0"
      inkscape:window-maximized="1">
     <inkscape:grid
        type="xygrid"
@@ -54,7 +54,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -63,8 +63,9 @@
      inkscape:groupmode="layer"
      id="layer1">
     <g
-       id="g3926"
-       transform="matrix(0,-1,1,0,-22.862189,402.86218)">
+       id="compass_n"
+       transform="matrix(0,-1,1,0,-22.862189,402.86218)"
+       inkscape:label="#g3926">
       <path
          inkscape:export-ydpi="4.6199999"
          inkscape:export-xdpi="4.6199999"
@@ -90,7 +91,8 @@
     </g>
     <g
        transform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,206.166,587.99561)"
-       id="g3926-9">
+       id="compass_se"
+       inkscape:label="#g3926-9">
       <path
          inkscape:export-ydpi="4.6199999"
          inkscape:export-xdpi="4.6199999"
@@ -116,7 +118,8 @@
     </g>
     <g
        transform="translate(0,440)"
-       id="g3926-61">
+       id="compass_e"
+       inkscape:label="#g3926-61">
       <path
          inkscape:export-ydpi="4.6199999"
          inkscape:export-xdpi="4.6199999"
@@ -142,7 +145,8 @@
     </g>
     <g
        transform="matrix(0.70710678,-0.70710678,0.70710678,0.70710678,-94.866583,416.69617)"
-       id="g3926-12">
+       id="compass_ne"
+       inkscape:label="#g3926-12">
       <path
          inkscape:export-ydpi="4.6199999"
          inkscape:export-xdpi="4.6199999"
@@ -167,8 +171,9 @@
          style="fill:none;stroke:#ffffff;stroke-width:30;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
     </g>
     <g
-       id="g3926-6"
-       transform="matrix(0,1,-1,0,722.86218,22.862192)">
+       id="compass_s"
+       transform="matrix(0,1,-1,0,722.86218,22.862192)"
+       inkscape:label="#g3926-6">
       <path
          inkscape:export-ydpi="4.6199999"
          inkscape:export-xdpi="4.6199999"
@@ -194,7 +199,8 @@
     </g>
     <g
        transform="matrix(-0.81915204,-0.57357644,0.57357644,-0.81915204,543.54615,1156.2082)"
-       id="g3926-9-5">
+       id="compass_nw"
+       inkscape:label="#g3926-9-5">
       <path
          inkscape:export-ydpi="4.6199999"
          inkscape:export-xdpi="4.6199999"
@@ -220,7 +226,8 @@
     </g>
     <g
        transform="matrix(-1,0,0,-1,699.99999,865.72437)"
-       id="g3926-61-0">
+       id="compass_w"
+       inkscape:label="#g3926-61-0">
       <path
          inkscape:export-ydpi="4.6199999"
          inkscape:export-xdpi="4.6199999"
@@ -246,7 +253,8 @@
     </g>
     <g
        transform="matrix(-0.70710678,0.70710678,-0.70710678,-0.70710678,794.86657,449.02819)"
-       id="g3926-12-8">
+       id="compass_sw"
+       inkscape:label="#g3926-12-8">
       <path
          inkscape:export-ydpi="4.6199999"
          inkscape:export-xdpi="4.6199999"
@@ -273,7 +281,7 @@
     <path
        sodipodi:type="arc"
        style="fill:#bb2742;fill-opacity:1;stroke:none"
-       id="path3755-40-3"
+       id="stop_unknown"
        sodipodi:cx="234.28572"
        sodipodi:cy="452.36218"
        sodipodi:rx="97.14286"
@@ -282,13 +290,15 @@
        transform="matrix(0,1.0294117,-1.0294117,0,825.66692,-228.81428)"
        inkscape:export-filename="/home/adq/Desktop/test.png"
        inkscape:export-xdpi="4.6199999"
-       inkscape:export-ydpi="4.6199999" />
+       inkscape:export-ydpi="4.6199999"
+       inkscape:label="#path3755-40-3" />
     <g
-       id="g3853"
+       id="stop_outoforder"
        transform="translate(-161.62441,-159.6041)"
        inkscape:export-filename="/home/adq/dev/android/redbus/res/drawable/stop_outoforder.png"
        inkscape:export-xdpi="4.5"
-       inkscape:export-ydpi="4.5">
+       inkscape:export-ydpi="4.5"
+       inkscape:label="#g3853">
       <path
          inkscape:export-ydpi="4.6199999"
          inkscape:export-xdpi="4.6199999"
@@ -319,10 +329,11 @@
       </g>
     </g>
     <g
-       id="g3875"
+       id="stop_diverted"
        inkscape:export-filename="/home/adq/dev/android/redbus/res/drawable/stop_diverted.png"
        inkscape:export-xdpi="4.5"
-       inkscape:export-ydpi="4.5">
+       inkscape:export-ydpi="4.5"
+       inkscape:label="#g3875">
       <path
          inkscape:export-ydpi="4.6199999"
          inkscape:export-xdpi="4.6199999"
