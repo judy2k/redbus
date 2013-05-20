@@ -58,7 +58,6 @@ public class BookmarksFragment extends ListFragment
     public void onActivityCreated(Bundle savedInstanceState)
     {
         super.onActivityCreated(savedInstanceState);
-        //setTitle("Bookmarks");
 
         busyDialog = new BusyDialog(getActivity());
         registerForContextMenu(getListView());
@@ -69,8 +68,6 @@ public class BookmarksFragment extends ListFragment
         bookmarksAdapter = new SimpleCursorAdapter(getActivity(), R.layout.stopbookmarks_item, null,
                 columnNames, listViewIds, 0);
         setListAdapter(bookmarksAdapter);
-
-//        setListShown(false);
 
         SettingsHelper.triggerInitialGoogleBackup(getActivity());
 
