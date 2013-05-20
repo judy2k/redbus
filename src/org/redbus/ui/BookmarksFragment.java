@@ -2,7 +2,10 @@ package org.redbus.ui;
 
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.database.Cursor;
 import android.net.Uri;
@@ -12,12 +15,11 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.text.InputFilter;
+import android.text.method.DigitsKeyListener;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.SimpleCursorAdapter;
-import android.widget.Toast;
+import android.view.*;
+import android.widget.*;
 import org.redbus.R;
 import org.redbus.data.RedbusContentProvider;
 import org.redbus.settings.SettingsHelper;
@@ -25,6 +27,10 @@ import org.redbus.stopdb.IStopDbUpdateResponseListener;
 import org.redbus.stopdb.StopDbHelper;
 import org.redbus.stopdb.StopDbUpdateHelper;
 import org.redbus.trafficnews.TrafficNewsHelper;
+import org.redbus.ui.arrivaltime.ArrivalTimeActivity;
+import org.redbus.ui.arrivaltime.NearbyBookmarkedArrivalTimeActivity;
+import org.redbus.ui.stopmap.StopMapActivity;
+import org.redbus.ui.trafficinfo.TrafficInfoActivity;
 
 import java.util.Date;
 
@@ -276,5 +282,278 @@ public class BookmarksFragment extends ListFragment
         } finally {
             db.close();
         }
+    }
+
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        doShowArrivalTimes((int) id);
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        MenuInflater inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.stopbookmarks_item_menu, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        long stopCode = menuInfo.id;
+        String bookmarkName = ((TextView) menuInfo.targetView.findViewById(R.id.stopbookmarks_name)).getText().toString();
+
+        switch(item.getItemId()) {
+            case R.id.stopbookmarks_item_menu_bustimes:
+                doShowArrivalTimes((int) stopCode);
+                return true;
+
+            case R.id.stopbookmarks_item_menu_showonmap:
+                doShowOnMap((int) stopCode);
+                return true;
+
+            case R.id.stopbookmarks_item_menu_rename:
+                // TODO: Put this back in
+                //Common.doRenameBookmark(getActivity(), (int) stopCode, bookmarkName, this);
+                return true;
+
+            case R.id.stopbookmarks_item_menu_delete:
+                // TODO: Put this back in
+                //Common.doDeleteBookmark(getActivity(), (int) stopCode, this);
+                return true;
+        }
+
+        return super.onContextItemSelected(item);
+    }
+
+    // TODO: The following items should probably be inflated into the ActionBar:
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        MenuInflater inflater = getActivity().getMenuInflater();
+//        inflater.inflate(R.menu.stopbookmarks_menu, menu);
+//        return true;
+//    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+
+        // Update the tabs menu option
+        MenuItem settingsMI = menu.findItem(R.id.stopbookmarks_menu_settings);
+        MenuItem tabsMI = settingsMI.getSubMenu().findItem(R.id.stopbookmarks_menu_tabs);
+        MenuItem viewMI = menu.findItem(R.id.stopbookmarks_menu_view);
+        MenuItem checkTrafficMI = menu.findItem(R.id.stopbookmarks_menu_checktraffic);
+        SettingsHelper settings = new SettingsHelper(getActivity());
+        if (settings.getGlobalSetting("TABSENABLED", "true").equals("true")) {
+            tabsMI.setTitle("Disable tabs");
+            viewMI.setVisible(false);
+            checkTrafficMI.setVisible(true);
+        } else {
+            tabsMI.setTitle("Enable tabs");
+            viewMI.setVisible(true);
+            checkTrafficMI.setVisible(false);
+        }
+
+        //return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.stopbookmarks_menu_bustimes:
+                doEnterStopcode();
+                return true;
+
+            case R.id.stopbookmarks_menu_backup:
+                doBookmarksBackup();
+                return true;
+
+            case R.id.stopbookmarks_menu_restore:
+                doBookmarksRestore();
+                return true;
+
+            case R.id.stopbookmarks_menu_checktraffic:
+            case R.id.stopbookmarks_menu_checktraffic2:
+                doCheckTraffic();
+                return true;
+
+            case R.id.stopbookmarks_menu_checkupdates:
+                doCheckStopDbUpdate();
+                return true;
+
+            case R.id.stopbookmarks_menu_tabs:
+                doTabsSetting();
+                return true;
+
+            case R.id.stopbookmarks_menu_viewmap:
+                startActivity(new Intent().setClass(getActivity(), StopMapActivity.class));
+                return true;
+
+            case R.id.stopbookmarks_menu_viewnearby:
+                startActivity(new Intent().setClass(getActivity(), NearbyBookmarkedArrivalTimeActivity.class));
+                return true;
+        }
+
+        return false;
+    }
+
+    private void doShowArrivalTimes(int stopCode) {
+        ArrivalTimeActivity.showActivity(getActivity(), stopCode);
+    }
+
+    private void doShowOnMap(int stopCode) {
+        StopDbHelper pt = StopDbHelper.Load(getActivity());
+        int stopNodeIdx = pt.lookupStopNodeIdxByStopCode(stopCode);
+        if (stopNodeIdx != -1)
+            StopMapActivity.showActivity(getActivity(), pt.lat[stopNodeIdx], pt.lon[stopNodeIdx]);
+    }
+
+    private void doEnterStopcode() {
+        LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View stopCodeDialogView = layoutInflater.inflate(R.layout.enterstopcode, null);
+
+        final EditText stopCodeText = (EditText) stopCodeDialogView.findViewById(R.id.enterstopcode_code);
+        final CheckBox addbookmarkCb = (CheckBox) stopCodeDialogView.findViewById(R.id.enterstopcode_addbookmark);
+        stopCodeText.setFilters(new InputFilter[] { new InputFilter.LengthFilter(8), new DigitsKeyListener() } );
+
+        // show the dialog!
+        new AlertDialog.Builder(getActivity())
+                .setView(stopCodeDialogView)
+                .setTitle("Enter Stopcode")
+                .setPositiveButton(android.R.string.ok,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                long stopCode = -1;
+                                try {
+                                    stopCode = Long.parseLong(stopCodeText.getText().toString());
+                                } catch (Exception ex) {
+                                    new AlertDialog.Builder(getActivity())
+                                            .setTitle("Error")
+                                            .setMessage("The stopcode was invalid; please try again using only numbers")
+                                            .setPositiveButton(android.R.string.ok, null)
+                                            .show();
+                                    return;
+                                }
+
+                                doHandleEnterStopcode(stopCode, addbookmarkCb.isChecked());
+                            }
+                        })
+                .setNeutralButton("Scan",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                try {
+                                    Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+                                    intent.setPackage("com.google.zxing.client.android");
+                                    intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+                                    startActivityForResult(intent, addbookmarkCb.isChecked() ? 1 : 0);
+                                } catch (ActivityNotFoundException ex) {
+                                    new AlertDialog.Builder(getActivity())
+                                            .setTitle("Barcode Scanner required")
+                                            .setMessage("You will need Barcode Scanner installed for this to work. Would you like to go to the Android Market to install it?")
+                                            .setPositiveButton(android.R.string.ok,
+                                                    new DialogInterface.OnClickListener() {
+                                                        public void onClick(DialogInterface dialog, int whichButton) {
+                                                            try {
+                                                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.zxing.client.android")));
+                                                            } catch (Throwable t) {
+                                                                Toast.makeText(getActivity(), "Sorry, I couldn't find the Android Market either!", 5000).show();
+                                                            }
+                                                        }
+                                                    })
+                                            .setNegativeButton(android.R.string.cancel, null)
+                                            .show();
+                                }
+                            }
+                        })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        boolean addBookmark = requestCode == 1;
+
+        if ((requestCode == 0) || (requestCode == 1)) {
+            if (resultCode == getActivity().RESULT_OK) {
+                String contents = intent.getStringExtra("SCAN_RESULT");
+                try {
+                    if (!contents.startsWith("http://mobile.mybustracker.co.uk/?busStopCode="))
+                        throw new RuntimeException();
+
+                    long stopCode = Long.parseLong(contents.substring(contents.indexOf('=') + 1));
+                    doHandleEnterStopcode(stopCode, addBookmark);
+                } catch (Throwable t) {
+                    Toast.makeText(getActivity(), "That doesn't look like a bus stop barcode", 5000).show();
+                }
+            }
+        }
+    }
+
+    private void doHandleEnterStopcode(long stopCode, boolean addBookmark) {
+        StopDbHelper pt = StopDbHelper.Load(getActivity());
+        int stopNodeIdx = pt.lookupStopNodeIdxByStopCode((int) stopCode);
+        if (stopNodeIdx == -1) {
+            new AlertDialog.Builder(getActivity())
+                    .setTitle("Error")
+                    .setMessage("The stopcode was invalid; please try again")
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+            return;
+        }
+
+        ArrivalTimeActivity.showActivity(getActivity(), (int) stopCode);
+        if (addBookmark) {
+            String stopName = pt.lookupStopNameByStopNodeIdx(stopNodeIdx);
+            Common.doAddBookmark(getActivity(), (int) stopCode, stopName);
+        }
+    }
+
+    private void doBookmarksBackup() {
+        SettingsHelper db = new SettingsHelper(getActivity());
+        if (db.backup(bookmarksXmlFile))
+            Toast.makeText(getActivity(), "Bookmarks saved to " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
+    }
+
+    private void doBookmarksRestore() {
+        SettingsHelper db = new SettingsHelper(getActivity());
+        if (db.restore(bookmarksXmlFile)) {
+            Toast.makeText(getActivity(), "Bookmarks restored from " + bookmarksXmlFile, Toast.LENGTH_SHORT).show();
+            // TODO: Force cursor to re-read data
+            /* SettingsHelper tmp = Common.updateBookmarksListAdaptor(getActivity());
+            if (tmp != null)
+                listDb = tmp;
+                */
+        }
+    }
+
+    private void doCheckStopDbUpdate() {
+        // display changes popup
+        SettingsHelper db = new SettingsHelper(getActivity());
+        long lastUpdateDate = -1;
+        try {
+            lastUpdateDate = Long.parseLong(db.getGlobalSetting("LASTUPDATE", "-1"));
+        } catch (Exception e) {
+            return;
+        } finally {
+            db.close();
+        }
+
+        if (busyDialog != null)
+            busyDialog.show(this, "Checking for updates...");
+        isManualUpdateCheck = true;
+        stopDbExpectedRequestId = StopDbUpdateHelper.checkForUpdates(lastUpdateDate, this);
+    }
+
+    private void doCheckTraffic() {
+        TrafficInfoActivity.showActivity(getActivity());
+    }
+
+    private void doTabsSetting() {
+        SettingsHelper db = new SettingsHelper(getActivity());
+        if (db.getGlobalSetting("TABSENABLED", "true").equals("true")) {
+            db.setGlobalSetting("TABSENABLED", "false");
+        } else {
+            db.setGlobalSetting("TABSENABLED", "true");
+        }
+
+        Intent intent = new Intent(getActivity(), RedbusTabView.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
     }
 }
