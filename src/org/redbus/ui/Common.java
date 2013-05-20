@@ -34,20 +34,21 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 // TODO: Rename - this class only manages bookmarks.
-public class Common implements LoaderManager.LoaderCallbacks<Cursor>
+public class Common
 {
 
 	private static final String[] columnNames = new String[] { SettingsHelper.ID, SettingsHelper.BOOKMARKS_COL_STOPNAME};
 	private static final int[] listViewIds = new int[] { R.id.stopbookmarks_stopcode, R.id.stopbookmarks_name};
 	
-	public static SettingsHelper updateBookmarksListAdaptor(ListActivity la)
+	public static SettingsHelper updateBookmarksListAdaptor(ListActivity activity)
 	{
+        ListAdapter la = activity.getListAdapter();
     	if (la == null) {
-            SettingsHelper db = new SettingsHelper(la);
+            SettingsHelper db = new SettingsHelper(activity);
 	        Cursor listContentsCursor = db.getBookmarks();
-	        la.startManagingCursor(listContentsCursor);
-	        SimpleCursorAdapter sca = new SimpleCursorAdapter(la, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds);
-	        la.setListAdapter(sca);
+	        activity.startManagingCursor(listContentsCursor);
+	        SimpleCursorAdapter sca = new SimpleCursorAdapter(activity, R.layout.stopbookmarks_item, listContentsCursor, columnNames, listViewIds, SimpleCursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+	        activity.setListAdapter(sca);
 	        return db;
     	} else {
     		//cursorAdapter.getCursor().requery();
