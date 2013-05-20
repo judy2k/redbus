@@ -150,5 +150,8 @@
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyCUKD_DHq17HnrAID9bUjjTVDczaLARPZo" />
+
+        <provider android:name=".data.RedbusContentProvider"
+                  android:authorities="org.redbus" />
     </application>
 </manifest>
