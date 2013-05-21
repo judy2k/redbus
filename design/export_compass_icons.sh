@@ -1,5 +1,6 @@
 #!/bin/bash
 
+INKSCAPE=/Applications/Inkscape.app/Contents/Resources/bin/inkscape
 DEST_DIR=../res
 
 SOURCE_FILE=compass.svg
@@ -23,7 +24,6 @@ do
     for id in $IDS
     do
         dest_file=${dir}/${id}.png
-        /Applications/Inkscape.app/Contents/Resources/bin/inkscape \
-            --without-gui -i ${id} -e ${dest_file} -w ${size} -h ${size}  $SOURCE_FILE
+        $INKSCAPE --without-gui -i ${id} -e ${dest_file} -w ${size} -h ${size} $SOURCE_FILE
     done
 done
